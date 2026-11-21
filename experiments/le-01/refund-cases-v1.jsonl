@@ -1,0 +1,8 @@
+{"csv": "id,amount\n1,8\n2,4", "expected": {"count": 2, "mean": 6, "missing": 0}, "family": "positive-a", "id": "dev-01", "split": "dev", "stratum": "golden"}
+{"csv": "id,amount\n1,10\n2,\n3,0", "expected": {"count": 2, "mean": 5, "missing": 1}, "family": "api10-mixed", "id": "dev-02", "split": "dev", "stratum": "historical"}
+{"csv": "id,amount\n1,\n2,\n3,", "expected": {"count": 0, "mean": null, "missing": 3}, "family": "empty-a", "id": "dev-03", "split": "dev", "stratum": "edge"}
+{"csv": "id,amount\n1,6\n2,10", "expected": {"count": 2, "mean": 8, "missing": 0}, "family": "positive-b", "id": "test-01", "split": "test", "stratum": "golden"}
+{"csv": "id,amount\n1,-4\n2,\n3,-2\n4,", "expected": {"count": 2, "mean": -3, "missing": 2}, "family": "negative-b", "id": "test-02", "split": "test", "stratum": "edge"}
+{"csv": "id,amount\n1,\n2,", "expected": {"count": 0, "mean": null, "missing": 2}, "family": "empty-b", "id": "test-03", "split": "test", "stratum": "edge"}
+{"csv": "id,amount\n1,0\n2,0\n3,0", "expected": {"count": 3, "mean": 0, "missing": 0}, "family": "zero-b", "id": "test-04", "split": "test", "stratum": "edge"}
+{"csv": "id,amount\n1,2\n2,5", "expected": {"count": 2, "mean": 3.5, "missing": 0}, "family": "fraction-b", "id": "test-05", "split": "test", "stratum": "golden"}

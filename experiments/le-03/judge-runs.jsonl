@@ -1,0 +1,10 @@
+{"case": "clear", "swapped": false, "human": "left", "raw": "A", "judge": "left"}
+{"case": "clear", "swapped": true, "human": "left", "raw": "A", "judge": "right"}
+{"case": "wrong", "swapped": false, "human": "right", "raw": "A", "judge": "left"}
+{"case": "wrong", "swapped": true, "human": "right", "raw": "A", "judge": "right"}
+{"case": "equal-length-test", "swapped": false, "human": "tie", "raw": "A", "judge": "left"}
+{"case": "equal-length-test", "swapped": true, "human": "tie", "raw": "A", "judge": "right"}
+{"case": "both-brief", "swapped": false, "human": "tie", "raw": "A", "judge": "left"}
+{"case": "both-brief", "swapped": true, "human": "tie", "raw": "A", "judge": "right"}
+{"case": "zero", "swapped": false, "human": "left", "raw": "A", "judge": "left"}
+{"case": "zero", "swapped": true, "human": "left", "raw": "A", "judge": "right"}

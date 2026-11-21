@@ -1,0 +1,54 @@
+{
+  "tool": "lm-eval 0.4.13",
+  "dataset": "openai/gsm8k",
+  "dataset_revision": "740312add88f781978c0658806c59bc2815b9866",
+  "configuration": "main",
+  "split": "test",
+  "doc_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "prompt_template": "Question: {{question}}\nAnswer:",
+  "chat_template": false,
+  "decode": {
+    "do_sample": false,
+    "max_gen_toks": 96,
+    "seed": 42
+  },
+  "fewshot": 0,
+  "batch_size": 2,
+  "models": [
+    {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "metrics": {
+        "name": "gsm8k_pinned",
+        "alias": "gsm8k_pinned",
+        "sample_len": 8,
+        "exact_match,strict-match": 0.0,
+        "exact_match_stderr,strict-match": 0.0,
+        "exact_match,flexible-extract": 0.25,
+        "exact_match_stderr,flexible-extract": 0.16366341767699427
+      }
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+      "metrics": {
+        "name": "gsm8k_pinned",
+        "alias": "gsm8k_pinned",
+        "sample_len": 8,
+        "exact_match,strict-match": 0.0,
+        "exact_match_stderr,strict-match": 0.0,
+        "exact_match,flexible-extract": 0.0,
+        "exact_match_stderr,flexible-extract": 0.0
+      }
+    }
+  ]
+}

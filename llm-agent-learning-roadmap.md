@@ -51,16 +51,16 @@
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| API-01 | 从原始 HTTP 请求认识 LLM API | 请求头、JSON 体、认证、模型 ID、HTTP 错误、限流和用量。用最小请求记录输入、输出、用量及失败响应。 |
-| API-02 | OpenAI Chat Completions 的消息协议 | `POST /v1/chat/completions`、`messages`、`choices`、终止原因。追踪两轮问答，说明应用如何保存与回传历史。 |
-| API-10 | Prompt Engineering 的可复现对照实验 | 对同一个 CSV 报告任务比较朴素提示、明确统计口径、加入少量示例三个版本。固定模型、采样与留出集，一次只改变一项，记录格式通过率、业务正确率和输入 Token，保存失败样例供 LE-04 回归。 |
-| API-03 | 从 Chat Completions、Assistants 到 Responses | 以 Chat Completions 的 Messages、Assistants 的 Thread/Run、Responses 的 typed Items 为轴；用两轮文本和一次工具调用做字段迁移对照。 |
-| API-04 | Function Calling 与 Structured Outputs | 工具定义、JSON Schema、调用 ID、参数校验、调用结果回填。区分用于回答的结构化输出与触发应用动作的工具调用，验证坏参数和多工具返回。 |
-| API-09 | 约束解码如何生成符合 Schema 的结构化输出 | 用一个小 JSON Schema 追踪约束状态和可选 Token，比较自由生成、JSON 模式、Schema 约束及应用侧校验。覆盖合法结构中的错误业务值、输出截断和拒答，按引擎版本验证支持范围。 |
-| API-05 | SSE 和流式工具调用 | 区分 TCP/HTTP 数据块、SSE 帧、模型增量事件及 UI 文本。对比 Chat Completions 的 `delta` 与 Responses 的类型化事件，处理参数分片、UTF-8 跨块、结束、断线和取消。 |
-| API-06 | Anthropic Messages API 的内容块与事件 | 从 `POST /v1/messages` 开始，拆解顶层 system、内容块、`tool_use` 与 `tool_result`。对照流式块索引与事件，通过一个示例和 OpenAI 请求往返映射。 |
-| API-07 | 模型协议适配与能力矩阵 | 建立消息、文本事件、工具事件、错误和用量的内部类型。保留供应商特有能力，逐条验证多模态、工具、结构化输出、流式及状态管理。 |
-| API-08 | 实时语音 Agent 的双向流 | 基于 F-09 和 API-05，画出浏览器采集、双向媒体、语音活动检测、打断和播放队列。对照 WebRTC 与 WebSocket 的连接边界，用一次打断测停止播放时间。 |
+| API-01 | [从原始 HTTP 请求认识 LLM API](https://blog.lacknb.cn/articles/2026/11/21/1795268752670.html)（已发布，[源稿](api-01-raw-http-request.md)） | 请求头、JSON 体、认证、模型 ID、HTTP 错误、限流和用量。用最小请求记录输入、输出、用量及失败响应。 |
+| API-02 | [OpenAI Chat Completions 的消息协议](https://blog.lacknb.cn/articles/2026/11/21/1795268752027.html)（已发布，[源稿](api-02-chat-completions-messages.md)） | `POST /v1/chat/completions`、`messages`、`choices`、终止原因。追踪两轮问答，说明应用如何保存与回传历史。 |
+| API-10 | [Prompt Engineering 的可复现对照实验](https://blog.lacknb.cn/articles/2026/11/21/1795268751247.html)（已发布，[源稿](api-10-prompt-comparison.md)） | 对同一个 CSV 报告任务比较朴素提示、明确统计口径、加入少量示例三个版本。固定模型、采样与留出集，一次只改变一项，记录格式通过率、业务正确率和输入 Token，保存失败样例供 LE-04 回归。 |
+| API-03 | [从 Chat Completions、Assistants 到 Responses](https://blog.lacknb.cn/articles/2026/11/21/1795268750432.html)（已发布，[源稿](api-03-openai-api-evolution.md)） | 以 Chat Completions 的 Messages、Assistants 的 Thread/Run、Responses 的 typed Items 为轴；用两轮文本和一次工具调用做字段迁移对照。 |
+| API-04 | [Function Calling 与 Structured Outputs](https://blog.lacknb.cn/articles/2026/11/21/1795268749640.html)（已发布，[源稿](api-04-function-calling-structured-outputs.md)） | 工具定义、JSON Schema、调用 ID、参数校验、调用结果回填。区分用于回答的结构化输出与触发应用动作的工具调用，验证坏参数和多工具返回。 |
+| API-09 | [约束解码如何生成符合 Schema 的结构化输出](https://blog.lacknb.cn/articles/2026/11/21/1795268748887.html)（已发布，[源稿](api-09-constrained-decoding.md)） | 用一个小 JSON Schema 追踪约束状态和可选 Token，比较自由生成、JSON 模式、Schema 约束及应用侧校验。覆盖合法结构中的错误业务值、输出截断和拒答，按引擎版本验证支持范围。 |
+| API-05 | [SSE 和流式工具调用](https://blog.lacknb.cn/articles/2026/11/21/1795268748102.html)（已发布，[源稿](api-05-sse-streaming-tools.md)） | 区分 TCP/HTTP 数据块、SSE 帧、模型增量事件及 UI 文本。对比 Chat Completions 的 `delta` 与 Responses 的类型化事件，处理参数分片、UTF-8 跨块、结束、断线和取消。 |
+| API-06 | [Anthropic Messages API 的内容块与事件](https://blog.lacknb.cn/articles/2026/11/21/1795268747439.html)（已发布，[源稿](api-06-anthropic-messages.md)） | 从 `POST /v1/messages` 开始，拆解顶层 system、内容块、`tool_use` 与 `tool_result`。对照流式块索引与事件，通过一个示例和 OpenAI 请求往返映射。 |
+| API-07 | [模型协议适配与能力矩阵](https://blog.lacknb.cn/articles/2026/11/21/1795268746690.html)（已发布，[源稿](api-07-provider-adapters.md)） | 建立消息、文本事件、工具事件、错误和用量的内部类型。保留供应商特有能力，逐条验证多模态、工具、结构化输出、流式及状态管理。 |
+| API-08 | [实时语音 Agent 的双向流](https://blog.lacknb.cn/articles/2026/11/21/1795268619097.html)（已发布，[源稿](api-08-realtime-voice-agent.md)） | 基于 F-09 和 API-05，画出浏览器采集、双向媒体、语音活动检测、打断和播放队列。对照 WebRTC 与 WebSocket 的连接边界，用一次打断测停止播放时间。 |
 
 演进锚点为 **2023-03 Chat Completions → 2023-06 Function Calling → Assistants 的 Thread/Run 模型 → 2025-03 Responses**。重点追踪 API 的输入输出、状态归属与自定义工具由谁执行。 [ChatGPT API 发布](https://openai.com/index/introducing-chatgpt-and-whisper-apis/) · [Function Calling 发布](https://openai.com/index/function-calling-and-other-api-updates/) · [Responses 发布](https://openai.com/index/new-tools-for-building-agents/) · [OpenAI 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses) · [Anthropic Messages 流式文档](https://platform.claude.com/docs/en/build-with-claude/streaming) · [OpenAI Realtime 会话](https://developers.openai.com/api/docs/guides/realtime-conversations) · [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) · [Prompt Engineering 指南](https://developers.openai.com/api/docs/guides/prompt-engineering)
 
@@ -74,16 +74,16 @@
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| LE-07 | 第一篇，什么是评测，如何跑通第一条用例 | 先分清任务、样本、试次、通过条件、评分器、指标和基线。用三行 CSV 手写一个最小运行器，输出单条结果、失败原因和汇总。分别构造格式错误、格式正确但数值错误的输出，验证评分器能区分。 |
-| LE-01 | 从业务目标到数据集、基线和评分 | 黄金样本、边界样本、失败样本、独立测试集。用准确率、结构校验或人工标准计分，记录数据版本、样本分层和失败类型。 |
-| LE-08 | 如何设计可测试的评分器与评分准则 | 对 JSON Schema、数值误差、公差和业务规则做确定性断言，用人工准则评价开放式解释。比较逐项打分和成对比较，明确平局、拒答、工具故障与无法判定的处理。用已知对错样本独立测试评分器。 |
-| LE-10 | 常用 LLM 评测数据集测什么，应该怎么选 | 对照 MMLU、C-Eval、GSM8K、HumanEval 的样本形态、能力范围和评分方式。各看一条公开样本，解释选项正确率、归一化答案匹配和单元测试各自能说明什么。 |
-| LE-02 | 公开基准实战，怎样复现并比较模型结果 | 用同一评测工具跑一份固定小子集，记录数据版本与划分、提示模板、few-shot、解码和答案抽取规则。对照单次准确率和多次生成的 pass@k，讨论污染、样本量和跨运行可比性。 |
-| LE-03 | LLM-as-a-Judge 与人工校准 | 对开放文本定义评分准则，以人工标注集校准，检查位置偏差、长度偏差和评分稳定性。可确定的数值、Schema 和引用用硬断言。 |
-| LE-09 | 怎样判断两版效果差异是否可信 | 固定任务、模型或 Prompt 以外的配置，用相同样本成对对照，记录每题多次试验与失败分层。报告样本数、差值和不确定区间，用按题聚类的重采样处理同题多次运行，区分业务提升和测量噪声。 |
-| LE-04 | 把效果评测接入 Prompt 和模型回归 | 固定数据版本和脆弱样本，输出分项指标与失败例，设发布阈值。比较准确性、成本和延迟变化。 |
-| LE-06 | 长上下文的有效性如何评测 | 把同一份 CSV 数据字典的关键证据分别放到输入头、中、尾，改变文档长度和干扰项，测正确率、引用、TTFT 与成本。学完 KB-05 后用同一数据对照全量上下文与 RAG，供 AGT-04～05 验证裁剪和压缩。 |
-| LE-05 | 模型改了，线上效果真的变好了吗 | 先用固定样本做成对比较和分层误差分析，再设计只读流量的影子评测或用户级灰度对照。记录随机分配、版本、人工接管率与回滚阈值，用区间说明样本不确定性。 |
+| LE-07 | [第一篇，什么是评测，如何跑通第一条用例](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html)（已发布，[源稿](le-07-first-eval.md)） | 先分清任务、样本、试次、通过条件、评分器、指标和基线。用三行 CSV 手写一个最小运行器，输出单条结果、失败原因和汇总。分别构造格式错误、格式正确但数值错误的输出，验证评分器能区分。 |
+| LE-01 | [从业务目标到数据集、基线和评分](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html)（已发布，[源稿](le-01-dataset-baseline.md)） | 黄金样本、边界样本、失败样本、独立测试集。用准确率、结构校验或人工标准计分，记录数据版本、样本分层和失败类型。 |
+| LE-08 | [如何设计可测试的评分器与评分准则](https://blog.lacknb.cn/articles/2026/11/21/1795270269520.html)（已发布，[源稿](le-08-testable-graders.md)） | 对 JSON Schema、数值误差、公差和业务规则做确定性断言，用人工准则评价开放式解释。比较逐项打分和成对比较，明确平局、拒答、工具故障与无法判定的处理。用已知对错样本独立测试评分器。 |
+| LE-10 | [常用 LLM 评测数据集测什么，应该怎么选](https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html)（已发布，[源稿](le-10-public-datasets.md)） | 对照 MMLU、C-Eval、GSM8K、HumanEval 的样本形态、能力范围和评分方式。各看一条公开样本，解释选项正确率、归一化答案匹配和单元测试各自能说明什么。 |
+| LE-02 | [公开基准实战，怎样复现并比较模型结果](https://blog.lacknb.cn/articles/2026/11/21/1795270267947.html)（已发布，[源稿](le-02-reproduce-benchmark.md)） | 用同一评测工具跑一份固定小子集，记录数据版本与划分、提示模板、few-shot、解码和答案抽取规则。对照单次准确率和多次生成的 pass@k，讨论污染、样本量和跨运行可比性。 |
+| LE-03 | [LLM-as-a-Judge 与人工校准](https://blog.lacknb.cn/articles/2026/11/21/1795270267279.html)（已发布，[源稿](le-03-llm-judge-calibration.md)） | 对开放文本定义评分准则，以人工标注集校准，检查位置偏差、长度偏差和评分稳定性。可确定的数值、Schema 和引用用硬断言。 |
+| LE-09 | [怎样判断两版效果差异是否可信](https://blog.lacknb.cn/articles/2026/11/21/1795270266572.html)（已发布，[源稿](le-09-paired-comparison.md)） | 固定任务、模型或 Prompt 以外的配置，用相同样本成对对照，记录每题多次试验与失败分层。报告样本数、差值和不确定区间，用按题聚类的重采样处理同题多次运行，区分业务提升和测量噪声。 |
+| LE-04 | [把效果评测接入 Prompt 和模型回归](https://blog.lacknb.cn/articles/2026/11/21/1795270265847.html)（已发布，[源稿](le-04-regression-gates.md)） | 固定数据版本和脆弱样本，输出分项指标与失败例，设发布阈值。比较准确性、成本和延迟变化。 |
+| LE-06 | [长上下文的有效性如何评测](https://blog.lacknb.cn/articles/2026/11/21/1795270265166.html)（已发布，[源稿](le-06-long-context-eval.md)） | 把同一份 CSV 数据字典的关键证据分别放到输入头、中、尾，改变文档长度和干扰项，测正确率、引用、TTFT 与成本。学完 KB-05 后用同一数据对照全量上下文与 RAG，供 AGT-04～05 验证裁剪和压缩。 |
+| LE-05 | [模型改了，线上效果真的变好了吗](https://blog.lacknb.cn/articles/2026/11/21/1795270264488.html)（已发布，[源稿](le-05-online-evaluation.md)） | 先用固定样本做成对比较和分层误差分析，再设计只读流量的影子评测或用户级灰度对照。记录随机分配、版本、人工接管率与回滚阈值，用区间说明样本不确定性。 |
 
 ### 常用模型数据集与打分方式
 
