@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。第一部分「LLM 基础与推理」15 篇、第二部分「LLM API 与流式协议」10 篇均已发布。第三部分「评测入门与 LLM 效果评测」10 篇均已发布，可从 [LE-07《什么是评测，如何跑通第一条用例》](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html) 开始阅读。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前三部分共 35 篇均已发布，第四部分「模型预训练与后训练」已发布 [TRN-01《预训练语料与 Token 数据管线》](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。

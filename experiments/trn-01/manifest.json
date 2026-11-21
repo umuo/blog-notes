@@ -1,0 +1,79 @@
+{
+  "pipeline_version": "trn-01-v1",
+  "allowed_licenses": [
+    "CC-BY-4.0",
+    "MIT"
+  ],
+  "raw_docs": 9,
+  "dropped": [
+    {
+      "doc_id": "doc-02",
+      "reason": "disallowed_license"
+    },
+    {
+      "doc_id": "doc-04",
+      "reason": "too_short"
+    },
+    {
+      "doc_id": "doc-05",
+      "reason": "exact_duplicate"
+    },
+    {
+      "doc_id": "doc-06",
+      "reason": "near_duplicate(0.875)"
+    },
+    {
+      "doc_id": "doc-07",
+      "reason": "eval_contaminated"
+    }
+  ],
+  "kept": [
+    {
+      "doc_id": "doc-01",
+      "source": "docs-wiki",
+      "license": "CC-BY-4.0",
+      "family": "policy",
+      "split": "train",
+      "tokens_with_eos": 10
+    },
+    {
+      "doc_id": "doc-03",
+      "source": "web-crawl",
+      "license": "CC-BY-4.0",
+      "family": "html-clean",
+      "split": "train",
+      "tokens_with_eos": 8
+    },
+    {
+      "doc_id": "doc-08",
+      "source": "docs-wiki",
+      "license": "MIT",
+      "family": "audit",
+      "split": "val",
+      "tokens_with_eos": 9
+    },
+    {
+      "doc_id": "doc-09",
+      "source": "docs-wiki",
+      "license": "MIT",
+      "family": "batch-note",
+      "split": "train",
+      "tokens_with_eos": 8
+    }
+  ],
+  "vocab_size": 24,
+  "shards": {
+    "train.bin": {
+      "dtype": "uint16",
+      "tokens": 26,
+      "bytes": 52,
+      "sha256": "8197763aa571157cccc8b87a1b20456f68a040f5018713faa4aabe1a3ed51fd0"
+    },
+    "val.bin": {
+      "dtype": "uint16",
+      "tokens": 9,
+      "bytes": 18,
+      "sha256": "b2b50b18eb4a30598a3ceec441d9a6c6b0d872551d2fbad391957355db88070c"
+    }
+  }
+}
