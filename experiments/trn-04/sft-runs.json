@@ -1,0 +1,784 @@
+{
+  "base": "Qwen/Qwen2.5-0.5B",
+  "base_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+  "tokenizer": "Qwen/Qwen2.5-0.5B-Instruct",
+  "tokenizer_revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "torch": "2.8.0",
+  "transformers": "4.57.1",
+  "device": "mps",
+  "platform": "arm64",
+  "dtype": "float32",
+  "steps": 24,
+  "batch_size": 2,
+  "max_length": 160,
+  "lr": 6e-05,
+  "seed": 2026,
+  "trainable_params": 59650432,
+  "total_params": 494032768,
+  "train": [
+    [
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      3
+    ],
+    [
+      null,
+      6
+    ],
+    [
+      7,
+      null,
+      null
+    ],
+    [
+      10,
+      3,
+      null
+    ],
+    [
+      null,
+      15,
+      14,
+      7
+    ],
+    [
+      3,
+      null,
+      9
+    ],
+    [
+      15,
+      null,
+      10
+    ],
+    [
+      null,
+      11,
+      11,
+      11
+    ],
+    [
+      2,
+      9,
+      7,
+      null
+    ],
+    [
+      9,
+      null,
+      0
+    ],
+    [
+      13,
+      2,
+      12,
+      null
+    ],
+    [
+      13,
+      15,
+      null
+    ],
+    [
+      1,
+      null,
+      3
+    ],
+    [
+      15,
+      7,
+      null
+    ],
+    [
+      15,
+      8,
+      null,
+      10
+    ],
+    [
+      12,
+      13,
+      null,
+      5
+    ],
+    [
+      0,
+      1,
+      2,
+      null
+    ],
+    [
+      11,
+      6,
+      7,
+      null
+    ],
+    [
+      14,
+      3,
+      null,
+      13
+    ],
+    [
+      null,
+      5,
+      13,
+      15
+    ],
+    [
+      15,
+      null,
+      11,
+      1
+    ],
+    [
+      null,
+      4,
+      14,
+      0
+    ],
+    [
+      null,
+      14,
+      2
+    ],
+    [
+      null,
+      1,
+      8
+    ],
+    [
+      null,
+      15,
+      4
+    ],
+    [
+      5,
+      4,
+      9,
+      null
+    ],
+    [
+      null,
+      4,
+      6,
+      11
+    ],
+    [
+      12,
+      null,
+      2
+    ],
+    [
+      0,
+      0,
+      null,
+      15
+    ],
+    [
+      14,
+      10,
+      3,
+      null
+    ],
+    [
+      5,
+      4,
+      6,
+      null
+    ]
+  ],
+  "heldout": [
+    [
+      4,
+      null,
+      6
+    ],
+    [
+      null,
+      9,
+      5
+    ],
+    [
+      2,
+      5,
+      null
+    ],
+    [
+      null,
+      0
+    ],
+    [
+      2,
+      null,
+      8,
+      5
+    ],
+    [
+      null,
+      null
+    ]
+  ],
+  "mask": {
+    "total": 75,
+    "supervised": 16,
+    "spans": [
+      [
+        39,
+        40,
+        41,
+        42,
+        43,
+        44
+      ],
+      [
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ]
+    ],
+    "tokens": [
+      "<|im_start|>",
+      "system",
+      "Ċ",
+      "ä½łæĺ¯",
+      "éĢĢæ¬¾",
+      "æĬ¥è¡¨",
+      "åĬ©æīĭ",
+      "ãĢĤ",
+      "<|im_end|>",
+      "Ċ",
+      "<|im_start|>",
+      "user",
+      "Ċ",
+      "éĢĢæ¬¾",
+      "éĩĳé¢Ŀ",
+      "ĠCSV",
+      "Ċ",
+      "refund",
+      "Ċ",
+      "4",
+      "Ċ",
+      "NA",
+      "Ċ",
+      "6",
+      "Ċ",
+      "å¿½çķ¥",
+      "ĠNA",
+      "ï¼Į",
+      "åħĪ",
+      "æĬ¥",
+      "æľīæķĪ",
+      "æĿ¡",
+      "æķ°",
+      "ãĢĤ",
+      "<|im_end|>",
+      "Ċ",
+      "<|im_start|>",
+      "assistant",
+      "Ċ",
+      "{\"",
+      "count",
+      "\":",
+      "2",
+      "}",
+      "<|im_end|>",
+      "Ċ",
+      "<|im_start|>",
+      "user",
+      "Ċ",
+      "çİ°åľ¨",
+      "åĲĮæĹ¶",
+      "ç»Ļåĩº",
+      "æľīæķĪ",
+      "æĿ¡",
+      "æķ°",
+      "åĴĮ",
+      "åĿĩ",
+      "åĢ¼",
+      "ãĢĤ",
+      "<|im_end|>",
+      "Ċ",
+      "<|im_start|>",
+      "assistant",
+      "Ċ",
+      "{\"",
+      "count",
+      "\":",
+      "2",
+      ",\"",
+      "mean",
+      "\":",
+      "5",
+      "}",
+      "<|im_end|>",
+      "Ċ"
+    ],
+    "ids": [
+      151644,
+      8948,
+      198,
+      105043,
+      113794,
+      112623,
+      110498,
+      1773,
+      151645,
+      198,
+      151644,
+      872,
+      198,
+      113794,
+      80094,
+      27445,
+      198,
+      68483,
+      198,
+      19,
+      198,
+      7326,
+      198,
+      21,
+      198,
+      103325,
+      20662,
+      3837,
+      60726,
+      42278,
+      88086,
+      38989,
+      8863,
+      1773,
+      151645,
+      198,
+      151644,
+      77091,
+      198,
+      4913,
+      1830,
+      788,
+      17,
+      92,
+      151645,
+      198,
+      151644,
+      872,
+      198,
+      99601,
+      91572,
+      107485,
+      88086,
+      38989,
+      8863,
+      33108,
+      99472,
+      25511,
+      1773,
+      151645,
+      198,
+      151644,
+      77091,
+      198,
+      4913,
+      1830,
+      788,
+      17,
+      1335,
+      14287,
+      788,
+      20,
+      92,
+      151645,
+      198
+    ],
+    "labels": [
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      4913,
+      1830,
+      788,
+      17,
+      92,
+      151645,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      -100,
+      4913,
+      1830,
+      788,
+      17,
+      1335,
+      14287,
+      788,
+      20,
+      92,
+      151645,
+      -100
+    ],
+    "padding": 8,
+    "truncation_rejected": true
+  },
+  "base_outputs": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 5
+      },
+      "text": "{\"count\":2,\"mean\":10}acco\nacco\n退款金额 CSV\nrefund\n4\nNA\n6\n均值 10\n",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 7
+      },
+      "text": "{\"count\":2,\"mean\":10}cimal\ncimal\n退款金额均值 CSV\nrefund\nNA\n10\n5\n忽略 NA，",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 3.5
+      },
+      "text": "{\"count\":2,\"mean\":1}cimal\ncimal\n退款金额 CSV\nrefund\n2\n5\nNA\n忽略 NA，先报有效条",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "expected": {
+        "count": 1,
+        "mean": 0
+      },
+      "text": "{\"count\":1,\"mean\":1}eği\n-reply\n退款金额 CSV\nrefund\nNA\n0\n有效条数 CSV\ncount\n1\n",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "expected": {
+        "count": 3,
+        "mean": 5
+      },
+      "text": "{\"count\":3,\"mean\":5}acco\nacco\n退款金额 CSV\nrefund\n2\nNA\n8\n5\n忽略 NA，先报",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "expected": {
+        "count": 0,
+        "mean": null
+      },
+      "text": "{\"count\":0,\"mean\":0,\"median\":0,\"mode\":0,\"min\":0,\"max\":0,\"sum\":0,\"count\":0",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    }
+  ],
+  "prompt_outputs": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 5
+      },
+      "text": "{\"count\":2,\"mean\":10}acco\nacco\n退款金额 CSV\nrefund\n4\nNA\n6\n忽略 NA，先报有效",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 7
+      },
+      "text": "{\"count\":2,\"mean\":5}acco\nacco\n退款金额 CSV\nrefund\nNA\n9\n5\n忽略 NA，先报有效条",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 3.5
+      },
+      "text": "{\"count\":2,\"mean\":1}acco\nacco\n退款金额 CSV\nrefund\n2\n5\nNA\n忽略 NA，先报有效条",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "expected": {
+        "count": 1,
+        "mean": 0
+      },
+      "text": "{\"count\":1,\"mean\":1}acco\nacco\n退款金额 CSV\nrefund\nNA\n0\n忽略 NA，先报有效条数。",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "expected": {
+        "count": 3,
+        "mean": 5
+      },
+      "text": "{\"count\":3,\"mean\":5}acco\nacco\n退款金额 CSV\nrefund\n2\nNA\n8\n5\n忽略 NA，先报",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "expected": {
+        "count": 0,
+        "mean": null
+      },
+      "text": "{\"count\":1,\"mean\":1000000}acco\nacco\n退款金额 CSV\nrefund\nNA\nNA\n忽略 NA，",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    }
+  ],
+  "train_losses": [
+    3.274148,
+    1.959197,
+    1.593897,
+    1.479733,
+    1.378077,
+    1.67861,
+    1.455415,
+    1.610998,
+    1.228702,
+    1.271191,
+    1.317624,
+    1.396909,
+    1.273364,
+    1.221163,
+    1.253153,
+    1.401683,
+    1.255267,
+    1.361348,
+    1.154843,
+    1.30395,
+    1.282648,
+    1.181549,
+    1.317242,
+    1.123786
+  ],
+  "sft_outputs": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 5
+      },
+      "text": "{\"count\":2,\"mean\":6} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 7
+      },
+      "text": "{\"count\":2,\"mean\":6} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "expected": {
+        "count": 2,
+        "mean": 3.5
+      },
+      "text": "{\"count\":2,\"mean\":5} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2} \"\"\"\",\n{\"count\":2",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "expected": {
+        "count": 1,
+        "mean": 0
+      },
+      "text": "{\"count\":1,\"mean\":1} \"\"\"\",\n{\"count\":1} \"\"\"\",\n{\"count\":1} \"\"\"\",\n{\"count\":1} \"\"\"\",\n{\"count\":1",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "expected": {
+        "count": 3,
+        "mean": 5
+      },
+      "text": "{\"count\":3,\"mean\":6} \"\"\"\",\n{\"count\":3} \"\"\"\",\n{\"count\":3} \"\"\"\",\n{\"count\":3} \"\"\"\",\n{\"count\":3",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "expected": {
+        "count": 0,
+        "mean": null
+      },
+      "text": "{\"count\":0,\"mean\":null} \"\"\"\",\n{\"count\":0,\"mean\":null} \"\"\"\",\n{\"count\":0,\"mean\":null} \"\"\"\",\n{\"count",
+      "schema": false,
+      "exact": false,
+      "eos": false
+    }
+  ]
+}

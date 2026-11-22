@@ -1,0 +1,36 @@
+{
+  "torch": "2.11.0",
+  "device": "Apple Silicon CPU",
+  "backend": "Gloo",
+  "single": {
+    "world": 1,
+    "rank": 0,
+    "parameters": 57984,
+    "gradients": 57984,
+    "adam_moments": 115968,
+    "adam_steps": 68
+  },
+  "fsdp_ranks": [
+    {
+      "world": 2,
+      "rank": 0,
+      "parameters": 28992,
+      "gradients": 28992,
+      "adam_moments": 57984,
+      "adam_steps": 68
+    },
+    {
+      "world": 2,
+      "rank": 1,
+      "parameters": 28992,
+      "gradients": 28992,
+      "adam_moments": 57984,
+      "adam_steps": 68
+    }
+  ],
+  "validation": {
+    "resume_exact": true,
+    "global_batch": 2,
+    "max_diff_from_single": 2.60770320892334e-07
+  }
+}

@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前三部分共 35 篇均已发布，第四部分「模型预训练与后训练」已发布 [TRN-01《预训练语料与 Token 数据管线》](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前三部分共 35 篇均已发布，第四部分「模型预训练与后训练」已发布 5 篇，依次阅读 [TRN-01《预训练语料与 Token 数据管线》](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)、[TRN-02](https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html)、[TRN-10](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html)、[TRN-03《选继续预训练、SFT 还是偏好优化》](https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html) 和 [TRN-04《SFT 怎么把对话变成监督信号》](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html)。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。

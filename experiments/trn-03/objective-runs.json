@@ -1,0 +1,59 @@
+{
+  "torch": "2.11.0",
+  "vocab_size": 31,
+  "parameters": 14944,
+  "warmup_steps": 16,
+  "branch_steps": 20,
+  "base": {
+    "document_nll": 3.650232,
+    "chosen_nll": 1.972805,
+    "pair_margin": 3.485158,
+    "heldout_correct": 0,
+    "heldout_outputs": [
+      "count=2 mean=4 <eos>",
+      "count=2 mean=4 <eos>"
+    ],
+    "training_prompt_output": "count=2 mean=4 <eos>"
+  },
+  "branches": {
+    "continued": {
+      "objective_before": 3.650232,
+      "objective_after": 0.4964,
+      "document_nll": 0.4964,
+      "chosen_nll": 0.952853,
+      "pair_margin": 6.425461,
+      "heldout_correct": 0,
+      "heldout_outputs": [
+        "count=2 mean=5 <eos>",
+        "count=2 rule <eos>"
+      ],
+      "training_prompt_output": "count=2 rule <eos>"
+    },
+    "sft": {
+      "objective_before": 1.972805,
+      "objective_after": 0.084261,
+      "document_nll": 3.547521,
+      "chosen_nll": 0.084261,
+      "pair_margin": 11.902988,
+      "heldout_correct": 0,
+      "heldout_outputs": [
+        "count=2 mean=5 <eos>",
+        "count=2 mean=5 <eos>"
+      ],
+      "training_prompt_output": "count=2 mean=5 <eos>"
+    },
+    "dpo": {
+      "objective_before": 0.693147,
+      "objective_after": 0.000692,
+      "document_nll": 3.656467,
+      "chosen_nll": 0.746572,
+      "pair_margin": 18.035797,
+      "heldout_correct": 0,
+      "heldout_outputs": [
+        "count=2 mean=5 <eos>",
+        "count=2 mean=5 <eos>"
+      ],
+      "training_prompt_output": "count=2 mean=5 <eos>"
+    }
+  }
+}

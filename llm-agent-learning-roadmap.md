@@ -110,10 +110,10 @@
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
 | TRN-01 | [预训练语料与 Token 数据管线](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)（已发布，[源稿](trn-01-pretraining-data-pipeline.md)） | 记录数据来源与许可，做清洗、去重、分词、样本打包和文档级切分。检查训练语料与验证题重叠，展示一个训练 batch 的输入和移位标签。 |
-| TRN-02 | 从随机权重预训练一个微型语言模型 | 跟一批 Token 通过前向、下一 Token 交叉熵、反传、梯度累积、优化器和 Checkpoint，观察训练与验证损失。读 nanoGPT 的训练循环做源码对照，验证保存后续训。 |
-| TRN-10 | 分布式训练的显存账本，FSDP 与 ZeRO | 先区分参数、梯度、优化器状态和激活的开销，再画 FSDP 与 ZeRO 的分片、通信和 Checkpoint。以单卡训练为基线，有多卡时固定全局 batch 比较峰值显存、训练吞吐和恢复行为。可在需要多卡时回读。 |
-| TRN-03 | 选继续预训练、SFT 还是偏好优化 | 继续预训练使用领域原文，SFT 使用示范答案，偏好优化使用选优数据或奖励信号。将训练目标与参数更新范围分开讨论，比较全参数、部分层、Adapter 和软提示，记录质量、显存及数据门槛。 |
-| TRN-04 | SFT 怎么把对话变成监督信号 | 用同一 Chat Template 构造报告问答，明确哪些 Token 参与 loss。检查多轮标签遮罩、截断与 EOS，用留出集比较基座、提示词基线与微调模型。 |
+| TRN-02 | [从随机权重预训练一个微型语言模型](https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html)（已发布，[源稿](trn-02-tiny-language-model.md)） | 跟一批 Token 通过前向、下一 Token 交叉熵、反传、梯度累积、优化器和 Checkpoint，观察训练与验证损失。读 nanoGPT 的训练循环做源码对照，验证保存后续训。 |
+| TRN-10 | [分布式训练的显存账本，FSDP 与 ZeRO](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html)（已发布，[源稿](trn-10-distributed-memory.md)） | 先区分参数、梯度、优化器状态和激活的开销，再画 FSDP 与 ZeRO 的分片、通信和 Checkpoint。以单卡训练为基线，有多卡时固定全局 batch 比较峰值显存、训练吞吐和恢复行为。可在需要多卡时回读。 |
+| TRN-03 | [选继续预训练、SFT 还是偏好优化](https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html)（已发布，[源稿](trn-03-training-objectives.md)） | 继续预训练使用领域原文，SFT 使用示范答案，偏好优化使用选优数据或奖励信号。将训练目标与参数更新范围分开讨论，比较全参数、部分层、Adapter 和软提示，记录质量、显存及数据门槛。 |
+| TRN-04 | [SFT 怎么把对话变成监督信号](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html)（已发布，[源稿](trn-04-sft-supervision.md)） | 用同一 Chat Template 构造报告问答，明确哪些 Token 参与 loss。检查多轮标签遮罩、截断与 EOS，用留出集比较基座、提示词基线与微调模型。 |
 | TRN-05 | LoRA 与参数高效微调 | 画出冻结权重和低秩增量，用目标层、rank 和可训练参数量解释成本。比较独立 Adapter 加载、合并权重和切换 Adapter，并核对基座版本。 |
 | TRN-06 | QLoRA、训练量化和部署量化 | 用低比特冻结基座训练 LoRA，解释权重存储精度、计算精度及 Adapter 的角色。回接 F-08，区分 QLoRA、推理 PTQ、训练感知量化 QAT 和 KV Cache 量化。记录显存、质量、格式、引擎与硬件兼容性。 |
 | TRN-07 | 偏好数据、奖励模型与 DPO | 构造同一问题的 chosen/rejected，解释偏好标签、参考策略与数据偏差。比较 SFT 和 DPO 的留出集结果，注明 DPO 的离线偏好数据路径。 |
