@@ -2,7 +2,7 @@
 
 ## 当前接续点
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 88 篇，尚待发布 50 篇。第六部分「Agent、Context Engineering、Loop Engineering 与 Harness」25 篇已全部发布。按路线图行序，下一篇写作是 **AE-06《第一篇，如何验证 Agent 真的完成了任务》**。
+整条路线规划 14 个专题、138 篇文章，目前已发布 96 篇，尚待发布 42 篇。第七部分「Agent 效果评测」8 篇已全部发布。按路线图行序，下一篇写作是 **KB-11《复杂文档解析，OCR、版面、表格与引用》**。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -12,6 +12,7 @@
 | 模型预训练与后训练 | 12 | [TRN-01《预训练语料与 Token 数据管线》](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html) · [专题目录](llm-agent-learning-roadmap.md#4-模型预训练与后训练) |
 | 推理引擎与模型部署 | 16 | [SERV-01《用 Qwen 0.5B 搭一个极简 vLLM Server》](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html) · [专题目录](llm-agent-learning-roadmap.md#5-推理引擎与模型部署vllm-和-sglang) |
 | Agent、上下文工程、循环与 Harness | 25 | [AGT-01《从工具调用到 Agent Loop》](https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html) · [专题目录](llm-agent-learning-roadmap.md#6-agentcontext-engineeringloop-engineering-与-harness) |
+| Agent 效果评测 | 8 | [AE-06《怎样验证 Agent 真的完成了任务》](https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html) · [专题目录](llm-agent-learning-roadmap.md#7-agent-效果评测) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -19,6 +20,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布 AE-01～AE-08，完成第七部分 | 归档退款 CSV 终态评测、Inspect AI、故障归因、基准对照、模拟灰度回滚与表格强化学习实测，全部使用固定数据，未部署模型 |
 | 2026-11-23 | 精修第二部分「LLM API 与流式协议」10 篇并同步博客 | 补齐 ELI5 导读、按需深入分层、11 张兼容 Mermaid 9.1.7 的流程图及常见踩坑，全量线上 HTML 校验通过 |
 | 2026-11-23 | 精修第一部分「LLM 基础与推理」15 篇并同步博客 | 补齐 ELI5 大白话导读、按需深入分层、23 张兼容 Mermaid 9.1.7 的流程图及易错点，全量线上 HTML 校验通过 |
 | 2026-11-23 | 发布 AGT-01～AGT-25，完成第六部分 | 归档退款报告运行时、MCP、A2A、Temporal、Pi、技能发现与界面回放的离线实测，共用固定 CSV，未部署模型 |

@@ -1,0 +1,656 @@
+{
+    "correct": {
+        "fixture": "three-rows",
+        "claim": "Report archived.",
+        "report": {
+            "count": 2,
+            "mean": "5"
+        },
+        "archive_before": 0,
+        "blocked_early_write": null,
+        "successful_reads": 1,
+        "archive_after": 1,
+        "checks": {
+            "artifact": true,
+            "before_approval": true,
+            "after_approval": true,
+            "policy": true,
+            "completed": true
+        },
+        "passed": true,
+        "first_failure": null,
+        "trace": [
+            {
+                "stage": "tool_selection",
+                "ok": true
+            },
+            {
+                "stage": "arguments",
+                "ok": true
+            },
+            {
+                "stage": "tool_execution",
+                "ok": true
+            },
+            {
+                "stage": "tool_output",
+                "ok": true
+            },
+            {
+                "stage": "artifact",
+                "ok": true
+            },
+            {
+                "stage": "before_approval",
+                "ok": true
+            },
+            {
+                "stage": "restore",
+                "ok": true
+            }
+        ]
+    },
+    "claim_only": {
+        "fixture": "three-rows",
+        "claim": "Report archived.",
+        "report": null,
+        "archive_before": 0,
+        "blocked_early_write": null,
+        "successful_reads": 0,
+        "archive_after": 0,
+        "checks": {
+            "artifact": false,
+            "before_approval": true,
+            "after_approval": false,
+            "policy": true,
+            "completed": false
+        },
+        "passed": false,
+        "first_failure": "artifact",
+        "trace": [
+            {
+                "stage": "artifact",
+                "ok": false
+            }
+        ]
+    },
+    "fixtures": {
+        "fixed": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 2,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": true,
+                "completed": true
+            },
+            "passed": true,
+            "first_failure": null,
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        },
+        "all_missing": {
+            "fixture": "all-missing",
+            "claim": "Report archived.",
+            "report": {
+                "count": 0,
+                "mean": null
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": true,
+                "completed": true
+            },
+            "passed": true,
+            "first_failure": null,
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        }
+    },
+    "outcomes": {
+        "normal": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 2,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": true,
+                "completed": true
+            },
+            "passed": true,
+            "first_failure": null,
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        },
+        "claim_only": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": null,
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 0,
+            "archive_after": 0,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": false
+            },
+            "passed": false,
+            "first_failure": "artifact",
+            "trace": [
+                {
+                    "stage": "artifact",
+                    "ok": false
+                }
+            ]
+        },
+        "extra_read": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 2,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 2,
+            "archive_after": 1,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": true,
+                "completed": true
+            },
+            "passed": true,
+            "first_failure": null,
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        },
+        "early_archive": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 2,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": true,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": false,
+                "completed": true
+            },
+            "passed": false,
+            "first_failure": "unauthorized_attempt",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "unauthorized_attempt",
+                    "ok": false
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        }
+    },
+    "attribution": {
+        "wrong_tool": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": null,
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 0,
+            "archive_after": 0,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": false
+            },
+            "passed": false,
+            "first_failure": "tool_selection",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": false
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": false
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                }
+            ]
+        },
+        "bad_args": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": null,
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 0,
+            "archive_after": 0,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": false
+            },
+            "passed": false,
+            "first_failure": "arguments",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": false
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": false
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                }
+            ]
+        },
+        "tool_failure": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": null,
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 0,
+            "archive_after": 0,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": false
+            },
+            "passed": false,
+            "first_failure": "tool_execution",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": false
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                }
+            ]
+        },
+        "lost_state": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 2,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 0,
+            "checks": {
+                "artifact": true,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": false
+            },
+            "passed": false,
+            "first_failure": "restore",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": true
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": false
+                }
+            ]
+        },
+        "wrong_summary": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 3,
+                "mean": "5"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": true,
+                "policy": true,
+                "completed": true
+            },
+            "passed": false,
+            "first_failure": "artifact",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": true
+                },
+                {
+                    "stage": "artifact",
+                    "ok": false
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        },
+        "wrong_tool_value": {
+            "fixture": "three-rows",
+            "claim": "Report archived.",
+            "report": {
+                "count": 3,
+                "mean": "3.333333"
+            },
+            "archive_before": 0,
+            "blocked_early_write": null,
+            "successful_reads": 1,
+            "archive_after": 1,
+            "checks": {
+                "artifact": false,
+                "before_approval": true,
+                "after_approval": false,
+                "policy": true,
+                "completed": true
+            },
+            "passed": false,
+            "first_failure": "tool_output",
+            "trace": [
+                {
+                    "stage": "tool_selection",
+                    "ok": true
+                },
+                {
+                    "stage": "arguments",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_execution",
+                    "ok": true
+                },
+                {
+                    "stage": "tool_output",
+                    "ok": false
+                },
+                {
+                    "stage": "artifact",
+                    "ok": false
+                },
+                {
+                    "stage": "before_approval",
+                    "ok": true
+                },
+                {
+                    "stage": "restore",
+                    "ok": true
+                }
+            ]
+        }
+    },
+    "rollout": {
+        "offline": {
+            "new": [
+                true
+            ],
+            "regression": [
+                true
+            ],
+            "authorization": [
+                true
+            ]
+        },
+        "shadow": {
+            "control_rows": 0,
+            "isolated_rows": 1
+        },
+        "control": {
+            "requests": 4,
+            "success_rate": 1.0,
+            "takeover_rate": 0.0,
+            "p95_ms": 40,
+            "cents_per_success": 2.0
+        },
+        "candidate": {
+            "requests": 4,
+            "success_rate": 0.5,
+            "takeover_rate": 0.5,
+            "p95_ms": 120,
+            "cents_per_success": 5.0
+        },
+        "route_before_rollback": "candidate",
+        "route_after_rollback": "control"
+    }
+}

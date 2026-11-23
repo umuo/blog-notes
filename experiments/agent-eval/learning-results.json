@@ -1,0 +1,23 @@
+{
+    "terminal": {
+        "completed": 0,
+        "episodes": 30,
+        "invalid_actions": 240,
+        "announcements": 0,
+        "steps": 270
+    },
+    "milestones": {
+        "completed": 10,
+        "episodes": 30,
+        "invalid_actions": 108,
+        "announcements": 43,
+        "steps": 260
+    },
+    "flawed": {
+        "completed": 0,
+        "episodes": 30,
+        "invalid_actions": 134,
+        "announcements": 129,
+        "steps": 270
+    }
+}

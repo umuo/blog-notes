@@ -1,0 +1,24 @@
+{
+    "call": [
+        false,
+        true
+    ],
+    "business_state": [
+        false,
+        true
+    ],
+    "patch_tests": {
+        "buggy": {
+            "fix_missing": false,
+            "preserve_all_values": true
+        },
+        "narrow_patch": {
+            "fix_missing": true,
+            "preserve_all_values": false
+        },
+        "complete_patch": {
+            "fix_missing": true,
+            "preserve_all_values": true
+        }
+    }
+}

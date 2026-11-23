@@ -1,0 +1,9 @@
+{
+    "inspect_ai": "0.3.291",
+    "sample_scores": {
+        "claim-only": "I",
+        "verified": "C"
+    },
+    "accuracy": 0.5,
+    "model_usage": {}
+}
