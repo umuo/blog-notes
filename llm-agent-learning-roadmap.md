@@ -77,7 +77,7 @@
 | LE-07 | [第一篇，什么是评测，如何跑通第一条用例](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html)（已发布，[源稿](le-07-first-eval.md)） | 先分清任务、样本、试次、通过条件、评分器、指标和基线。用三行 CSV 手写一个最小运行器，输出单条结果、失败原因和汇总。分别构造格式错误、格式正确但数值错误的输出，验证评分器能区分。 |
 | LE-01 | [从业务目标到数据集、基线和评分](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html)（已发布，[源稿](le-01-dataset-baseline.md)） | 黄金样本、边界样本、失败样本、独立测试集。用准确率、结构校验或人工标准计分，记录数据版本、样本分层和失败类型。 |
 | LE-08 | [如何设计可测试的评分器与评分准则](https://blog.lacknb.cn/articles/2026/11/21/1795270269520.html)（已发布，[源稿](le-08-testable-graders.md)） | 对 JSON Schema、数值误差、公差和业务规则做确定性断言，用人工准则评价开放式解释。比较逐项打分和成对比较，明确平局、拒答、工具故障与无法判定的处理。用已知对错样本独立测试评分器。 |
-| LE-10 | [常用 LLM 评测数据集测什么，应该怎么选](https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html)（已发布，[源稿](le-10-public-datasets.md)） | 对照 MMLU、C-Eval、GSM8K、HumanEval 的样本形态、能力范围和评分方式。各看一条公开样本，解释选项正确率、归一化答案匹配和单元测试各自能说明什么。 |
+| LE-10 | [常用 LLM 评测数据集测什么，应该怎么选](https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html)（已发布，[源稿](le-10-public-datasets.md)） | 对照 MMLU、C-Eval、GSM8K、HumanEval 经典四榜的样本与批改差异，并补齐 MMLU-Pro、GPQA Diamond、HLE、ARC-AGI-2、MATH/AIME、LiveBench、LiveCodeBench、BigCodeBench、IFEval、SimpleQA、MMMU、RULER、LMArena 与 Artificial Analysis 等 2025–2026 主流进阶基准。 |
 | LE-02 | [公开基准实战，怎样复现并比较模型结果](https://blog.lacknb.cn/articles/2026/11/21/1795270267947.html)（已发布，[源稿](le-02-reproduce-benchmark.md)） | 用同一评测工具跑一份固定小子集，记录数据版本与划分、提示模板、few-shot、解码和答案抽取规则。对照单次准确率和多次生成的 pass@k，讨论污染、样本量和跨运行可比性。 |
 | LE-03 | [LLM-as-a-Judge 与人工校准](https://blog.lacknb.cn/articles/2026/11/21/1795270267279.html)（已发布，[源稿](le-03-llm-judge-calibration.md)） | 对开放文本定义评分准则，以人工标注集校准，检查位置偏差、长度偏差和评分稳定性。可确定的数值、Schema 和引用用硬断言。 |
 | LE-09 | [怎样判断两版效果差异是否可信](https://blog.lacknb.cn/articles/2026/11/21/1795270266572.html)（已发布，[源稿](le-09-paired-comparison.md)） | 固定任务、模型或 Prompt 以外的配置，用相同样本成对对照，记录每题多次试验与失败分层。报告样本数、差值和不确定区间，用按题聚类的重采样处理同题多次运行，区分业务提升和测量噪声。 |
@@ -87,12 +87,18 @@
 
 ### 常用模型数据集与打分方式
 
-| 数据集 | 样本与评测目标 | 常见打分方式 |
+| 数据集 / 排行榜 | 样本与评测目标 | 常见打分方式 |
 | --- | --- | --- |
-| [MMLU](https://github.com/hendrycks/test) | 多学科英文选择题，观察不同学科的知识表现 | 对照正确选项，按指定规则汇总准确率 |
+| [MMLU](https://github.com/hendrycks/test) / [MMLU-Pro](https://github.com/TIGER-AI-Lab/MMLU-Pro) | 多学科英文选择题（4 选 1 经典版 → 10 选 1 进阶推理版），缓解原榜饱和与蒙题概率 | 对照正确选项，按指定规则汇总准确率 |
 | [C-Eval](https://github.com/hkust-nlp/ceval) | 中文多学科选择题，观察中文知识表现 | 比较选项准确率并查看科目分项 |
-| [GSM8K](https://github.com/openai/grade-school-math) | 数学文字题，检查最终数值答案 | 提取和归一化数值，再与标准答案匹配 |
-| [HumanEval](https://github.com/openai/human-eval) | Python 函数补全，检查生成代码的功能正确性 | 在隔离环境运行随题单元测试，按采样口径计算 pass@k |
+| [GSM8K](https://github.com/openai/grade-school-math) / MATH & AIME | 数学文字题与竞赛级数学推理 | 提取和归一化数值或符号表达式，再与标准答案匹配 |
+| [GPQA Diamond](https://github.com/idavidrein/gpqa) / [HLE](https://lastexam.ai/) | 博士级「防谷歌搜索」科学与专家前沿难题，探测高阶推理天花板 | 严格客观选项 / 唯一答案比对（HLE 含开放短答与专家核对） |
+| [ARC-AGI / ARC-AGI-2](https://arcprize.org/) | 抽象彩色网格规律归纳（流体智力），专治死记硬背 | 未知新规则网格输出像素矩阵精确匹配 |
+| [HumanEval](https://github.com/openai/human-eval) / [BigCodeBench](https://github.com/bigcode-project/bigcodebench) | 函数补全与多库调用真实 Python 工程编码任务 | 在隔离环境运行随题单元测试，按采样口径计算 pass@k |
+| [LiveBench](https://livebench.ai/) / [LiveCodeBench](https://livecodebench.github.io/) | 按月更新题目、按时间切分编程真题，防预训练数据污染 | 确定性客观规则或隔离代码测试（不依赖 LLM 当裁判） |
+| [IFEval](https://huggingface.co/datasets/google/IFEval) / [SimpleQA](https://github.com/openai/simple-evals) | 可验证格式指令遵循，与简短事实幻觉/拒答校准 | 确定性代码规则检查长度/格式约束；事实精确度与校准统计 |
+| [MMMU](https://mmmu-benchmark.github.io/) / [RULER](https://github.com/NVIDIA/RULER) | 大学级多模态图文推理，与多跳长上下文压力测试 | 跨学科客观题 / 长文本多跳信息精确检索率 |
+| [LMArena](https://lmarena.ai/) / [Artificial Analysis](https://artificialanalysis.ai/) | 真人双盲对比偏好，与智商-价格-TTFT-吞吐性价比综合榜 | 人类匿名配对投票算 Elo 分；客观跑分联合延迟与成本口径 |
 
 ### 评测方式怎么选
 
@@ -301,9 +307,9 @@ Google DeepMind 的公开资料分别记录了 **SIMA 2 利用自生成经验训
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| CASE-01 | OpenClaw 设计思想与运行链路 | 从 Gateway 与 Channel 接入出发，追踪会话路由、workspace、上下文与 Skills 快照、Agent Loop、工具和事件回流。区分同一会话的执行顺序与不同会话的隔离范围。 |
-| CASE-02 | Hermes Agent 的设计思想与自改进链路 | 追踪一次 CLI 或 Gateway 会话，从 Agent Loop 到会话记录，再跟后台回顾、持久记忆和可复用 Skill 的写入路径。对照选定版本验证审批、编辑和下一会话的加载。 |
-| CASE-03 | 同一个任务对照 OpenClaw 与 Hermes Agent | 比较接入方式、会话与工作区边界、指令加载、记忆与 Skill 生命周期、写入审批和可观测性。用同一份 CSV、同一模型和相同权限回放，按源码和观察记录作结。 |
+| CASE-01 | [OpenClaw 设计思想与运行链路](https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html)（已发布，[源稿](case-01-openclaw-runtime.md)） | 从 Gateway 与 Channel 接入出发，追踪会话路由、workspace、上下文与 Skills 快照、Agent Loop、工具和事件回流。区分同一会话的执行顺序与不同会话的隔离范围。 |
+| CASE-02 | [Hermes Agent 的设计思想与自改进链路](https://blog.lacknb.cn/articles/2026/11/23/1795418064577.html)（已发布，[源稿](case-02-hermes-runtime-memory.md)） | 追踪一次 CLI 或 Gateway 会话，从 Agent Loop 到会话记录，再跟后台回顾、持久记忆和可复用 Skill 的写入路径。对照选定版本验证审批、编辑和下一会话的加载。 |
+| CASE-03 | [同一个任务对照 OpenClaw 与 Hermes Agent](https://blog.lacknb.cn/articles/2026/11/23/1795418066265.html)（已发布，[源稿](case-03-openclaw-hermes-comparison.md)） | 比较接入方式、会话与工作区边界、指令加载、记忆与 Skill 生命周期、写入审批和可观测性。用同一份 CSV、同一模型和相同权限回放，按源码和观察记录作结。 |
 
 阅读入口：[OpenClaw Gateway 架构](https://docs.openclaw.ai/concepts/architecture) · [OpenClaw Agent Loop](https://docs.openclaw.ai/concepts/agent-loop) · [Hermes Agent 源码](https://github.com/NousResearch/hermes-agent) · [Hermes Skills](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills)
 

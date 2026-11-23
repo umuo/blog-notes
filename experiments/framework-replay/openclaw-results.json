@@ -1,0 +1,61 @@
+{
+    "tag": "v2026.11.7",
+    "entry": "agent --local",
+    "application_fixture_wrote_memory": true,
+    "turns": {
+        "baseline": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read",
+            "memory_in_system": false,
+            "correction_in_history": false
+        },
+        "corrected": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read",
+            "memory_in_system": false,
+            "correction_in_history": true
+        },
+        "same_session_followup": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read",
+            "memory_in_system": false,
+            "correction_in_history": true
+        },
+        "fresh_before_publish": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read",
+            "memory_in_system": false,
+            "correction_in_history": false
+        },
+        "fresh_after_publish": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read",
+            "memory_in_system": true,
+            "correction_in_history": false
+        },
+        "fresh_after_remove": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read",
+            "memory_in_system": false,
+            "correction_in_history": false
+        }
+    }
+}

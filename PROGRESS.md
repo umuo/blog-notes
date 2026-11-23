@@ -2,7 +2,7 @@
 
 ## 当前接续点
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 125 篇，尚待发布 13 篇。第十一部分「Agent 自进化与递归自我改进」5 篇已全部发布。按路线图行序，下一篇写作是 **CASE-01《OpenClaw 设计思想与运行链路》**。
+整条路线规划 14 个专题、138 篇文章，目前已发布 128 篇，尚待发布 10 篇。第十二部分「OpenClaw 与 Hermes Agent 源码案例」3 篇已全部发布。按路线图行序，下一篇写作是 **DEV-01《Vibe Coding 的工作方式与原型实验》**。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -17,6 +17,7 @@
 | LLM 与 Agent 安全护栏 | 6 | [SEC-01《OWASP 是什么，Top 10 怎样用》](https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html) · [专题目录](llm-agent-learning-roadmap.md#9-llm-与-agent-安全护栏) |
 | Sandbox 分类、源码与实测 | 5 | [SBX-01《沙箱怎么分类，怎样给自己的任务画边界》](https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html) · [专题目录](llm-agent-learning-roadmap.md#10-sandbox-分类源码与实测) |
 | Agent 自进化与递归自我改进 | 5 | [EVO-01《Agent 怎样从错误中学习》](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html) · [专题目录](llm-agent-learning-roadmap.md#11-agent-自进化与递归自我改进rsi) |
+| OpenClaw 与 Hermes Agent 源码案例 | 3 | [CASE-01《OpenClaw 一条消息怎么跑》](https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html) · [专题目录](llm-agent-learning-roadmap.md#12-openclaw-与-hermes-agent-源码案例) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -24,6 +25,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布 CASE-01～CASE-03，完成第十二部分 | 按 ELI5 分析固定源码版，归档相同退款任务的原生工具回合、会话恢复、记忆加载和 Hermes 写入审批实测，未部署本地模型 |
 | 2026-11-23 | 发布 EVO-01～EVO-05，完成第十一部分 | 按 ELI5 展开经验发布、训练反馈和研究案例，归档留出评测、授权拒绝和灰度回滚可复跑样本，未部署本地模型 |
 | 2026-11-23 | 发布 SBX-01～SBX-05，完成第十部分 | 按 ELI5 展开沙箱分类与源码阅读，归档 macOS、Docker 与 OpenSandbox 实测、首输出样本和清理证据，未部署本地模型 |
 | 2026-11-23 | 发布 SEC-01～SEC-06，完成第九部分 | 核对两份 OWASP 2026 清单，归档内容校验、审批绑定、预算回滚和第三方委派的合成实测，未部署本地模型 |

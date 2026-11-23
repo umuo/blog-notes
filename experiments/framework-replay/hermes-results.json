@@ -1,0 +1,64 @@
+{
+    "tag": "v0.23.3",
+    "entry": "AIAgent.run_conversation",
+    "profile_state_db": true,
+    "native_transcript_contains_tool_result": true,
+    "memory_staged_approved_removed": true,
+    "skill_staged_approved_edit_rejected": true,
+    "turns": {
+        "baseline": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read_file",
+            "memory_in_system": false,
+            "correction_in_history": false
+        },
+        "corrected": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read_file",
+            "memory_in_system": false,
+            "correction_in_history": true
+        },
+        "same_session_followup": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read_file",
+            "memory_in_system": false,
+            "correction_in_history": true
+        },
+        "fresh_before_publish": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read_file",
+            "memory_in_system": false,
+            "correction_in_history": false
+        },
+        "fresh_after_publish": {
+            "reply": {
+                "count": 2,
+                "mean": 5
+            },
+            "tool": "read_file",
+            "memory_in_system": true,
+            "correction_in_history": false
+        },
+        "fresh_after_remove": {
+            "reply": {
+                "count": 3,
+                "mean": 3.3333333333333335
+            },
+            "tool": "read_file",
+            "memory_in_system": false,
+            "correction_in_history": false
+        }
+    }
+}
