@@ -1,0 +1,200 @@
+{
+  "platform": "arm64",
+  "python": "3.12.9",
+  "zoo": "2026.11.9",
+  "mlx": "0.32.4",
+  "mlx_lm": "0.32.2",
+  "transformers": "5.18.0",
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "bits": 4,
+  "quantization": {
+    "group_size": 64,
+    "bits": 4,
+    "mode": "affine"
+  },
+  "weight_bytes": 473689856,
+  "trainable": 270336,
+  "seed": 2026,
+  "lora_bytes": 1091411,
+  "peak_training_mlx_bytes": 684414654,
+  "losses": [
+    0.993381142616272,
+    0.5755831003189087,
+    0.5842937231063843,
+    0.15162762999534607,
+    0.44761189818382263,
+    0.8443757891654968,
+    0.36692923307418823,
+    0.1351037472486496,
+    0.15076246857643127,
+    0.42402154207229614,
+    0.5838122963905334,
+    0.15183624625205994
+  ],
+  "base": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "```csv\ncount,mean\n3,5.0\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 4.66666666666666",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "```csv\ncount,mean\n1,0\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 6\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "```csv\ncount,mean\n1,10000000000000000000000",
+      "passed": false
+    }
+  ],
+  "trained": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":2,\"mean\":7}",
+      "passed": true
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":2,\"mean\":3}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":2,\"mean\":0}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":5}",
+      "passed": true
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":2,\"mean\":1}",
+      "passed": false
+    }
+  ],
+  "reloaded": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":2,\"mean\":7}",
+      "passed": true
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":2,\"mean\":3}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":2,\"mean\":0}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":5}",
+      "passed": true
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":2,\"mean\":1}",
+      "passed": false
+    }
+  ]
+}

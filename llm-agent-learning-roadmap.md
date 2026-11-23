@@ -114,13 +114,13 @@
 | TRN-10 | [分布式训练的显存账本，FSDP 与 ZeRO](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html)（已发布，[源稿](trn-10-distributed-memory.md)） | 先区分参数、梯度、优化器状态和激活的开销，再画 FSDP 与 ZeRO 的分片、通信和 Checkpoint。以单卡训练为基线，有多卡时固定全局 batch 比较峰值显存、训练吞吐和恢复行为。可在需要多卡时回读。 |
 | TRN-03 | [选继续预训练、SFT 还是偏好优化](https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html)（已发布，[源稿](trn-03-training-objectives.md)） | 继续预训练使用领域原文，SFT 使用示范答案，偏好优化使用选优数据或奖励信号。将训练目标与参数更新范围分开讨论，比较全参数、部分层、Adapter 和软提示，记录质量、显存及数据门槛。 |
 | TRN-04 | [SFT 怎么把对话变成监督信号](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html)（已发布，[源稿](trn-04-sft-supervision.md)） | 用同一 Chat Template 构造报告问答，明确哪些 Token 参与 loss。检查多轮标签遮罩、截断与 EOS，用留出集比较基座、提示词基线与微调模型。 |
-| TRN-05 | LoRA 与参数高效微调 | 画出冻结权重和低秩增量，用目标层、rank 和可训练参数量解释成本。比较独立 Adapter 加载、合并权重和切换 Adapter，并核对基座版本。 |
-| TRN-06 | QLoRA、训练量化和部署量化 | 用低比特冻结基座训练 LoRA，解释权重存储精度、计算精度及 Adapter 的角色。回接 F-08，区分 QLoRA、推理 PTQ、训练感知量化 QAT 和 KV Cache 量化。记录显存、质量、格式、引擎与硬件兼容性。 |
-| TRN-07 | 偏好数据、奖励模型与 DPO | 构造同一问题的 chosen/rejected，解释偏好标签、参考策略与数据偏差。比较 SFT 和 DPO 的留出集结果，注明 DPO 的离线偏好数据路径。 |
-| TRN-08 | LLM 强化学习，从 PPO 到 GRPO | 讲在线采样、奖励、优势估计、策略更新与 KL 约束的作用，以 PPO 型 RLHF 和 GRPO 的组内相对奖励做对照。用可验证答案演示奖励和验证集，并检查奖励投机、输出长度和通用能力回归。 |
-| TRN-11 | 知识蒸馏与学生模型评测 | 区分教师软标签与教师生成的答案。固定学生基座、数据切分和训练预算，对照普通 SFT 与加入教师信号后的结果，报告任务收益、通用能力回归和数据成本。 |
-| TRN-12 | 合成训练数据与质量控制 | 围绕 CSV 报告任务生成候选指令与样本，用可执行的统计结果校验答案，再做去重、覆盖率检查和人工抽查。记录生成来源、过滤规则与数据版本，用隔离的人工留出集比较仅用原始数据与加入合成数据后的效果。 |
-| TRN-09 | 用 Unsloth 跑通一次微调、评测和导出 | 固定基座、数据、模板、硬件和依赖，用 Unsloth 做一次 LoRA 或 QLoRA SFT，与 Transformers、PEFT、TRL 的职责对照。保存 Adapter，按部署后端决定独立加载或合并，并用固定样本做导出前后回归。 |
+| TRN-05 | [LoRA 与参数高效微调](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)（已发布，[源稿](trn-05-lora.md)） | 画出冻结权重和低秩增量，用目标层、rank 和可训练参数量解释成本。比较独立 Adapter 加载、合并权重和切换 Adapter，并核对基座版本。 |
+| TRN-06 | [QLoRA、训练量化和部署量化](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)（已发布，[源稿](trn-06-qlora-quantization.md)） | 用低比特冻结基座训练 LoRA，解释权重存储精度、计算精度及 Adapter 的角色。回接 F-08，区分 QLoRA、推理 PTQ、训练感知量化 QAT 和 KV Cache 量化。记录显存、质量、格式、引擎与硬件兼容性。 |
+| TRN-07 | [偏好数据、奖励模型与 DPO](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)（已发布，[源稿](trn-07-dpo-preference-data.md)） | 构造同一问题的 chosen/rejected，解释偏好标签、参考策略与数据偏差。比较 SFT 和 DPO 的留出集结果，注明 DPO 的离线偏好数据路径。 |
+| TRN-08 | [LLM 强化学习，从 PPO 到 GRPO](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)（已发布，[源稿](trn-08-ppo-grpo.md)） | 讲在线采样、奖励、优势估计、策略更新与 KL 约束的作用，以 PPO 型 RLHF 和 GRPO 的组内相对奖励做对照。用可验证答案演示奖励和验证集，并检查奖励投机、输出长度和通用能力回归。 |
+| TRN-11 | [知识蒸馏与学生模型评测](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)（已发布，[源稿](trn-11-knowledge-distillation.md)） | 区分教师软标签与教师生成的答案。固定学生基座、数据切分和训练预算，对照普通 SFT 与加入教师信号后的结果，报告任务收益、通用能力回归和数据成本。 |
+| TRN-12 | [合成训练数据与质量控制](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)（已发布，[源稿](trn-12-synthetic-training-data.md)） | 围绕 CSV 报告任务生成候选指令与样本，用可执行的统计结果校验答案，再做去重、覆盖率检查和人工抽查。记录生成来源、过滤规则与数据版本，用隔离的人工留出集比较仅用原始数据与加入合成数据后的效果。 |
+| TRN-09 | [用 Unsloth 跑通一次微调、评测和导出](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)（已发布，[源稿](trn-09-unsloth-finetune-export.md)） | 固定基座、数据、模板、硬件和依赖，用 Unsloth 做一次 LoRA 或 QLoRA SFT，与 Transformers、PEFT、TRL 的职责对照。保存 Adapter，按部署后端决定独立加载或合并，并用固定样本做导出前后回归。 |
 
 工具分工可用一条链路理解。Transformers 提供模型与 Tokenizer，PEFT 提供参数高效适配，TRL 提供 SFT、偏好与强化学习训练器，Unsloth 用于这一支线的训练实战、运行和导出。对照同一模型和任务时，先统一数据、模板和评测口径。 [nanoGPT](https://github.com/karpathy/nanoGPT) · [TRL 文档](https://huggingface.co/docs/trl/index) · [PEFT 量化指南](https://huggingface.co/docs/peft/main/developer_guides/quantization) · [Unsloth 文档](https://unsloth.ai/docs)
 

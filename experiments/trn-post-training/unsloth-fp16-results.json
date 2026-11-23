@@ -1,0 +1,252 @@
+{
+  "platform": "arm64",
+  "python": "3.12.9",
+  "zoo": "2026.11.9",
+  "mlx": "0.32.4",
+  "mlx_lm": "0.32.2",
+  "transformers": "5.18.0",
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "bits": 16,
+  "quantization": null,
+  "weight_bytes": 988065536,
+  "trainable": 270336,
+  "seed": 2026,
+  "lora_bytes": 1091411,
+  "peak_training_mlx_bytes": 1195054587,
+  "losses": [
+    0.9700979590415955,
+    0.4754523038864136,
+    0.4320928454399109,
+    0.07856938987970352,
+    0.0459168516099453,
+    0.9890477061271667,
+    0.8814181089401245,
+    0.18986986577510834,
+    0.43581467866897583,
+    0.4343770146369934,
+    0.5869541168212891,
+    0.16920289397239685
+  ],
+  "base": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 5\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 5\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "```json\n{\n  \"count\": 1,\n  \"mean\": null\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 6.33333333333333",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "```json\n{\n  \"count\": 0,\n  \"mean\": null\n}\n```",
+      "passed": false
+    }
+  ],
+  "trained": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":3,\"mean\":2}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":1,\"mean\":0}",
+      "passed": true
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":1,\"mean\":1.0}",
+      "passed": false
+    }
+  ],
+  "reloaded": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":3,\"mean\":2}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":1,\"mean\":0}",
+      "passed": true
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":1,\"mean\":1.0}",
+      "passed": false
+    }
+  ],
+  "merged": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":3,\"mean\":2}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":1,\"mean\":0}",
+      "passed": true
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":1,\"mean\":1.0}",
+      "passed": false
+    }
+  ],
+  "merged_bytes": 988185248
+}

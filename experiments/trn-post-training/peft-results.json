@@ -1,0 +1,343 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "torch": "2.9.1",
+  "transformers": "4.57.6",
+  "peft": "0.18.0",
+  "device": "cpu",
+  "train_rows": [
+    [
+      null,
+      3
+    ],
+    [
+      null,
+      6
+    ],
+    [
+      7,
+      null,
+      null
+    ],
+    [
+      10,
+      3,
+      null
+    ],
+    [
+      null,
+      15,
+      14,
+      7
+    ],
+    [
+      3,
+      null,
+      9
+    ],
+    [
+      15,
+      null,
+      10
+    ],
+    [
+      null,
+      11,
+      11,
+      11
+    ],
+    [
+      2,
+      9,
+      7,
+      null
+    ],
+    [
+      9,
+      null,
+      0
+    ],
+    [
+      13,
+      2,
+      12,
+      null
+    ],
+    [
+      13,
+      15,
+      null
+    ]
+  ],
+  "base": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "```json\n{\n  \"count\": 2,\n  \"mean\": {\n    \"refund\": 5.0,\n    \"NA\": 3.",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 6.0\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 4.66666666666666",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "```json\n{\n  \"count\": 1,\n  \"mean\": null\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "```json\n{\n  \"count\": 3,\n  \"mean\": 6.0\n}\n```",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "```json\n{\n  \"count\": 0,\n  \"mean\": null\n}\n```",
+      "passed": false
+    }
+  ],
+  "trainable_total": [
+    270336,
+    494303104
+  ],
+  "sft_losses": [
+    0.96934574842453,
+    0.5588403940200806,
+    0.2743991017341614,
+    0.6219795346260071,
+    0.2579052150249481,
+    0.4161204397678375,
+    0.03543054684996605,
+    0.03058428131043911,
+    0.13744953274726868,
+    0.18857704102993011,
+    0.13013054430484772,
+    0.19985470175743103
+  ],
+  "sft": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "{\"count\":2,\"mean\":5}",
+      "passed": true
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "{\"count\":2,\"mean\":6}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "{\"count\":3,\"mean\":4}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "{\"count\":2,\"mean\":1}",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "{\"count\":3,\"mean\":6}",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "{\"count\":2,\"mean\":1}",
+      "passed": false
+    }
+  ],
+  "reload_max_abs": 0.0,
+  "base_max_abs": 8.325538635253906,
+  "sft_heldout_margins": [
+    2.624835968017578,
+    2.1140246391296387,
+    3.5569772720336914,
+    0.8003011345863342,
+    4.344977378845215,
+    -0.5563807487487793
+  ],
+  "dpo_losses": [
+    0.6931471824645996,
+    0.4981677234172821,
+    0.8311046957969666,
+    0.634541392326355,
+    1.0717270374298096,
+    0.7959809899330139,
+    1.1711910963058472,
+    0.8942335247993469,
+    0.704469621181488,
+    0.7759228944778442,
+    1.0025992393493652,
+    0.5334344506263733
+  ],
+  "dpo": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "40000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "9\n5\n<|endoftext|>",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "20000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "0.5",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "40000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "谢谢。",
+      "passed": false
+    }
+  ],
+  "dpo_heldout_margins": [
+    4.877651214599609,
+    6.117839813232422,
+    -4.475597381591797,
+    4.508293151855469,
+    5.192588806152344,
+    6.7276763916015625
+  ],
+  "merge_max_abs": 0.00022220611572265625,
+  "merged": [
+    {
+      "values": [
+        4,
+        null,
+        6
+      ],
+      "output": "40000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        9,
+        5
+      ],
+      "output": "9\n5\n<|endoftext|>",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        5,
+        null
+      ],
+      "output": "20000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        0
+      ],
+      "output": "0.5",
+      "passed": false
+    },
+    {
+      "values": [
+        2,
+        null,
+        8,
+        5
+      ],
+      "output": "40000000000000000000000000000000",
+      "passed": false
+    },
+    {
+      "values": [
+        null,
+        null
+      ],
+      "output": "谢谢。",
+      "passed": false
+    }
+  ]
+}
