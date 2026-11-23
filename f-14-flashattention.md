@@ -1,40 +1,69 @@
 ---
 title: "LLM 入门 F-14｜FlashAttention 如何减少注意力的显存读写？"
-description: "从一行注意力分数手算整行与分块 Softmax，理解 FlashAttention 为什么能保留数学结果，又少搬运完整的分数矩阵。文章给出 CPU 数值对照及可选的 GPU 测量脚本，区分临时计算和跨步骤保存的键值缓存。"
+description: "用「小工作台分批做菜 vs 搬进地下大冷库」的类比看懂 FlashAttention：它不做近似，而是靠分块和在线 Softmax 省掉巨大的 N×N 显存读写。附带四元素精确手算表、标准库 CPU 验证脚本和可选 CUDA 实测脚本。"
 keywords: [llm, python]
 ---
 
 ![FlashAttention 将一次注意力计算分成较小的块，减少在大显存和片上存储之间搬运中间结果。](assets/f-14-flashattention-cover.jpg)
 
-还是那条「退款金额缺失」的报告任务。假如助手同时收到很长的字段字典，一次注意力要为许多输入位置互相打分。问题不只有「算多少次」，还有「这些分数写到哪里、下一步又从哪读」。FlashAttention 优化的正是这个计算过程。先修见 F-02 的注意力实验和 F-06 的键值缓存。 [F-02 手算示例](https://blog.lacknb.cn/articles/2026/11/20/1795135053358.html)
+还是前面那份 CSV 报表任务。假如用户一口气贴进来一本厚厚的数据字典（长文本输入），在 Prefill 阶段，模型要计算注意力：每个位置都要和前面所有位置算一次匹配打分。
 
-## 1. 看懂要搬的那张数字表
+很多人听到 **FlashAttention** 时会猜：「是不是它做了一点近似、跳过一些词不算才变快的？」**恰恰相反！** FlashAttention 在实数数学上算出来的答案跟普通注意力**分毫不差**。它真正干掉的，不是「乘法次数」，而是 GPU 显存里「搬来搬去的冤枉路」！
 
-在单头注意力中，**Q（Query，查询）**和 **K（Key，键）**点积产生分数，再用 **Softmax** 把一行分数变成总和为 1 的权重，最后按权重混合 **V（Value，值）**。注意力的一个「头」表示一组独立的查询和读值计算。假设有 `N` 个查询位置、`N` 个键位置，分数表就是 `N × N`。例如 `N = 4096`，单头一张采用 16 位浮点数的完整表就占 `4096² × 2 = 32 MiB`。MiB 表示 `1024²` 字节。批次和注意力头数还会放大这个数字。
+> **先用大白话讲明白**：把 GPU 显卡里的存储分成两个地方：
+> - **HBM（高带宽大显存）**：好比酒店的「地下大冷库」，空间巨大（几十 GB），但跑一趟取货极慢。
+> - **SRAM（芯片上的极速缓存）**：好比厨师面前的「小切菜台」，伸手就能摸到（极快！），但桌面小得可怜（只有几十 MB）。
+>
+> **朴素注意力**的做法极笨：先算好一张完整的 `N × N` 巨大分数表，扛进地下大冷库（写 HBM）→ 走回冷库扛出来算 Softmax，再扛回冷库 → 又扛出来乘 V……来回搬运极其耗时，甚至可能把冷库塞爆！
+> **FlashAttention** 改用「小切菜台流水作业」：**把 Q、K、V 切成小块搬上切菜台，在台面上边读块、边用「在线记账法」更新 Softmax 结果，算完直接写出最终成品，压根不往冷库里写那张巨大的中间分数表！**
 
-在图形处理器 **GPU（Graphics Processing Unit）** 上，**HBM（High Bandwidth Memory，高带宽显存）**容量大，**SRAM（Static Random-Access Memory，静态随机存取存储器）**等片上存储离计算单元近，但空间更小。朴素实现可能先把整张分数表写到显存，再读回来做 Softmax，接着写权重，后面又把权重读回来乘 V。这里的 **I/O（Input/Output）**指不同层次存储之间的数据搬运。 [FlashAttention 原论文](https://arxiv.org/abs/2205.14135)
+```mermaid
+flowchart LR
+    subgraph NAIVE["朴素注意力：反复读写 HBM 大显存"]
+        direction LR
+        N1["算 Q·Kᵀ 写入 HBM<br/>占 N x N 巨大表"] --> N2["从 HBM 读出算 Softmax<br/>再写回 HBM"]
+        N2 --> N3["再读出乘 V 得输出"]
+    end
+    subgraph FLASH["FlashAttention：SRAM 片上分块融合"]
+        direction LR
+        F1["每次只取一小块 Q, K, V<br/>放进极速 SRAM 切菜台"] --> F2["块内算分数并动态更新<br/>在线 Softmax 状态 m, l, a"]
+        F2 --> F3["只把最终输出写回 HBM<br/>N x N 中间大表全程不落地"]
+    end
+```
 
-FlashAttention 把 Q、K、V 按块送到计算单元附近，尽量在块内完成打分与加权，只保留计算下一块所需的状态与最终输出。全量注意力的互相打分在数学上仍然成立，常规稠密场景的算术量仍随序列长度平方增长。改变的是中间数据落地与搬运方式。
+先确保已看过 [F-02 注意力手算](f-02-transformer-logits.md) 和 [F-06 KV Cache](f-06-kv-cache.md)。 [FlashAttention 原论文](https://arxiv.org/abs/2205.14135)
 
-## 2. Softmax 怎么边看边算？
+## 1. 先算一笔账：那张中间大表有多吓人？
 
-用「金额」这个查询位置举例。为方便观察，设它能读取四条已出现的证据，缩放并应用可见规则后的分数为 `[0, 1, 2, 3]`，每条的 V 只取一维，分别为 `[2, 4, 6, 8]`。整行计算时，可以先从每项分数减去最大值 3，取指数后求加权平均。这种平移避免指数过大，最后的归一化会约掉共同倍率。
+假设一次注意力有 `N = 4096` 个 Token，光看**1 个注意力头**产生的 `N × N` 分数矩阵，用 16 位浮点数（每数 2 字节）存放：
 
-分块时，先看前两项，后两项还没读到。为每个查询记三个数：
+`4096 × 4096 × 2 = 33,554,432` 字节 = **32 MiB**。
 
-| 符号 | 当前含义 | 前两项处理完 |
-| --- | --- | ---: |
-| `m` | 已见分数的最大值 | 1 |
-| `l` | 以当前 `m` 为基准的指数和，也就是分母 | 1.367879 |
-| `a` | 以当前 `m` 为基准的加权 V 之和，也就是分子 | 4.735759 |
+这还仅仅是 **1 条请求、1 个头、1 张表**！如果一批并发 8 条请求、每层 16 个头，仅仅为了存这张转瞬即逝的临时表就要吞掉 `32 MiB × 8 × 16 = 4 GiB` 显存，还要从缓慢的 HBM（High Bandwidth Memory，高带宽显存）里写进去再读出来好几遍。
 
-第二块 `[2, 3]` 把最大值提高到 3。旧结果以 1 为基准，新结果以 3 为基准，直接相加会混用尺度。先把旧的 `l`、`a` 同时乘 `exp(1−3)`，再加上第二块按新基准算出的两部分。更新结束后 `m = 3`、`l ≈ 1.553002`、`a ≈ 10.848192`，输出 `a / l ≈ 6.985305`。真实注意力里 `a` 是向量，里面每个分量都能用同一个倍率更新。 [FlashAttention 论文 Algorithm 1](https://arxiv.org/abs/2205.14135)
+> **关键区分**：在标准全量注意力下，FlashAttention 算的乘加总次数（FLOPs）依然随序列长度平方增长，真正降下来的是 **HBM 访问次数（I/O 开销）** 和 **峰值显存占用**。
 
-这叫**在线 Softmax**。只要状态按同一基准更新，它和整行 Softmax 在实数数学上等价。有限精度下，运算顺序和舍入会造成小差异，验收时用误差容限。因果注意力里，整块不可见可以直接跳过，部分不可见的位置按遮罩排除。教学输入的四个位置全部可见。
+## 2. 切菜台这么小，怎么在没看全表前就把 Softmax 算对？
 
-## 3. 先在 CPU 上验算同一行
+普通 Softmax 必须先看过一整行全部 `N` 个数，找到最大值再统一算分母。可现在切菜台一次只放得下 **2 个数**，后面还没读到怎么办？
 
-CPU 是中央处理器。下面只用 Python 标准库，保存为 `online_softmax.py` 后运行 `python3 online_softmax.py`。`exp` 表示取指数，`isclose` 按指定容差检查两条路径足够接近。
+答案叫 **在线 Softmax（Online Softmax）**：靠维护三个小小的「滚动账本变量」边走边修正！
+
+用「金额」这个查询位置演示：假设它能读 4 条证据，打完分后是 `[0, 1, 2, 3]`，对应的 V 只取一维，分别为 `[2, 4, 6, 8]`。一次只看 2 个（分两块：`[0, 1]` 和 `[2, 3]`）：
+
+| 滚动变量 | 它的含义（大白话） | 读完第 1 块 `[0, 1]` 后的值 | 读完第 2 块 `[2, 3]` 怎么修正更新？ |
+| --- | --- | ---: | --- |
+| **`m`** | 目前见过**最大的分值** | `1` | 新块最大值是 `3`，所以新基准 `m = 3` |
+| **`l`** | 以当前 `m` 为基准的**指数总和（分母）** | `1.367879` | 旧基准是 1、新基准是 3，先把旧 `l` 乘 `exp(1 - 3)` 统一换算到新基准，再加第 2 块指数和 → `1.553002` |
+| **`a`** | 以当前 `m` 为基准的**加权 V 之和（分子）** | `4.735759` | 同样先把旧 `a` 乘 `exp(1 - 3)` 缩放到新基准，再加第 2 块加权 V → `10.848192` |
+
+最后两块都滚完了，一步做除法：`a / l = 10.848192 / 1.553002 ≈ 6.985305`。神奇吧？无论前面旧基准设低了多少，只要乘上 `exp(旧基准 - 新基准)`，在数学上就跟一开始就知道全局最大值 `3` **严丝合缝等价**！真实模型里 `a` 是多维向量，每个分量只需同乘这一个缩放系数即可。
+
+> **细节提醒**：由于浮点数加法顺序变了，有限精度下会有极微小舍入差（约 `1e-15` 或半精度下的 `1e-3`），因此比对时用容差断言。而在因果生成时，右上角那些「完全不可见」的块甚至可以直接跳过不算，速度还能再翻一倍！ [FlashAttention 论文 Algorithm 1](https://arxiv.org/abs/2205.14135)
+
+## 3. 先在普通电脑用 Python 验算在线 Softmax
+
+下面脚本只用 Python 标准库，保存为 `online_softmax.py` 并运行 `python3 online_softmax.py`：
 
 ```python
 from math import exp, isclose
@@ -72,9 +101,11 @@ m=3, l=1.553002, a=10.848192
 整行=6.985305, 分块=6.985305, 误差=1.78e-15
 ```
 
-## 4. 在支持 CUDA 的设备上量显存与耗时
+整行和分块之间误差只有 `1.78 × 10⁻¹⁵`——基本就是浮点数的机器极限精度了！
 
-**CUDA** 是 NVIDIA 的 GPU 计算平台。下面是可在支持 Flash 后端的 CUDA 环境中运行的对照脚本，使用 PyTorch 的 **SDPA（Scaled Dot Product Attention，缩放点积注意力）**接口，显式指定 Flash 后端。按官方安装说明配置 CUDA 版 PyTorch，把脚本存为 `compare_flash.py`，运行 `python compare_flash.py`。两条路径固定同一组张量与因果规则，四个轴依次是批次、头数、位置数和头宽。记录最大绝对误差、预热后每轮平均毫秒数、已分配显存相对输入常驻状态的额外峰值。因果遮罩也预先分配，计时发生在 GPU 上。 [PyTorch SDPA 文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
+## 4. 在 CUDA 显卡上真刀真枪测显存与耗时（可选）
+
+> **想再深入一层？** 如果你手边有 NVIDIA GPU（配备 CUDA 计算平台），可以用 PyTorch 官方提供的 **SDPA（Scaled Dot Product Attention，缩放点积注意力）** 接口，强制锁定 `SDPBackend.FLASH_ATTENTION` 后端，跟手写 `naive` 朴素注意力比一比额外峰值显存和单次耗时（本机未配 CUDA，以下代码需在支持的 NVIDIA GPU 环境运行）。
 
 ```python
 import torch
@@ -130,12 +161,19 @@ with torch.inference_mode():
         print(f"{name}: {milliseconds:.3f} ms, 运行额外峰值 {peak_mib:.1f} MiB")
 ```
 
-本文实跑了 CPU 数值对照。本机无 CUDA，GPU 的耗时和显存需要在支持的设备上测得。若后端被拒绝，先记录 GPU 型号、PyTorch 版本、数据类型和头宽。强制 Flash 后端可以让不支持的组合直接暴露，避免把回退结果误读为 FlashAttention。
+> **容易踩的坑**：注意代码里的 `with sdpa_kernel(SDPBackend.FLASH_ATTENTION):`。如果你不显式强制指定它，PyTorch 在发现当前头宽或显卡型号不满足 FlashAttention 硬件条件时，会默默回退成普通数学实现而不报错，让你误以为自己测出了 FlashAttention 的数据！ [PyTorch SDPA 文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
 
-## 5. 跟 KV Cache 和 PagedAttention 对照
+## 5. 分清两个「分块」：FlashAttention vs KV Cache / PagedAttention
 
-F-06 的 **KV Cache（键值缓存）**保留历史 K、V，生命周期跨多个解码步。**PagedAttention（分页注意力）**将这些缓存位置组织成块，减少分配和共享的浪费。FlashAttention 主要优化一次注意力计算内部的分数与权重搬运。两处都提到「块」，一个块面向临时计算，另一个面向缓存管理。后续 SERV-04 会从引擎的分块和调度继续讲。 [PagedAttention 论文](https://arxiv.org/abs/2309.06180)
+| 技术名称 | 优化的对象是谁？ | 生命周期有多长？ | 解决的核心痛点 |
+| --- | --- | --- | --- |
+| **FlashAttention** | 注意力计算内部的临时分数表 `N × N` | **算完这一层就丢** | 省下切块搬运 HBM ↔ SRAM 的时间和瞬时巨型显存峰值 |
+| **KV Cache + PagedAttention** | 前面已算好的历史 `K` 和 `V` 向量 | **跨多个生成步常驻** | 省掉重复计算旧词，按页切块避免长短不一带来的显存碎片 |
 
-下一篇 **F-07《TTFT、TPOT、ITL、吞吐与端到端延迟》**将用同一份固定负载观察引擎和界面两边的时间。 [学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+一句话记住：**FlashAttention 优化「正在算的那一瞬间」的搬运工，PagedAttention 管理「长期存放在仓库里」的笔记本**。二者不但不冲突，现代推理引擎 vLLM 正是把它们叠在一起用——详细调度留到 [SERV-04](serv-04-paged-attention-batching.md) 拆解。 [PagedAttention 论文](https://arxiv.org/abs/2309.06180)
 
-[F-06 KV Cache 如何加速 Decode](f-06-kv-cache.md) · [F-07 TTFT、TPOT、ITL、吞吐与端到端延迟](f-07-inference-latency-metrics.md)
+## 下一篇
+
+搞明白了模型内部怎么加速算、怎么省显存，下一步把镜头拉到网页界面上：为什么引擎日志明明显示 120 毫秒就吐出了第一个字，浏览器上却过了好一会儿才看到字？请看下一篇 [F-07《TTFT、TPOT、ITL 与吞吐怎样量？》](f-07-inference-latency-metrics.md)。系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。
+
+[F-06 KV Cache 如何加速 Decode](f-06-kv-cache.md) · [F-07 TTFT、TPOT、ITL 与吞吐怎样量？](f-07-inference-latency-metrics.md)

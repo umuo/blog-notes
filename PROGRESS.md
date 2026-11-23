@@ -19,6 +19,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 精修第一部分「LLM 基础与推理」15 篇并同步博客 | 补齐 ELI5 大白话导读、按需深入分层、23 张兼容 Mermaid 9.1.7 的流程图及易错点，全量线上 HTML 校验通过 |
 | 2026-11-23 | 发布 AGT-01～AGT-25，完成第六部分 | 归档退款报告运行时、MCP、A2A、Temporal、Pi、技能发现与界面回放的离线实测，共用固定 CSV，未部署模型 |
 | 2026-11-23 | 发布 SERV-01～SERV-16，完成第五部分 | 归档推理引擎、流式、模型注册、部署和批作业实测，以及标明口径的调度及容量演算。核对公开正文、封面与置顶目录 |
 | 2026-11-23 | 发布 [TRN-05](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)、[TRN-06](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)、[TRN-07](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)、[TRN-08](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)、[TRN-11](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)、[TRN-12](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)、[TRN-09](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)，完成第四部分 | 归档 Qwen LoRA、DPO 和 Unsloth 实测，以及强化学习、蒸馏和数据筛选的教学实验。逐篇核对公开正文、封面与置顶路线图 |
