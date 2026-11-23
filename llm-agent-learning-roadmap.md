@@ -208,17 +208,21 @@
 | AE-02 | [结果评测、轨迹评测和随机性](https://blog.lacknb.cn/articles/2026/11/23/1795403179638.html)（已发布，[源稿](ae-02-outcomes-traces.md)） | 先断言最终状态、产物正确和写入次数，再检查选择错误、冗余步骤、超时与越权。对允许多个解法的任务评约束与结果，重复运行并报告成功率、波动、耗时和成本。 |
 | AE-03 | [使用开源框架评测自己的 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html)（已发布，[源稿](ae-03-inspect-ai.md)） | 用 Inspect AI 把 CSV 报告任务组织成样本、Agent 与评分器，接上模拟工具和可信状态断言。将线上脱敏失败轨迹用于离线回归。 |
 | AE-07 | [Agent 失败如何归因，模型、工具还是 Harness](https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html)（已发布，[源稿](ae-07-failure-attribution.md)） | 建立按故障环节分类的失败样本。替换成可信工具结果、固定检索证据，或回放同一调用轨迹，每次只换一层。分别复现工具选错、参数错误、工具故障、状态未恢复与错误汇总，记录首个失败阶段和修复后影响。 |
-| AE-04 | [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)（已发布，[源稿](ae-04-public-benchmarks.md)） | 先用 BFCL 的工具调用子任务看选工具和传参，再用 τ²-Bench 的模拟交互检查业务终态，最后用 SWE-bench 的仓库修复任务看补丁测试。对照各自的通过条件，记录模型、Harness、工具权限、环境和预算。 |
+| AE-04 | [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)（已发布，[源稿](ae-04-public-benchmarks.md)） | 建立四级 Agent 评测视角：BFCL（工具选型与传参）、τ²-Bench 与 GAIA（业务终态与多步检索）、SWE-bench Verified/Pro 与 Terminal-Bench（存量仓库与容器排障），以及社区 0-to-1 全应用交付榜 KingBench 4 和电脑/网页操控榜 OSWorld、WebArena；同时说明 Harness、预算与反虚报口径。 |
 | AE-08 | [从离线 Agent 回归到线上灰度](https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html)（已发布，[源稿](ae-08-regression-rollout.md)） | 将能完成新任务的能力评测、已支持行为的回归评测和权限限制分别设门槛。用模拟环境先做故障注入和终态校验，灰度时按任务或用户群看成功率、接管率、P95 和单次成功成本。影子请求隔离写入，用脱敏失败轨迹补回归集并验证回滚。 |
 | AE-05 | [进阶实验，Agent 的多轮强化学习](https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html)（已发布，[源稿](ae-05-multi-turn-rl.md)） | 先读 TRN-08 和 AGT-01，使用已有 Agent 评测作基线。在可重置的模拟报表环境中收集多轮工具交互轨迹，比较终态奖励与加入步骤奖励后的成功率、无效动作、步数和奖励投机。用未见任务复测，并与 EVO-01 中的运行时经验更新对照。 |
 
 ### 常用 Agent 基准与打分方式
 
-| 基准 | 评测目标 | 验收依据 |
+| 基准 / 排行榜 | 评测目标 | 验收依据 |
 | --- | --- | --- |
-| [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html) | 函数调用，适合先读单轮与多轮子任务 | 按子任务检查工具名、参数结构或执行结果 |
-| [τ²-Bench](https://github.com/sierra-research/tau2-bench) | 模拟用户、工具和业务规则下的多轮任务 | 按任务规则检查交互结果及环境终态 |
-| [SWE-bench](https://github.com/SWE-bench/SWE-bench) | 对真实仓库问题生成补丁 | 在固定仓库环境运行评测测试并判定是否解决 |
+| [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html) | 函数调用，覆盖单轮、多轮并行调用与拒调判断 | 按子任务检查 AST 工具名/参数结构、拒调或执行结果 |
+| [τ²-Bench](https://github.com/sierra-research/tau2-bench) | 模拟用户与 Agent 双控制环境下的多轮业务交互 | 按任务规则独立检查交互结果及环境终态 |
+| [GAIA](https://huggingface.co/spaces/gaia-benchmark/leaderboard) | 通用助手联网检索、读取多格式文件与多步计算 | 简短、唯一且无歧义的精确终值匹配 |
+| [SWE-bench](https://github.com/SWE-bench/SWE-bench) / [Verified](https://www.swebench.com/) / [Pro](https://github.com/scaleapi/SWE-bench_Pro-os) | 对真实仓库历史 Issue 生成代码补丁（含人工复核 Verified 与高难防污染 Pro 版） | 在隔离仓库中同时运行 Fail-to-Pass 与 Pass-to-Pass 测试 |
+| [Terminal-Bench](https://www.tbench.ai/) | 真实 Linux Docker 容器里的纯命令行、编译与运维排障任务 | 在容器内运行确定性状态验证脚本 |
+| [KingBench 4](https://github.com/aicodeking)（[AICodeKing](https://www.youtube.com/@AICodeKing)） | 社区实战排行榜（模型 + Harness 组合）：限时零人工从 0 到 1 交付 6 套完整硬核应用 | 60 分制按交付原样实测、安全逃逸与反虚报检查，并披露 API 成本与耗时 |
+| [OSWorld](https://osworld-v1.xlang.ai/) / [WebArena](https://webarena.dev/) | 真实桌面 GUI（Computer-Use）与自托管真实网页浏览器工作流 | 检查虚拟机操作系统终态或网页后端数据库状态 |
 
 **Inspect AI** 用于搭建和运行自有任务。覆盖 CSV 报告正确性、审批和归档的用例由业务终态评分。需要把线上轨迹与质量评分关联时可调研 **Langfuse**，并验证采集字段、脱敏和留存策略。 [Anthropic Agent 评测指南](https://www.anthropic.com/research/demystifying-evals-for-ai-agents) · [Inspect AI Agent 文档](https://inspect.aisi.org.uk/agents.html) · [SWE-bench](https://github.com/SWE-bench/SWE-bench) · [τ²-Bench](https://github.com/sierra-research/tau2-bench) · [Langfuse](https://github.com/langfuse/langfuse) · [TRL 环境训练](https://huggingface.co/docs/trl/main/openenv) · [verl Agentic RL](https://verl.readthedocs.io/en/latest/start/agentic_rl.html)
 

@@ -1,7 +1,7 @@
 ---
 title: "LLM 评测 LE-10｜常用 LLM 评测数据集测什么，应该怎么选"
-description: "用「看考卷和评分细则挑家教」的大白话类比，拆解 MMLU、C-Eval、GSM8K 与 HumanEval 四大公开基准各测什么，对照真实题面查看字母抽取、logprob 选优、#### 数值归一和单元测试通过的判分差异，讲清为什么不能迷信高分直接用于业务。"
-keywords: [llm, eval, benchmark, dataset]
+description: "用「看考卷和评分细则挑家教」的大白话类比，先拆解 MMLU、C-Eval、GSM8K 与 HumanEval 老四大经典基准的样本与批改机制，再补充 MMLU-Pro、GPQA Diamond、HLE、ARC-AGI-2、LiveBench、LiveCodeBench、BigCodeBench、IFEval、SimpleQA、MMMU、RULER、LMArena 与 Artificial Analysis 等 2025–2026 主流进阶基准和排行榜。"
+keywords: [llm, eval, benchmark, dataset, leaderboard]
 ---
 
 ![MMLU、C-Eval、GSM8K 和 HumanEval 对应不同样本形态和评分方式。](assets/le-10-public-datasets-cover.jpg)
@@ -91,9 +91,70 @@ assert not has_close_elements([0.0], 1.0)
 print("选择题键、最终数值和三条函数断言均通过")
 ```
 
-> **大白话小结**：回到开头的问题——挑退款助手底座模型该怎么看公开榜？
-> 1. 优先参考任务形态贴近的成绩：需要中文业务指令理解看中文综合榜，需要算术推理参考 GSM8K，如果方案本身是「让大模型写一段 Python 代码算均值再执行」，那 HumanEval 参考价值反倒更高；
-> 2. **公开高分永远只能当「入围筛子」，不能代替业务验货**：许多模型训练语料可能早已见过公开数据集（俗称**数据污染 Data Contamination**），而且公开题库根本不测你的特定 JSON Schema、空值处理和 `0` 值保留合同！选型前必须拿回 [LE-01](le-01-dataset-baseline.md) 建好的本地数据集跑一遍实测，并把数据集版本、切分方式、Prompt 和抽取规则白纸黑字存档备查。
+## 5. 为什么老四大榜单已经不够用了？2025–2026 主流进阶基准与排行榜全景
+
+前面四篇帮咱们摸清了 MMLU、C-Eval、GSM8K 和 HumanEval 的老底——但如果你今天再去挑底座模型，只盯着这「老四大」一定会误判！原因用大白话讲就两条：
+
+1. **考卷太简单、学霸全挤在 99 分——叫「饱和效应（Saturation）」**：就像高三学生天天刷同一套期末基础卷，尖子生全都考 90～98 分，榜单看着只差 0.3 分，根本看不出谁真能啃硬骨头；
+2. **老题在网上传了好几年、模型早就偷偷背过答案——叫「数据污染（Data Contamination）」**：如果训练集里早就把公开题库吞进去了，考高分更像「背题大赛」，一遇到没见过的新规则照样抓瞎。
+
+所以 2025～2026 年业界评价底座模型，早已升级成一套**分维度考场矩阵**：
+
+```mermaid
+flowchart LR
+    U["2025-2026 底座模型进阶榜单全景"] --> D1["1. 高难知识与推理<br/>MMLU-Pro / GPQA Diamond<br/>HLE / ARC-AGI-2 / MATH & AIME"]
+    U --> D2["2. 抗污染动态与真实代码<br/>LiveBench / LiveCodeBench<br/>BigCodeBench"]
+    U --> D3["3. 格式 · 事实 · 多模态 · 长文本<br/>IFEval / SimpleQA<br/>MMMU / RULER"]
+    U --> D4["4. 真人盲测与性价比综合榜<br/>LMArena 盲测 Elo<br/>Artificial Analysis 速度/成本"]
+    U --> D5["5. 多轮工具与 0-to-1 工程 Agent<br/>SWE-bench Verified/Pro · Terminal-Bench<br/>KingBench 4 · OSWorld（详见 AE-04）"]
+```
+
+### 5.1 高难度知识与推理：专治「全员考 99 分」
+
+- **MMLU-Pro**：相当于 MMLU 的加压升级版——把原来的「4 选 1」直接拉到**「10 选 1」**，并且大幅增加需要多步逻辑推导的题目比例，防止模型靠排除法蒙对选项。[MMLU-Pro 官方仓库](https://github.com/TIGER-AI-Lab/MMLU-Pro)
+- **GPQA Diamond（Graduate-Level Google-Proof Q&A，博士级防搜索问答）**：由物理、化学、生物博士亲手编写的超高难专业题，「防搜索（Google-proof）」意思是外行就算现场查搜索引擎、花半小时看资料也做不对。其中 **Diamond（钻石子集）**是公认最干净、信噪比最高的 198 道精选核心题，常用来看模型在理科深度推理上的硬功夫。[GPQA 官方仓库](https://github.com/idavidrein/gpqa)
+- **HLE（Humanity's Last Exam，人类最后一场考试）**：汇集全球跨学科前沿专家出题的超高门槛基准（含纯文本与图文题），专门用来探明当前大模型在极深专业知识与长链推理上的天花板。[HLE 官网](https://lastexam.ai/)
+- **ARC-AGI / ARC-AGI-2（Abstraction and Reasoning Corpus，抽象推理语料库）**：不考背过的历史或编码语法，而是给你几个「彩色小方块按新规则变形」的图案例子，让你现场悟出规律并画出下一张网格！大白话讲，它考的是不靠死记硬背的**流体智力（Fluid Intelligence）**——至今依然是区分「背题机器」和「真正现场归纳规律」的重要试金石。[ARC Prize 官网](https://arcprize.org/)
+- **MATH / AIME / FrontierMath**：GSM8K 考的是小学文字应用题，现在看数学能力已经普遍升级成看美国高中数学竞赛级（MATH、AIME）乃至未公开的研究级难题（FrontierMath），考复杂的符号变换、几何构造与严格求解。
+
+### 5.2 抗污染动态题库与真实工程代码：专治「提前背题」
+
+- **LiveBench**：为了彻底躲开数据污染，它**每月持续滚动发布新题**，来源涵盖近期最新论文、新闻和动态数学/编码/推理题，并且**所有题目都配了确定性自动评分规则，完全不靠 LLM 当裁判**（免除了裁判偏差）。[LiveBench 官网](https://livebench.ai/) · [GitHub](https://github.com/LiveBench/LiveBench)
+- **LiveCodeBench**：做编程评测最怕模型在 GitHub 或刷题网站上「见过原题」。LiveCodeBench 会给每一道 LeetCode、AtCoder、Codeforces 比赛真题严格标上**发布时间戳**，只拿「晚于模型训练知识截止日期」之后的新题来考，一秒照出真实编程功底有没有掺水分。[LiveCodeBench 官网](https://livecodebench.github.io/) · [GitHub](https://github.com/LiveCodeBench/LiveCodeBench)
+- **BigCodeBench**：HumanEval 只让你补全一个几行长的孤立 Python 小函数；而 BigCodeBench 专门考**现实工程里的多库协同调用**——比如「用 `pandas` 清洗表格、再用 `matplotlib` 画图、最后写进指定文件」，直接对应真实研发写脚本的能力。[BigCodeBench 官方仓库](https://github.com/bigcode-project/bigcodebench)
+
+### 5.3 格式遵循、事实幻觉、多模态与长上下文：专盯业务可用性
+
+- **IFEval（Instruction-Following Eval，指令遵循评测）**：只考模型「听不听话」，不考它聪不聪明！题目里会塞入可由程序硬核检查的格式死命令——例如「必须用纯 JSON 输出」「全文不得超过 120 个词」「答案里必须包含 3 个指定英文关键词」。这跟咱们退款助手里要求「绝对不要加多余注释、严格按 Schema 输出」是一模一样的能力。[IFEval 数据集](https://huggingface.co/datasets/google/IFEval)
+- **SimpleQA**：专门测简短客观事实问答，重点看模型「不知道的时候会不会老实说不知道」，把瞎编答案（幻觉）的概率和盲目自信暴露出来。[SimpleQA / simple-evals](https://github.com/openai/simple-evals)
+- **MMMU（Massive Multi-discipline Multimodal Understanding，大规模多学科多模态理解）**：如果业务里要看合同扫描件、财报截图或工程图纸，就看这类大学级图文混合推理基准。[MMMU 主页](https://mmmu-benchmark.github.io/)
+- **RULER**：早期看长上下文流行在长文章里塞一句暗号看能不能找回来（即「大海捞针 Needle-in-a-Haystack」），但模型很快能应付单点搜寻；**RULER** 把难度升级到「多条线索跨段追踪、全局词频统计和跨段聚合问答」，避免长文本一多就丢细节。怎么用自己的退款 CSV 字典复现这类长上下文退化测试，我们在 [LE-06《长上下文的有效性如何评测》](le-06-long-context-eval.md) 会亲手做一遍。[RULER 官方仓库](https://github.com/NVIDIA/RULER)
+
+### 5.4 人类盲测偏好与成本/速度综合排行榜
+
+- **LMArena（原名 Chatbot Arena）**：这是业界知名度最高的**双盲真人对战榜**——每次给你同一个问题让两个匿名模型作答，由真实人类用户盲选谁写得更好，再套用国际象棋 **Elo 积分制（Arena Elo Rating）**排榜。大白话讲，它测的不是客观题对错，而是「真用起来回答是不是自然、周到、对人类胃口」（这种两两盲比思维，也正是 [LE-03《LLM-as-a-Judge 与人工校准》](le-03-llm-judge-calibration.md) 中成对比较校准的核心思路）。[LMArena 官网](https://lmarena.ai/)
+- **Artificial Analysis**：工程选型只看智力总分常常会踩进成本陷阱！Artificial Analysis 把公开推理跑分、每百万 Token 的 API 账单价、**首字延迟 TTFT（Time to First Token）** 和**生成吞吐速度（tokens/s）** 摆进同一张对比面板，方便工程师直观挑出「性价比甜点模型」。至于如何在自己机房真实测出合规吞吐与成本账单，可以看部署专题的 [SERV-11《怎样做两种推理引擎的生产基准》](serv-11-engine-benchmark.md)。[Artificial Analysis 官网](https://artificialanalysis.ai/)
+
+### 5.5 2025–2026 主流进阶基准与榜单速查表
+
+| 维度 | 基准 / 排行榜 | 主要考什么 | 批改 / 排榜机制 | 读榜时盯紧什么坑 |
+| --- | --- | --- | --- | --- |
+| 高难知识推理 | **MMLU-Pro / GPQA Diamond / HLE** | 10 选 1 百科、博士级理科与前沿难题 | 客观选项 / 唯一专家答案匹配 | 容易为了刷高分狂拉「思考 Token」推高延迟与开销 |
+| 流体智力与数学 | **ARC-AGI-2 / MATH & AIME** | 陌生规律归纳与竞赛级数学推演 | 新网格矩阵 / 符号数值精确匹配 | 区分裸模型单发输出 vs 额外搜索试错成本 |
+| 抗污染动态 | **LiveBench / LiveCodeBench** | 按月新题、按时间戳切分新竞赛题 | 无 LLM 裁判的客观规则或单测 | 核对受测模型训练截止日期是否晚于题集切片 |
+| 真实工程代码 | **BigCodeBench** | 多 Python 库协作工程脚本 | 隔离环境运行单元测试 | 单步写脚本很强不等于多轮自主排障也强 |
+| 格式与事实边界 | **IFEval / SimpleQA** | 硬性格式字数约束、事实幻觉率 | 代码正则/规则检查、事实精确与拒答率 | 高准确可能伴随保守拒答，需同时看拒答率 |
+| 多模态与长文本 | **MMMU / RULER** | 专业图文推理、长文跨段聚合追踪 | 客观匹配与长上下文多跳校验 | 长文本下延迟飙升与上下文腐化曲线 |
+| 真实体验与性价比 | **LMArena / Artificial Analysis** | 人类盲测好感度、价格/速度/智力权衡 | 盲测 Elo 积分；多基准结合实测延迟计价 | 盲测容易偏爱「废话长、排版好看」的长回答 |
+
+> **如果我要选「能自己操作仓库、终端甚至交付完整软件的编程/通用 Agent」看哪儿？**
+> 上面列出的大多还是**「模型单步答题能力」**；一旦给模型接上工具循环、Bash 终端、文件系统与长任务 **Harness**，考的就是另一套榜单（例如 **SWE-bench Verified / Pro**、**Terminal-Bench**、社区从 0 到 1 硬核全应用交付榜 **KingBench 4**、桌面与网页交互榜 **OSWorld / WebArena** 与 **GAIA**）。这些统一放到 Agent 评测专题的 [**AE-04《Agent 公开基准与排行榜全景》**](ae-04-public-benchmarks.md) 细拆！
+
+> **大白话小结**：回到开头的问题——挑退款助手或任意业务底座模型时，按这 **4 步**看榜最不容易交学费：
+> 1. **先用 `IFEval` + `LiveBench` 筛底盘**：保证指令听话（能稳定按 Schema 输出）、而且不是靠背老题库刷出来的高分；
+> 2. **打开 `Artificial Analysis` 算账本**：把同档位高分候选的 TTFT、吞吐和百万 Token 账单排在一起，砍掉又贵又慢的；
+> 3. **只要任务需要多轮调工具或写整个项目，马上跳去 [AE-04](ae-04-public-benchmarks.md)**：看 `BFCL`、`τ²-Bench`、`SWE-bench Verified/Pro`、`Terminal-Bench` 以及专注 0-to-1 完整交付的 `KingBench 4`；
+> 4. **公开高分永远只是「初筛入场券」，永远不能替你做业务验货**：最后决定谁上线的，还是用 [LE-01](le-01-dataset-baseline.md) 亲手搭建的业务留出集（比如咱们退款 CSV 的空值忽略、`0` 值保留与 JSON 合同），同时存档数据集版本、切分方式、Prompt 和抽取规则备查。
 
 ## 下一篇
 
