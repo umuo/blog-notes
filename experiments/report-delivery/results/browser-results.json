@@ -1,0 +1,61 @@
+{
+    "chrome": "157.0.8103.79",
+    "prototypes": [
+        {
+            "round": 1,
+            "report": "有效条数 3，均值 3.33",
+            "empty": "有效条数 1，均值 0.00",
+            "archive": "已归档（本地演示）",
+            "defaultInputReviewMs": 106
+        },
+        {
+            "round": 2,
+            "report": "有效条数 2，均值 5.00",
+            "empty": "有效条数 0，均值无值",
+            "archive": "已归档（本地演示）",
+            "defaultInputReviewMs": 63
+        }
+    ],
+    "engineered": {
+        "viewport": {
+            "width": 900,
+            "height": 680
+        },
+        "screenshotPath": {
+            "originalPoint": [
+                188,
+                345
+            ],
+            "refreshedPoint": [
+                188,
+                450
+            ],
+            "oldCoordinates": {
+                "count": "—",
+                "mean": "—",
+                "archived": "0"
+            }
+        },
+        "semanticLocatorAfterShift": {
+            "count": "2",
+            "mean": "5.00",
+            "archived": "0"
+        },
+        "accessibleButtons": [
+            "- button \"生成报告\"",
+            "- button \"预览归档\" [disabled]"
+        ],
+        "invalidInputError": "第 2 行金额无效",
+        "escapeKeptArchiveCount": 0,
+        "handoff": {
+            "owner": "human",
+            "automationSubmitted": false,
+            "archiveCountAtHandoff": "0"
+        },
+        "afterHumanConfirmation": {
+            "count": "2",
+            "mean": "5.00",
+            "archived": "1"
+        }
+    }
+}

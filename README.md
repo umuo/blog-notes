@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前十二部分共 128 篇，均已发布。第十二部分「OpenClaw 与 Hermes Agent 源码案例」共 3 篇，下一篇是第十三部分的 DEV-01《Vibe Coding 的工作方式与原型实验》。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前十三部分共 131 篇，均已发布。第十三部分「Vibe Coding 与工程化交付」共 3 篇，下一篇是第十四部分的 OPS-01《LLM Gateway 的限流、路由、缓存与降级》。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。

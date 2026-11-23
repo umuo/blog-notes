@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>退款报告</title>
+    <style>
+        :root { color-scheme: light; color: #173335; background: #edf2ed; font: 16px/1.55 system-ui; }
+        body { margin: 0; }
+        main { max-width: 620px; margin: 7vh auto; padding: 27px 30px; background: #fff; border: 1px solid #a5bcb2; border-radius: 12px; }
+        h1 { font-size: 2rem; margin: 0 0 14px; }
+        textarea { box-sizing: border-box; display: block; width: 100%; padding: 12px; margin: 4px 0 12px; color: #173335; font: 1rem/1.45 monospace; background: #f6f9f6; border: 1px solid #829f94; border-radius: 5px; }
+        button { padding: 9px 14px; border: 1px solid #496c61; border-radius: 6px; background: #fff; color: #173335; font: inherit; cursor: pointer; }
+        button.primary { background: #1c5044; color: white; }
+        button:disabled { opacity: .5; cursor: default; }
+        button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid #2955af; outline-offset: 3px; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        dl { display: flex; gap: 28px; padding: 12px 15px; margin: 15px 0; background: #ecf4f0; }
+        dd { margin: 4px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+        #status { min-height: 1.5em; margin-bottom: 0; }
+        [role="alert"] { color: #952a25; }
+        dialog { border: 1px solid #496c61; border-radius: 10px; padding: 24px; width: min(360px, 80vw); }
+        dialog::backdrop { background: #16302c55; }
+        .confirmation { display: block; padding: 12px 0; }
+        .shifted .actions { padding-top: 105px; }
+        @media (max-width: 640px) { main { margin: 14px; padding: 20px; } }
+    </style>
+</head>
+<body>
+<main>
+    <h1>退款报告</h1>
+    <label for="csv">退款 CSV</label>
+    <textarea id="csv" rows="5" spellcheck="false">refund
+4
+NA
+6</textarea>
+    <div class="actions">
+        <button type="button" id="calculate" class="primary">生成报告</button>
+        <button type="button" id="preview" disabled>预览归档</button>
+    </div>
+    <dl aria-label="报告汇总">
+        <div><dt>有效条数</dt><dd id="count">—</dd></div>
+        <div><dt>均值</dt><dd id="mean">—</dd></div>
+        <div><dt>本地归档数</dt><dd id="archive-count">0</dd></div>
+    </dl>
+    <p id="status" role="status">等待生成报告</p>
+    <p id="problem" role="alert" hidden></p>
+</main>
+<dialog id="confirm" aria-labelledby="confirm-title">
+    <h2 id="confirm-title">确认归档</h2>
+    <p id="preview-text"></p>
+    <label class="confirmation"><input id="approval" type="checkbox"> 我已核对当前版本</label>
+    <div class="actions">
+        <button type="button" id="cancel" autofocus>取消</button>
+        <button type="button" id="submit" class="primary" disabled>提交归档</button>
+    </div>
+</dialog>
+<script src="report-core.js"></script>
+<script src="report-ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>退款报告原型</title>
+<style>
+    body { font: 16px/1.65 system-ui; background: #eef2f4; color: #18222d; margin: 0; }
+    main { max-width: 540px; margin: 12vh auto; background: white; padding: 32px; border-radius: 14px; }
+    textarea { box-sizing: border-box; width: 100%; padding: 12px; font: inherit; }
+    button { margin: 12px 6px 0 0; padding: 8px 14px; font: inherit; cursor: pointer; }
+</style>
+<main>
+    <h1>退款报告原型</h1>
+    <label for="csv">退款 CSV</label>
+    <textarea id="csv" rows="5">refund
+4
+NA
+6</textarea>
+    <div>
+        <button id="calculate">生成报告</button>
+        <button id="archive">归档</button>
+    </div>
+    <p id="report">等待计算</p>
+    <p id="status" role="status">未归档</p>
+</main>
+<script>
+    const input = document.querySelector("#csv");
+    document.querySelector("#calculate").addEventListener("click", () => {
+        const rows = input.value.trim().split(/\r?\n/).slice(1)
+            .map((row) => row.trim()).filter((row) => row !== "" && row !== "NA").map(Number);
+        const output = document.querySelector("#report");
+        if (rows.length === 0) {
+            output.textContent = "有效条数 0，均值无值";
+            return;
+        }
+        const average = rows.reduce((sum, item) => sum + item, 0) / rows.length;
+        output.textContent = `有效条数 ${rows.length}，均值 ${average.toFixed(2)}`;
+    });
+    document.querySelector("#archive").addEventListener("click", () => {
+        document.querySelector("#status").textContent = "已归档（本地演示）";
+    });
+</script>
+</html>

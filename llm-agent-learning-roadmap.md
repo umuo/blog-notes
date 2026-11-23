@@ -321,9 +321,9 @@ Google DeepMind 的公开资料分别记录了 **SIMA 2 利用自生成经验训
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| DEV-01 | Vibe Coding 的工作方式与原型实验 | 通过自然语言和界面反馈快速迭代一个报告页，记录迭代时间、人工干预和剩余缺陷。以可丢弃分支承载实验。 |
-| DEV-02 | 从 Vibe Coding 原型走向 Agentic Engineering | 同一任务增加可验证规格、仓库约束、测试、版本隔离、权限和代码复核。对比测试覆盖、错误恢复、修改范围和可维护性。 |
-| DEV-03 | Computer Use 与浏览器 Agent 的工程实践 | 用同一份本地示例报告比较 DOM/可访问性信息与截图操作的定位方式。验证点击后的页面状态、弹窗、误操作恢复、提交前审批和用户接管。 |
+| DEV-01 | [Vibe Coding 的工作方式与原型实验](https://blog.lacknb.cn/articles/2026/11/23/1795418815589.html)（已发布，[源稿](dev-01-vibe-coding-prototype.md)） | 通过自然语言和界面反馈快速迭代一个报告页，记录迭代时间、人工干预和剩余缺陷。以可丢弃分支承载实验。 |
+| DEV-02 | [从 Vibe Coding 原型走向 Agentic Engineering](https://blog.lacknb.cn/articles/2026/11/23/1795418817314.html)（已发布，[源稿](dev-02-agentic-engineering.md)） | 同一任务增加可验证规格、仓库约束、测试、版本隔离、权限和代码复核。对比测试覆盖、错误恢复、修改范围和可维护性。 |
+| DEV-03 | [Computer Use 与浏览器 Agent 的工程实践](https://blog.lacknb.cn/articles/2026/11/23/1795418819068.html)（已发布，[源稿](dev-03-computer-use.md)） | 用同一份本地示例报告比较 DOM/可访问性信息与截图操作的定位方式。验证点击后的页面状态、弹窗、误操作恢复、提交前审批和用户接管。 |
 
 用长任务 Harness 的增量开发、产物接力和评估反馈作为工程化对照。 [Anthropic 长任务 Harness](https://www.anthropic.com/research/effective-harnesses-for-long-running-agents) · [生成与评估循环的工程案例](https://www.anthropic.com/research/harness-design-long-running-apps) · [Anthropic Computer Use 文档](https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool)
 

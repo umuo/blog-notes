@@ -1,0 +1,27 @@
+{
+    "scratch_branch": "prototype",
+    "commits": [
+        "c1014f1 原型第一轮：录入、计算和归档按钮",
+        "8b0f327 原型第二轮：跳过缺失行并呈现空结果"
+    ],
+    "reviewer": "assistant acting as requirements reviewer; no extra user actions",
+    "rounds": [
+        {
+            "report": "有效条数 3，均值 3.33",
+            "empty": "有效条数 1，均值 0.00",
+            "archive": "已归档（本地演示）",
+            "defaultInputReviewMs": 630,
+            "browser": "157.0.8103.79",
+            "iteration_wall_seconds": 23.88
+        },
+        {
+            "report": "有效条数 2，均值 5.00",
+            "empty": "有效条数 0，均值无值",
+            "archive": "已归档（本地演示）",
+            "defaultInputReviewMs": 84,
+            "browser": "157.0.8103.79",
+            "iteration_wall_seconds": 1.29
+        }
+    ],
+    "wall_clock_definition": "From starting the local code-edit command to saving the browser review. Round 1 elapsed includes intervening engineering work."
+}
