@@ -1,49 +1,62 @@
 ---
 title: "LLM 入门 API-07｜模型协议适配与能力矩阵"
-description: "用同一个退款报告接入 OpenAI Responses 与 Anthropic Messages，设计应用读取的文本、工具、用量和错误类型。通过最小代码核对图片和 Schema 的请求、流式增量、工具结果和状态续接，并用能力矩阵决定接口能接什么任务。"
+description: "用「通用转换插头 + 插座能力说明书」的大白话类比讲透多模型协议适配：设计统一的 Request/TextDelta/ToolReady/Usage/Failure 类型接入 OpenAI Responses 与 Anthropic Messages，防止能力降级偷偷静默失败。"
 keywords: [llm, api, openai, anthropic]
 ---
 
 ![两个供应商的不同协议通过适配器交接给应用，能力矩阵保留模型与端点的差异。](assets/api-07-provider-adapters-cover.jpg)
 
-同一个退款任务需要输出一句报告，也可能先调用 `summarize_refunds`。金额是 10、空、0，程序结果是有效 2 条、缺失 1 条、均值 5。切换模型供应商后，应用仍想用同一段代码控制工具执行和界面更新。难点在于两家把「可显示文本」「准备执行工具」「可继续的会话」放在不同字段里。
+我们的退款统计程序已经在生产上跑顺了。某天老板说：我们要同时接入 OpenAI 和 Anthropic，甚至以后还要接本地 vLLM，业务代码能不能**只写一套**，切换模型只改个配置名？
 
-**协议适配器**负责把应用意图编码为供应商请求，再把供应商事件还原为应用能消费的类型。**能力矩阵**是「某个模型、某个端点及版本支持哪些行为」的记录。两者合起来回答：这项能力怎么调用、现在能不能用？先修参见 [API-05](api-05-sse-streaming-tools.md) 和 [API-06](api-06-anthropic-messages.md)。
+可看了前几篇就知道，两家的「方言」差异不小：OpenAI Responses 用 `instructions`、`input_image`、`function_call.call_id`；Anthropic Messages 用顶层 `system`、`image` 块、`tool_use.id`；连 `429` 限流错误码放在 `error.code` 还是 `error.type` 都不一样！如果把这些判断全用 `if/else` 散落在业务代码里，很快就会变成一团没人敢改的乱麻。
 
-## 1. 从真正需要的输入和输出出发
+> **先用大白话讲明白**：解决多模型接入靠两件法宝——**「适配器（Adapter）」+「能力矩阵（Capability Matrix）」**：
+> 1. **协议适配器（万能转换插头）**：上层业务只跟一套干净的内部对象打交道（比如 `TextDelta` 表示吐出的文字、`ToolReady` 表示收齐的工具调用、`Usage` 表示用量账单、`Failure` 表示错误）。适配器负责在发出前把内部意图「翻译」成各自供应商的方言，收到响应后再统一翻译回来——**同时口袋里保留一份原始响应 `raw`，以防续接对话或查错时要用**。
+> 2. **能力矩阵（电器电压核对表）**：千万别假装所有模型「能力完全一样」！能力矩阵白纸黑字记着「哪家、哪个版本支不支持图片、Schema 或服务端会话 ID 续接」。如果业务硬要使用不支持的特性，**直接明确报错拦截，绝不要为了凑合跑通悄悄把参数丢掉！**
 
-以这个退款应用为例，可以先定义下面的最小协议：
+```mermaid
+flowchart LR
+    BIZ["业务层：只用统一类型<br/>Request / TextDelta / ToolReady / Failure"] --> MAT{"能力矩阵检查<br/>该模型支持本次特性吗？"}
+    MAT -->|"不支持（如跨供应商传 response_id）"| REJ["显式拒绝，不静默丢参数"]
+    MAT -->|"支持"| ADP["适配器翻译并保留 raw 原文"]
+    ADP --> OAI["OpenAI Responses 协议<br/>input_image / text.format / call_id"]
+    ADP --> ANT["Anthropic Messages 协议<br/>image / output_config / tool_use.id"]
+```
 
-| 内部对象 | 应用使用的内容 | 边界 |
+先修建议看 [API-05 流式解析](api-05-sse-streaming-tools.md) 和 [API-06 Anthropic 内容块](api-06-anthropic-messages.md)。
+
+## 1. 先定义一套业务真正关心的内部类型
+
+设计适配器最忌讳照搬某一家供应商的全部复杂字段。站在退款统计业务角度，应用真正需要消费的就这五件事：
+
+| 内部对象名称 | 上层业务拿到什么？ | 设计边界（千万别写漏） |
 | --- | --- | --- |
-| `Request` 和 `Message` | 应用指令、按序消息、文本或图片块、工具定义、可选输出 Schema | 供应商专用字段进入对应适配器配置。 |
-| `TextDelta` | 可展示文本，以及 Item 或块索引 | 文本增量按相应流归并，保留位置。 |
-| `ToolReady` | 调用 ID、工具名、已解析的参数 | 只在供应商相应终态后交付，再由执行器校验权限和业务参数。 |
-| `Usage` | 输入、输出及可选缓存读写计数 | 字段缺失保留为未知。跨供应商对比前确认用量定义。 |
-| `Failure` | HTTP 状态、供应商错误码、限流等待信息、请求 ID | 根据实际错误码和应用状态决定是否重试。 |
+| **`Request` / `Message`** | 业务指令、对话消息列表、图文块、工具清单、可选输出 Schema | 各家特有的开关放进独立 `provider_options`，别污染主模型 |
+| **`TextDelta`** | 可直接往屏幕追加的一小段文字 + 所在块索引 | 多块并发流式输出时靠索引对号归并 |
+| **`ToolReady`** | 调用单号 ID、工具名、解析好的字典参数 | **必须等到流式终态确认后再交付**，再做权限和来源校验 |
+| **`Usage`** | 输入 Token、输出 Token、以及可选的缓存读写细分 | 某家没报的字段留成 `None`（未知），**不要用 0 假装测量了** |
+| **`Failure`** | HTTP 状态码、统一抽象错误码、`Retry-After`、请求追踪 ID | **请求头名先小写归一化**（HTTP/1.1 与 HTTP/2 大小写习惯不同） |
 
-编码请求时，OpenAI Responses 可把应用指令放在 `instructions`，用 `input` 表达消息和工具结果。Anthropic Messages 用顶层 `system` 与 `messages`，结果块放在新的 user 消息里。公共类型便于业务使用。供应商原始 Item 或内容块仍要保留，例如后续续接可能需要完整的工具和推理对象，调试也需要原始错误类型。 [Responses 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses) · [Claude Messages API](https://platform.claude.com/docs/en/api/messages)
+> **工程实战建议**：不要自己从零用 `socket` 或裸写网络重连去封装 HTTP——先用两家官方维护好的 SDK 搞定认证、SSL、传输超时和基础流拆包，**在官方 SDK 上面再套一层薄薄的几十行协议适配器**，既稳又能保留原始对象调试！ [Responses 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses) · [Claude Messages API](https://platform.claude.com/docs/en/api/messages)
 
-> **实践建议**：先用供应商的官方 SDK（软件开发工具包）完成认证、传输和基础流读取，再在应用层做小的能力适配。对本机实验可直接放入合成帧。这样可以独立验证映射，又能追溯真正的请求字段。
+## 2. 能力矩阵：精确到「接口路径 + 模型名 + API 版本」
 
-## 2. 能力矩阵按端点、型号和版本记录
+光在表格里写「OpenAI 支持结构化输出」远远不够！必须写明**「哪一个接口 + 哪一个具体模型 + 哪一个日期版本 + 用哪组测试样本验过」**，上线前全部跑通一遍：
 
-下面是本例的**文档核对表**。两列是具体组合，部署前还须用项目账号验证权限、模型和请求样本。两家都支持某能力，也可能限制字段或组合用法。
-
-| 能力及验收样本 | OpenAI Responses，`gpt-6-luna` | Anthropic Messages，`claude-opus-5-5` / `2026-10-21` |
+| 验收项目 | OpenAI Responses（`gpt-6-luna`） | Anthropic Messages（`claude-opus-5-5` / `2026-10-21`） |
 | --- | --- | --- |
-| 文本与流式 | 用同一条任务核对 `output_text.delta` 拼接与响应终态 | 核对 `text_delta` 拼接与 `message_stop` |
-| 自定义工具 | 校验 `function_call` 和 `function_call_output.call_id` 往返 | 校验 `tool_use` 与紧邻的 `tool_result.tool_use_id` 往返 |
-| 图片输入 | 将同一张合成退款表截图作为 `input_image`，检查数字 10 和 0 | 将截图作为 `image` 内容块，核对同一组数据 |
-| 结构化最终文本 | 用 `text.format` 的 Schema 检查类型，另验业务值与截断 | 用 `output_config.format` 的 JSON Schema，核对模型和版本支持范围 |
-| 两轮上下文续接 | 验证 `previous_response_id` 续接或完整 Item 重放 | 本例直接调用 `/v1/messages`，由应用回传消息历史，单独记录是否采用其它会话能力 |
-| 速率与错误 | 记录 `x-request-id`、HTTP 状态、`error.code`，区分余额和临时限流 | 记录 `request-id`、HTTP 状态、`error.type` 与等待提示，流内也可能出现错误 |
+| **流式纯文本** | 拼接 `response.output_text.delta` 并核对终态 | 拼接 `text_delta` 并核对 `message_stop` |
+| **自定义工具** | 校验 `function_call` 与 `function_call_output.call_id` | 校验 `tool_use` 与紧邻 `tool_result.tool_use_id` |
+| **图片输入** | 把退款截图挂成 `input_image`，核对看清 10 和 0 | 把截图挂成 `image` 块，核对同一结果 |
+| **结构化输出** | 配 `text.format` 校验 JSON Schema | 配 `output_config.format`，核对支持的版本范围 |
+| **多轮会话续接** | 支持 `previous_response_id` 或完整 Item 重放 | 本例直连 `/v1/messages`，由应用重放消息历史 |
+| **限流与报错** | 抓 `x-request-id` 与 `error.code` | 抓 `request-id` 与 `error.type`（留意流中途也可能抛错） |
 
-本例可把请求「需要服务端响应 ID 续接」设为能力门槛。对于只配置了消息历史重放的适配器，先拒绝该配置，然后由应用显式选择重放历史。不需要把不支持的选项悄悄去掉。图片、工具和 Schema 同时使用时，也用真实的组合请求验证。 [GPT-6 Luna 模型说明](https://developers.openai.com/api/docs/models/gpt-6-luna) · [Claude 结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Claude API 错误](https://platform.claude.com/docs/en/api/errors)
+> **容易踩的坑（绝不做「静默降级」）**：假如业务请求传了 OpenAI 专有的 `previous_response_id` 想在服务端续接历史，但当前路由被切到了直连 `/v1/messages` 的 Anthropic 适配器——这时候绝不能偷偷把这个字段删掉直接发出去（否则模型全忘了前几轮对话，结果还以为接上了！），而应该像下面代码一样**直接抛出 `ValueError` 拒绝执行**，提醒上层改走「重放完整消息历史」路径。 [GPT-6 Luna 说明](https://developers.openai.com/api/docs/models/gpt-6-luna) · [Claude 结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) · [Claude 错误码](https://platform.claude.com/docs/en/api/errors)
 
-## 3. 最小实验，统一结果并保留原始数据
+## 3. 最小完整实验：双向编码、解码与错误归一化
 
-以下代码先编码一条图文用户消息及输出 Schema，再接收两家接口的合成**非流式**响应，以及已经由传输层解出的各一条文本增量。存为 `provider_adapters.py` 后运行 `python3 provider_adapters.py`。工具结果从完整响应提取，交给执行器前仍要做 [API-04](api-04-function-calling-structured-outputs.md) 的业务校验。图像 URL 用来检查编码形状，脚本会保留该字符串，不会下载图片。
+把下面代码存为 `provider_adapters.py`，只用标准库运行 `python3 provider_adapters.py`。它完整走通了：把带截图和 JSON Schema 的请求编成两家协议、提取两家流式文本增量、解析工具调用并保留 `raw`、把两家不同字段的 `429` 限流统一成规范 `Failure` 结构，并拦截跨供应商无效状态参数：
 
 ```python
 from dataclasses import dataclass
@@ -192,8 +205,8 @@ else:
 print("文本与工具参数可统一；调用 ID、缓存用量和失败语义各自保留。")
 ```
 
-两家交给执行器的函数名和参数一致，调用 ID 保持为原来的两个值。输入 80 与 82 Token 是合成用量，数量本身无需对齐。真正对接时为每家保存固定响应样本，再跑文本、图像、工具、结构化输出、断流和错误的验收。模型切换时先使用能力矩阵过滤能接单的配置，接下来才比较质量、延迟和用量。
+> **想再深入一层？** 留意上面对 `usage` 的严谨处理：Anthropic 报了 `cache_read_input_tokens: 0`，适配器如实保留；OpenAI 这条响应里没带这个字段，`left.usage.get(...)` 保持为 `None`——跨供应商比对成本和耗时前，必须统一先核清各家的计费口径，不能拿两份残缺数字直接相减！
 
 ## 下一篇
 
-[**API-08《实时语音 Agent 的双向流》**](api-08-realtime-voice-agent.md) 会把文字流扩展为持续采集和播放的音频链路，实测一次打断怎样清空播放队列。 [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+到现在为止，我们的通信方式都是「你问一句（HTTP POST）、它吐完再轮到你（SSE 单向流）」。可要是换成**打电话一样的实时语音助手**——模型嘴里正念着「均值为五……」，用户突然插嘴打断「为什么是五？」——单向 HTTP 流立刻不够用了！请看本专题最后一篇 [API-08《实时语音 Agent 的双向流》](api-08-realtime-voice-agent.md)，用浏览器合成音实测一次毫秒级音频打断。系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。

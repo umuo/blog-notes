@@ -1,49 +1,58 @@
 ---
 title: "LLM 入门 API-08｜实时语音 Agent 的双向流"
-description: "用一句退款报告追踪浏览器麦克风采集、WebRTC 和 WebSocket 双向传输、语音活动检测以及播放队列。再用浏览器中的合成音测一次打断，观察已播时长、停止回调、待播片段和晚到音频的处理。"
+description: "用「随时可插嘴的双工电话」大白话类比拆解实时语音 Agent：串联麦克风采集、WebRTC vs WebSocket 边界、VAD 说话检测与音频播放队列清理，附带无需 API Key 的浏览器 440 Hz 合成音毫秒级打断实验。"
 keywords: [llm, api, realtime, agent]
 ---
 
 ![实时语音经过采集、双向传输和播放，用户开口可打断正在播出的回答。](assets/api-08-realtime-voice-agent-cover.jpg)
 
-模型正在朗读「有效金额两条，缺失一条，均值为五」。用户听到一半，插话问「为什么是五？」。应用要同时接收麦克风输入、让旧回答停止播放，再处理新问题。生成停止时，已经缓冲的音频还可能在播，因此要观察播放队列。
+模型正在扬声器里慢慢念：「有效金额两条，缺失一条，均值为五……」话刚念到一半，用户突然开口插话：「等等，为什么是五？」
 
-[F-09](https://blog.lacknb.cn/articles/2026/11/20/1795161444330.html) 讲过一条消息怎样携带不同内容块，[API-05](api-05-sse-streaming-tools.md) 跟踪单个 HTTP 响应的增量。语音会话让客户端同时上传音频和接收媒体或事件，因此需要跟踪两条链路。 [OpenAI Realtime 会话指南](https://developers.openai.com/api/docs/guides/realtime-conversations)
+在纯文字世界里，发一条请求拿一个响应就行；可到了实时语音，系统必须**同一秒钟同时干三件事**：收麦克风里用户刚插进来的声音、把还在念的旧声音**瞬间掐断**、还要告诉服务端「用户其实只听到了前 400 毫秒，后面没放出来的字别留在上下文记忆里」！
 
-## 1. 从麦克风到扬声器
+> **先用大白话讲明白**：文字流式输出像**「发微信长文字气泡」**（你问完，等它写完，再轮到你）；而实时语音 Agent 像**「打一通真正能随时抢话的双工电话」**：
+> - **上行路（你的嘴 → 模型耳朵）**：麦克风不断收音切块往外传，靠 **VAD（Voice Activity Detection，语音活动检测）** 听出「用户开口了！」。
+> - **下行路（模型嘴巴 → 你的喇叭）**：模型算出来的声音不是直接传进你耳膜，而是先排队躺进**本地播放队列**里慢慢放——比如服务端已经送来了 `1200 ms` 的音频，喇叭刚放到第 `400 ms`，剩下 `800 ms` 还在队列里排队！
+> - **打断四连动作（Barge-in）**：一旦检测到用户开口，**1）立刻让本地喇叭哑火并倒掉那 `800 ms` 待播存货；2）拒收半路晚到的旧音频包裹；3）发 `response.cancel` 停掉服务端生成；4）发截断指令告诉服务端把记忆精确切回第 `400 ms`**，防止 AI 以为你把整句话都听完了！
 
-```text
-上行：麦克风 → 浏览器采集 → 双向连接 → 输入缓冲区 → 语音活动检测
-下行：模型音频 → 双向连接 → 远端媒体轨或本地队列 → 扬声器
-控制：用户开口事件 → 停止旧回答 → 清理尚未播放的内容 → 新一轮
+```mermaid
+flowchart TD
+    MIC["麦克风持续采集"] -->|"上行音频流"| VAD{"VAD 语音活动检测<br/>听到用户开口插话？"}
+    MOD["模型生成音频流"] -->|"下行音频分片"| QUE["本地音频播放队列<br/>例：已收 1200 ms，刚播 400 ms"]
+    QUE --> SPK["扬声器发声"]
+    VAD -->|"是：触发打断！"| STOP["1. 立刻停止本地播放，丢弃剩余 800 ms 与晚到包"]
+    STOP --> SRV["2. 发 response.cancel 停生成<br/>+ conversation.item.truncate(400 ms)"]
+    SRV --> NEW["3. 开始听取并回答新问题"]
 ```
 
-**VAD（Voice Activity Detection，语音活动检测）**判断一段音频里何时开始或结束说话。服务端可以发出 `input_audio_buffer.speech_started` 和 `input_audio_buffer.speech_stopped`。基于静音的检测使用声音和时长判断边界。支持语义检测的会话还能用内容推断一句话有没有说完。两种检测都会影响等待时间、误切分和插话体验。
+先修可对照 [F-09 多模态块](f-09-multimodal-input.md) 和 [API-05 流式传输](api-05-sse-streaming-tools.md)。 [OpenAI Realtime 会话指南](https://developers.openai.com/api/docs/guides/realtime-conversations)
 
-**播放队列**保存已收到但还没播出的片段。测量时区分「服务已经生成」「客户端收到」「扬声器已经播出」三个进度。如果收到 1,200 ms、只播了 400 ms，插话后剩余 800 ms 应丢弃。服务端对话也需按所用传输修正，以便下一轮正确识别用户听到的内容。
+## 1. 打断时为什么要区分「已生成、已收到、已播放」？
 
-## 2. 两种连接各负责什么？
+打断最容易出灵异现象的地方在于**网速比人耳快得多**！往往模型花了半秒就已经吐出了未来 2 秒钟的音频存进了你的手机/浏览器缓冲队列里。做延时排查与测量时，必须把三块进度分清：
+1. **服务端已生成时长**（模型已经算出了多少毫秒）；
+2. **客户端已收到时长**（网络传进你缓冲队列有多少毫秒，例如 1200 ms）；
+3. **扬声器已播出时长**（用户耳朵真真正正听进去多少毫秒，例如 400 ms）。
 
-| 要做的事 | 浏览器 WebRTC | 应用 WebSocket |
+一旦打断，多出来的 `800 ms` 必须从队列里彻底丢弃；而且服务端如果不修正，对话历史里会留着「我已经把 1200 ms 全念给用户听了」的假记忆，导致下一轮用户问「刚才你说的第二个数字是什么」时牛头不对马嘴！
+
+## 2. 两条传输大路怎么选：WebRTC vs WebSocket？
+
+| 核心要干的事 | 浏览器直连 **WebRTC** | 后端/应用自管 **WebSocket** |
 | --- | --- | --- |
-| 建立连接 | 浏览器用 `RTCPeerConnection` 生成 SDP（Session Description Protocol，会话描述协议）offer，经应用后端或短期凭据完成握手 | 应用建立双向 WebSocket，服务端提供认证与会话配置 |
-| 发送麦克风音频 | `getUserMedia` 取得本地媒体轨，加入连接 | 应用自行采集、转码和分块，通过 `input_audio_buffer.append` 发送音频字节的 Base64 表示 |
-| 接收模型音频 | 浏览器接收远端媒体轨并播放，数据通道可传控制事件 | 按文档处理 `response.output_audio.delta`，解码、排队和播放 |
-| 遇到插话 | 按 VAD 配置处理自动打断。自行控制时发送适用的取消和 `output_audio_buffer.clear` 事件 | 停止本地播放，清队列，按已播放毫秒数发 `conversation.item.truncate`，并按配置处理仍在生成的响应 |
-| 缓冲由谁管理 | WebRTC 负责媒体传输与常见实时网络适配 | 应用负责缓冲、播放进度和晚到片段的丢弃策略 |
+| **怎么握手建连？** | 浏览器建 `RTCPeerConnection` 生成 SDP Offer，**靠应用后端换取短期临时凭据**完成握手（绝不把长期 API Key 塞进网页前端！） | 服务端之间建立双向 WebSocket，后端统一保管认证与配置 |
+| **怎么发麦克风声音？** | `getUserMedia` 直接拿媒体轨丢进连接，底层自动抗网络抖动与丢包 | 应用自己采集、转码成规定格式，再用 `input_audio_buffer.append` 塞 Base64 文本块 |
+| **怎么放 AI 的声音？** | 浏览器收到远端媒体轨自动平滑播放，控制指令走 DataChannel | 应用自己收 `response.output_audio.delta`，解 Base64 进缓冲队列自己排着放 |
+| **遇到打断怎么办？** | 配了服务端 VAD 时通常自动停止与修正；也可手动发 `output_audio_buffer.clear` | **全部自己写！** 立刻停播放器 + 清队列 + 按已播毫秒数发 `conversation.item.truncate` + 视情况发 `response.cancel` |
 
-WebRTC（Web Real-Time Communication，网页实时通信）接入一般从申请麦克风权限开始，再建立 `RTCPeerConnection` 和事件数据通道，拿到 SDP answer 后设置为远端描述。正式接入用应用后端或短期凭据，长期 API 密钥留在后端。
+> **想再深入一层（PCM 音频切片手算）？** WebSocket 下常用单声道、24 kHz 采样率、16 位 **PCM（脉冲编码调制，未压缩原始声音采样）**：每秒采 `24,000` 个点，每个点占 `2` 字节，那么每切一小段 **20 ms** 的语音块，原始字节正好是 **`24,000 × 0.020 × 2 = 960` 字节**，再转成 Base64 文本发送。**踩坑提醒**：如果你读取本地 `.wav` 文件喂给流，务必先把开头的 44 字节 WAV 文件头剥掉只留纯 PCM，否则开头会发出一声刺耳的「咔哒」爆音！ [OpenAI WebRTC 文档](https://developers.openai.com/api/docs/guides/realtime-webrtc) · [WebSocket 文档](https://developers.openai.com/api/docs/guides/realtime-websocket)
 
-**PCM（Pulse-Code Modulation，脉冲编码调制）**把音量采样值表示为数值。以 WebSocket 的单声道、24 kHz、16 位 PCM 为例，每秒采 24,000 点，每点 2 字节，20 ms 的音频块是 **24,000 × 0.020 × 2 = 960 字节**。Base64 是把二进制表示为文本的编码。会话配置决定格式和采样率。若把 WAV 作为输入，先解码出所需 PCM，文件头不能当音频片段发出。 [OpenAI WebRTC 接入](https://developers.openai.com/api/docs/guides/realtime-webrtc) · [OpenAI WebSocket 接入](https://developers.openai.com/api/docs/guides/realtime-websocket)
+## 3. WebSocket 场景下一次精准打断的四步次序
 
-## 3. 一次插话按什么顺序走？
-
-用 WebSocket 跟踪正在播的旧回答，客户端已记下 `item_id` 和 `content_index`，也能查询已经播了多少毫秒：
-
-1. 收到开口事件，记下本地时刻和这条音频的已播时长。
-2. 停止本地播放器，丢弃旧回答的待播片段，标记旧回答失效，用来过滤晚到的增量。
-3. 若模型还在生成且未自动取消，发送 `response.cancel`。再给音频条目发送下面的截断事件，令服务端上下文保留实际已播放的部分。
-4. 继续处理用户的新语音，等新回答到来再建立新队列。
+假设本地一边放着旧回答，一边手里记着它的 `item_id`、`content_index` 和 `AudioContext` 时钟进度：
+1. 收到开口事件（如 `input_audio_buffer.speech_started`），立刻记录本地打断瞬间时刻和「已经真放出来了多少毫秒（如 `400 ms`）」。
+2. **先掐声音再做别的**：停止本地音频节点播放，清空排队的未播切片，并把这一轮旧 ID 标成「作废」（**防止半秒后网络上飘来的迟到旧片段混进新队列复活**！）。
+3. 如果旧回复还在生成中且服务端未自动取消，发出 `response.cancel`；紧跟着发出下面这个截断事件把服务器上下文对齐回 `400 ms`：
 
 ```json
 {
@@ -54,13 +63,11 @@ WebRTC（Web Real-Time Communication，网页实时通信）接入一般从申�
 }
 ```
 
-在 OpenAI 的 WebRTC 路径，服务端管理输出缓冲，可按会话设置自动中断并修正未播内容。手动管理时，对应的缓冲区清空事件是 `output_audio_buffer.clear`。取消生成、清除缓冲、同步对话历史影响的是三个不同状态。测试插话时分别检查。 [OpenAI Realtime 打断流程](https://developers.openai.com/api/docs/guides/realtime-conversations)
+4. 开始收新语音、等新回答再建新队列。
 
-## 4. 在浏览器里测一次本地停止
+## 4. 浏览器单机实测：零成本测出打断延迟和晚到拦截
 
-把下面保存成 `interrupt.html`，用浏览器打开后点击「开始」。实验用 **440 Hz 合成音**模拟正在读的回复，提前排入三个片段，再在播放约 400 ms 时模拟用户开口。页面会打印从开口信号到音频节点收到 `ended` 事件的时间，并检查待播和晚到的数据是否被丢弃。实验用合成音，所以没有麦克风权限和 API Key 依赖。
-
-**Web Audio** 是浏览器的音频处理接口。用 `AudioContext.currentTime` 算音频图中已经播过的时长，用 `performance.now()` 算主线程事件间隔。后者包含事件派发与回调调度，物理输出设备的静音时刻需要另测。
+把下面代码完整保存为 `interrupt.html`，直接用 Chrome / Edge / Safari 双击打开点击「开始」（只用浏览器自带 **Web Audio** 接口生成 440 Hz 合成音，不需要麦克风权限也不花 API 费用！）：
 
 ```html
 <!doctype html>
@@ -138,8 +145,8 @@ button.onclick = async () => {
 </html>
 ```
 
-一次无界面 Chrome 157 实测在已播 **403 ms** 时触发打断，**1.4 ms** 后收到 `ended` 回调，丢弃两段待播音频，并拒绝晚到的旧片段。在桌面浏览器里运行时能先听到一小段音。`ended` 回调时延会随浏览器和负载变化。测端到端打断时，分别记下用户实际开口、VAD 事件抵达以及设备输出静音的时刻。最后一个时间点可通过音频回录校对。 [Web Audio 音频节点与 ended 事件](https://www.w3.org/TR/webaudio/#AudioScheduledSourceNode)
+在无界面 Chrome 157 上一次实测的真实日志记录：**已播 `403 ms` 时触发打断，仅 `1.4 ms` 就收到了 `ended` 回调**，当场丢弃 `2` 段待播音频、并成功拦截了迟到的旧片段！在普通桌面浏览器跑还能真切听到一声「哔——」被干脆利落地掐断。注意：这 `1.4 ms` 测量的是浏览器事件派发停止的时间，若做端到端真实评测，还需要另架麦克风或环回录音来对齐物理扬声器彻底静音的毫秒数。 [Web Audio 音频节点文档](https://www.w3.org/TR/webaudio/#AudioScheduledSourceNode)
 
 ## 下一部分
 
-第三部分从 **LE-07《第一篇，什么是评测，如何跑通第一条用例》** 开始。继续用这份退款 CSV，做一个最小评分器，分别验收格式、有效金额条数和均值。 [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+第 2 专题「LLM API 与流式协议」10 篇全部收官！现在我们已经能发请求、保历史、跑多轮工具、接流式和语音。可改了一次提示词或换了一个模型后，怎么拿铁打的自动化指标证明「真变好了」而不是自我感觉良好？第三部分从 [LE-07《什么是评测，如何跑通第一条用例》](le-07-first-eval.md) 正式起步！系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。

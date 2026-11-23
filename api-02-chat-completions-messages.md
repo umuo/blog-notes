@@ -1,20 +1,36 @@
 ---
 title: "LLM 入门 API-02｜OpenAI Chat Completions 的消息协议"
-description: "沿用三行退款 CSV，实际发送两轮 Chat Completions 请求，对照首轮的两条消息与第二轮的四条消息。观察应用怎样选取候选回复、检查终止原因并回传历史，再通过只发追问的对照定位丢掉的业务证据。"
+description: "用「金鱼记忆的算账大师」大白话类比讲清为何 Chat Completions 必须每轮回传完整历史，用三行退款 CSV 实跑两轮对话，通过对比完整回传 vs 只发追问揭露丢掉原始数据的翻车现象。"
 keywords: [llm, api, chat-completions, python]
 ---
 
 ![两轮请求的消息对照。第一轮有两条消息，第二轮保留这两条，再追加模型回复和用户追问。](assets/api-02-chat-completions-messages-cover.jpg)
 
-在 [API-01《从原始 HTTP 请求认识 LLM API》](api-01-raw-http-request.md) 里，我们把三行退款 CSV 交给模型，得到了一句报告：「有效金额 2 条，缺失 1 条，均值为 5。」现在用户在同一个聊天窗口里追问：「为什么均值是 5？」
+在 [API-01《从原始 HTTP 请求认识 LLM API》](api-01-raw-http-request.md) 里，我们拿到了满意的第一轮报告：「有效金额 2 条，缺失 1 条，均值为 5。」紧接着，用户在同一个聊天框里追问了一句：**「为什么均值是 5？」**
 
-应用要解决的问题是，**第二次发出 `POST /v1/chat/completions` 时，哪几条消息必须一起发？** 这句话提到了 5，但没有说原始金额是什么，也没有说明如何处理空值。要解释这份报告，得能找回参与计算的两条记录：10 和 0。所以分母是 2，计算过程是 **(10 + 0) ÷ 2 = 5**。
+这时候应用开发最常犯的错误，就是以为像用普通数据库一样，第二轮只把「为什么均值是 5？」发过去就行了。**如果真这么干，模型立刻一头雾水！** 要能解释清楚 `(10 + 0) ÷ 2 = 5`，它必须再次亲眼看到第 1 轮的原始 CSV 数据、口径规则和自己刚说过的那句话。
 
-本篇沿用上一章的非流式 HTTP 请求。读者需要看过 JSON 的对象和数组，实验只用 Python 3 标准库。
+> **先用大白话讲明白**：**Chat Completions 接口是完全「无状态（Stateless）」的，就像一位记忆只有 7 秒的金鱼大师！**
+> - 每当你合上一次 HTTP 请求，服务器转身就把刚才聊过什么忘得干干净净（哪怕你开了 `store: true` 存储记录供事后查看，下一轮依然不会自动帮你拼进输入里）。
+> - 所以**保存聊天记录和拼接上下文的责任，全都在你自己的应用程序手里**：聊到第 2 轮，你的应用必须把「**系统规矩 + 第 1 轮问题 + 第 1 轮回答 + 第 2 轮新追问**」一共 4 条消息，按顺序打包成 `messages` 数组重新寄过去！
 
-## 1. 第一轮发送两条消息
+```mermaid
+flowchart LR
+    subgraph GOOD["正确做法：回传完整 4 条历史"]
+        direction LR
+        G1["messages:<br/>1. developer 口径规则<br/>2. user 原始 CSV<br/>3. assistant 上轮结论<br/>4. user 追问"] --> G2["模型看到 10 和 0<br/>准确回答 (10+0)/2=5"]
+    end
+    subgraph BAD["只发追问：仅 2 条消息"]
+        direction LR
+        B1["messages:<br/>1. developer 口径规则<br/>2. user 为什么均值是 5"] --> B2["缺少 10 和 0 的证据<br/>只能索要数据或瞎蒙"]
+    end
+```
 
-请求沿用 `gpt-6-luna`。这次把应用长期维护的规则放在 `developer` 消息里，把本轮任务和数据放在 `user` 消息里。两条消息按下面的顺序出现在请求体中：
+下面全篇只用 Python 3 标准库在本机模拟两轮完整请求与翻车对照。
+
+## 1. 第一轮发出去的 2 条消息与四种角色
+
+第二轮之前，第一轮发给 `POST /v1/chat/completions` 的请求体有两条消息：应用长期口径放在 `developer`，本次提问和 CSV 放在 `user`：
 
 ```json
 {
@@ -36,22 +52,20 @@ keywords: [llm, api, chat-completions, python]
 }
 ```
 
-`messages` 是有序数组。每条文本消息有 `role`（角色）和 `content`（内容）。角色由应用在 JSON 字段中指定，CSV 里的文字始终是这条 `user` 消息的内容。这里用字符串承载纯文本，有些角色和模型也支持把内容写成多个带类型的内容块。下表列出接下来会遇到的角色。
+`messages` 是一个按发言时间排队的数组，每条都有 `role`（谁说的）和 `content`（说了啥）。在 [F-01](f-01-tokenizer-chat-template.md) 里我们看过模型底层拿的是模板拼好的剧本，而在 API 协议这一层，**就是由你按下面四个标准角色来排剧本**：
 
-| `role` | 由谁提供 | 在退款案例中的作用 |
+| `role` 角色名 | 由谁写进去？ | 在退款场景里干什么用？ |
 | --- | --- | --- |
-| `developer` | 接入 API 的应用 | 定义应用级的统计口径。第二轮仍按这条规则处理空值和 0。 |
-| `user` | 用户，或由应用代表用户传入 | 提交首轮任务和三行 CSV，或在下一轮提出追问。 |
-| `assistant` | 模型生成，应用将被选中的回复写入历史 | 让下一轮知道用户正在引用哪一句报告。 |
-| `tool` | 应用执行工具后构造 | 带着对应调用 ID 回传工具结果。API-04 会展开这个过程。 |
+| **`developer`** | 开发者（应用后台） | 定应用级规矩（例如「空金额忽略，0 保留」）。读老代码时常看到同作用的 `system`，按具体模型文档选用。 |
+| **`user`** | 最终用户 | 提交首轮任务与三行 CSV，或者发来新一轮追问。 |
+| **`assistant`** | 模型回复后再由应用回填 | 告诉下一轮模型「你刚才已经说过这句结论了」。 |
+| **`tool`** | 应用执行完工具后回填 | 带着工具调用 ID 把本地函数算出的数字交回模型（详见 [API-04](api-04-function-calling-structured-outputs.md)）。 |
 
-参考文档对较新的模型使用 `developer` 表达应用级指令。读旧代码时还会遇到用于类似目的的 `system` 角色，接入时按所选模型的协议填写。 [Chat Completions 请求字段与消息类型](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create#body-parameters) · [GPT-6 Luna 模型说明](https://developers.openai.com/api/docs/models/gpt-6-luna)
+[Chat Completions 消息字段文档](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create#body-parameters) · [GPT-6 Luna 说明](https://developers.openai.com/api/docs/models/gpt-6-luna)
 
-从 [F-01《Tokenizer 与 Chat Template》](https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html) 的视角看，消息数组是客户端的接口结构。服务在接收后，按模型所需格式组织输入并编码成 Token。本篇能直接核对的是应用交给服务的角色、内容和顺序。
+## 2. 收到首轮回答：先看 `finish_reason`，别无脑存历史！
 
-## 2. 从候选回复中选一条写入历史
-
-HTTP 层返回 `200 OK` 后，应用读取 JSON 响应。下面摘出首轮响应的关键字段，ID 和正文都来自本机教学样例：
+拿到 `HTTP 200 OK` 后，先看精简后的响应结构：
 
 ```json
 {
@@ -69,20 +83,20 @@ HTTP 层返回 `200 OK` 后，应用读取 JSON 响应。下面摘出首轮响�
 }
 ```
 
-`choices` 是这次生成的候选列表。`index: 0` 是候选编号。请求省略了候选数量参数，这个例子取唯一一项。`message` 是应用可以展示的消息，`finish_reason` 表示这一项为何停止生成。对这个只接收正常文本的示例，应用检查结束原因、是否拒答和正文，再从选中的消息提取 `role` 与 `content`。
+`choices` 是一个数组（因为有些场景可一次请求生成多份候选），通常读 `choices[0]`。但千万别拿到响应就一把塞进聊天历史！必须先核对 **`finish_reason`（终止原因）** 与是否触发了 `message.refusal` 拒答：
 
-| `finish_reason` | 这时如何处理 |
+| `finish_reason` | 发生了什么？应用应该怎么办？ |
 | --- | --- |
-| `stop` | 自然结束或命中预设停止序列。确认有合适的文本，再按业务验收报告里的条数和均值。 |
-| `length` | 达到生成长度上限。把文本标为未完成，等用户重试或调整预算。 |
-| `content_filter` | 有内容因过滤被省略。应用按此状态处理结果。 |
-| `tool_calls` | 模型提出工具调用。应用需要进入工具处理流程，见 API-04。 |
+| **`stop`** | 正常讲完停笔（或命中预设停止词）。确认正文非空、没拒答后，把这条 `assistant` 消息写入历史。 |
+| **`length`** | 半路撞到 `max_completion_tokens` 上限被砍断了！文本很可能写到一半没闭合，标成未完成，**不要直接当成品放进历史误导下一轮**。 |
+| **`content_filter`** | 触发安全内容过滤，部分内容被屏蔽。按安全降级策略提示用户。 |
+| **`tool_calls`** | 模型这轮没直接给用户看文字，而是提议要调用工具函数（旧接口还可能有 `function_call`）。需执行工具后回填再请求下一轮。 |
 
-响应里的 `message.refusal` 还可能携带拒答信息，因此 `stop` 只是一次结束信号。协议中也有旧版的 `function_call` 终止原因。 [Chat Completions 响应字段与终止原因](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create#returns)
+[Chat Completions 响应定义](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create#returns)
 
-## 3. 第二轮要带上哪些信息？
+## 3. 第二轮到底要打包寄出哪四条消息？
 
-第二次仍然 `POST /v1/chat/completions`，模型和生成参数沿用第一轮。此时请求体中的 `messages` 变成下面四条：
+现在用户在前端问出「为什么均值是 5？」，你的后端程序在再次 `POST /v1/chat/completions` 时，要把首轮全部历史加新问题拼成下面 4 条：
 
 ```json
 [
@@ -105,15 +119,16 @@ HTTP 层返回 `200 OK` 后，应用读取 JSON 响应。下面摘出首轮响�
 ]
 ```
 
-这四条分别提供**规则、数据、上一轮结论、当前问题**。去掉 CSV，服务所收到的文本就没有 10 和 0 这两个具体的金额。只留 CSV 和追问，可以重算金额，但前一轮已经向用户展示的措辞就不在本次输入中了。缺失的信息有时可以推断，应用仍应核对模型回答用了哪些事实和证据。
+少一条都不行：
+- **少了第 1 条 `developer`**：模型忘了「空值排除、保留 0」的业务口径。
+- **少了第 2 条 `user`**：原始 CSV 没了，模型压根不知道参与计算的是 `10` 和 `0`。
+- **少了第 3 条 `assistant`**：模型不知道自己上一轮具体汇报过哪句话、用的是什么措辞。
 
-Chat Completions 的应用端负责组装每次请求的对话历史。示例中的 `store: false` 是接口的生成结果存储设置。响应的 `id` 标识本次生成；即使选择存储一条生成结果，下一次创建 Chat Completion 时依然要在 `messages` 中提供所需历史。 [OpenAI 的迁移指南与会话状态对照](https://developers.openai.com/api/docs/guides/migrate-to-responses)
+> **容易踩的坑（Token 账单越滚越大）**：在应用层保存历史的标准顺序是：**拿到本轮完整有效的回复后，才把本轮的 `(user问题, assistant回答)` 一并追加到持久化会话里**（防止中途报错失败时，历史里留下一堆没头没尾的孤立提问）。另外，由于每一轮都要把前面全部历史重新寄给模型，随着对话轮数增加，响应里的 `usage.prompt_tokens` 会像滚雪球一样越滚越大——后面第 6 章的 `AGT-04` 会教你怎么安全裁剪过期历史！ [OpenAI 会话状态对比指南](https://developers.openai.com/api/docs/guides/migrate-to-responses)
 
-一次简单的保存顺序是：读取当前会话历史，把新的 `user` 消息追加到本次请求的副本，成功拿到可用的回复后，把新问题与被选中的 `assistant` 回复一起加入历史。以下实验把历史放在当前 Python 进程的列表里。如果应用支持重新打开聊天，就按会话 ID 持久化角色、内容和顺序。响应 ID、用量和失败原因也可另行记录，方便排查。对话增长后，根据本轮任务选取仍相关的消息，保留关键业务规则和证据，并用响应中的 `usage.prompt_tokens` 观察回传成本。
+## 4. 在本机对照实验：完整历史 vs 只发追问
 
-## 4. 在本机对照完整历史和只发追问
-
-在一个空目录里把下面的第一段保存为 `chat.py`。它先打印请求体，再提交 HTTP 请求。普通模式发两次请求，第二次使用第一次实际收到的 `assistant` 文本。`--latest-only` 模式保持应用规则和追问相同，只省略首轮用户消息和回复。
+新建一个空目录，把客户端代码保存为 `chat.py`（普通模式跑两轮；加 `--latest-only` 参数故意漏掉第 1 轮问题和回复，只发规则与追问；加 `--live` 可选连真实接口）：
 
 ```python
 import argparse
@@ -188,7 +203,7 @@ if __name__ == "__main__":
     main()
 ```
 
-把第二段保存为 `mock_chat.py`，从另一个终端运行 `python3 mock_chat.py`。**这个本机服务用固定答案演示协议**。它只检查当前请求里的消息，第一轮的结果由客户端保存，再在第二轮回传。因为每次检查的是明确的角色序列和内容，验证结果可以复现。
+把本机模拟服务端保存为 `mock_chat.py`（注意它把判断逻辑写死了按消息序列严格匹配，以便复现协议差别），在另一个终端运行 `python3 mock_chat.py`：
 
 ```python
 import json
@@ -245,25 +260,23 @@ if __name__ == "__main__":
         server.serve_forever()
 ```
 
-回到第一个终端，依次运行：
+回到第一个终端分别跑两次对照：
 
 ```bash
 python3 chat.py
 python3 chat.py --latest-only
 ```
 
-每次请求会先打印完整 JSON。核对下面三次响应，特别是两种追问模式发出的消息数：
+每次都会先打印完整 JSON，对照结果如下：
 
-| 请求 | `messages` | 本机服务返回 |
+| 发起的请求 | 发送的 `messages` 序列 | 本机返回 ID 与业务效果 |
 | --- | --- | --- |
-| 普通模式首轮 | `developer → user` | `chatcmpl-demo-first`，得到报告。 |
-| 普通模式第二轮 | `developer → user → assistant → user` | `chatcmpl-demo-with-history`，能用 10 和 0 解释均值。 |
-| 只发追问的对照 | `developer → user` | `chatcmpl-demo-latest-only`，提示缺少原始金额。 |
+| 普通模式第 1 轮 | `developer → user` | `chatcmpl-demo-first`：成功生成首次报告 |
+| 普通模式第 2 轮 | `developer → user → assistant → user` | `chatcmpl-demo-with-history`：**用 10 和 0 算出 `(10+0)÷2=5` 解释清楚** |
+| `--latest-only` 对照 | `developer → user`（漏了首轮） | `chatcmpl-demo-latest-only`：**拿不到金额证据，只能请你重新提供数字** |
 
-三次都返回 HTTP 200 和 `finish_reason: "stop"`。两个追问的业务结果不同，差别可以直接在打印出的请求体里看到。真实模型面对缺少证据的追问还可能给出猜测，所以**验收时查计算有没有使用有据可查的数值**，别只检查是否得到了回复。本机验证结束后，在服务终端按 `Ctrl+C` 退出。
-
-已经配置 `OPENAI_API_KEY` 且项目有模型权限时，可以选跑 `python3 chat.py --live`。这会向 OpenAI 发送两次请求并产生用量。核对第二次打印的第三条消息是否等于首轮实际返回的正文，再检查模型是否用 10 和 0 解释了分母。模型回复措辞可能变化。
+三次通信全都返回 `HTTP 200` 与 `finish_reason: "stop"`——但业务上完全一个在天堂、一个在地下！真实的大模型在拿不到历史证据时甚至不会老实要数字，而是会硬着头皮编出假数字（幻觉），所以调试多轮对话出岔子时，第一件事永远是**把真实发出去的完整 `messages` JSON 打印出来核对**。
 
 ## 下一篇
 
-接下来按路线图行序进入 [**API-10《Prompt Engineering 的可复现对照实验》**](api-10-prompt-comparison.md)。用这份退款报告比较朴素提示、明确统计口径和加入示例后的表现，再用固定数据检查格式、业务正确率和输入 Token。 [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+搞清了怎么发多轮消息之后，开发里最常遇到的问题变成：「提示词改了三版，究竟哪一版真变好了，还是我瞎感觉变好了？」下一篇按路线图行序进入 [API-10《Prompt Engineering 的可复现对照实验》](api-10-prompt-comparison.md)，拿 6 条硬核边界测试题把三个版本的提示词拉出来跑 18 次，看清小模型到底是卡在格式还是卡在算术！系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。

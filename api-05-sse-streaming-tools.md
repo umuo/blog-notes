@@ -1,29 +1,36 @@
 ---
 title: "LLM 入门 API-05｜SSE 和流式工具调用"
-description: "从 HTTP 响应字节开始解析 SSE，区分网络读取边界、完整事件和模型增量。对照 Chat Completions 和 Responses 的流式字段，用一字节一块的实验拼回退款工具参数，检查 UTF-8 跨块、断流、终态和取消。"
+description: "用「拆四层快递包裹」的大白话方式讲透 SSE 流式传输和流式工具调用：演示如何熬过 TCP 任意 1 字节切分与 UTF-8 跨块拼合、拼出 SSE 帧、合并增量工具参数，并在收到完整结束标识前严禁执行工具。"
 keywords: [llm, api, sse, agent]
 ---
 
 ![从响应字节到 SSE 帧、模型增量，再到可校验的完整工具参数。](assets/api-05-sse-streaming-tools-cover.jpg)
 
-[API-04](api-04-function-calling-structured-outputs.md) 的退款工具一次收到完整参数 `{"amounts":[10,null,0]}`。打开流式输出后，客户端可能先看到 `{"amounts":[10,`，再看到 `null,0]}`。它们都是字符串片段。在中途拿其中任意一段做 JSON 解析，都会因为结构未闭合而失败。
+在 [API-04](api-04-function-calling-structured-outputs.md) 里，调用退款统计函数是一次性拿到完整参数 `{"amounts":[10,null,0]}`。但为了界面体验不转圈死等，线上几乎都会打开 `stream: true`。
 
-这次跟着字节走。**SSE（Server-Sent Events，服务器发送事件）**是 HTTP 响应体中编码事件的一种文本格式。模型接口用这种格式逐个送出消息事件。JSON 对象嵌在事件的 `data` 字段里，工具入参又嵌在 JSON 对象的字符串字段里。三层边界都要各自处理。 [SSE 标准](https://html.spec.whatwg.org/multipage/server-sent-events.html) · [Chat Completions 流式参考](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
+一旦开启流式，客户端手里抓到的往往先是一半 `{"amounts":[10,`，过 50 毫秒才又来一半 `null,0]}`！甚至连一个汉字「正」的三个 UTF-8 字节都有可能被网络拆在两批数据包里送达。此时谁要是手快直接在半路上 `json.loads()` 或执行工具，程序当场就崩！
 
-## 1. 从 HTTP 响应到完整事件
+> **先用大白话讲明白**：接收大模型的流式响应，就像**拆一套层层套娃的四层快递包裹**，每层只管好自己的边界：
+> 1. **第 1 层 · TCP/HTTP 原始字节块（拆外箱）**：网络按字节流吐数据，哪怕一次只给你吐 **1 个字节**，也得用增量编码器先耐心地把碎字节拼回完整汉字（防半个汉字乱码）。
+> 2. **第 2 层 · SSE 帧（拆内袋）**：Server-Sent Events 用**空行**当分隔符把字节流切成一个个独立事件帧（忽略 `:` 开头的心跳注释）。
+> 3. **第 3 层 · 模型增量协议（拆零件）**：按具体接口（Chat Completions 的 `delta` 或 Responses 的类型化 `type`）把碎文字或碎参数 `arguments` 按编号接回原位。
+> 4. **第 4 层 · 业务与界面交付（拼完再开箱）**：文字碎块**可以立刻一个字一个字画在屏幕上**给用户看；但**工具参数必须等全部零件收齐、且正式收到结束总信号（如 `[DONE]` 或 `response.completed`）并校验无误后，才准真正调用函数！**
 
-在 Chat Completions 和 Responses 中，请求体里的 `stream: true` 启动流式返回。常见成功响应类型为 `text/event-stream`。客户端先判断 HTTP 状态和响应类型，再按 SSE 解析正文。
+```mermaid
+flowchart TD
+    B["第 1 层：任意大小 TCP / HTTP 字节块<br/>可能劈开 UTF-8 汉字或换行符"] -->|"增量 UTF-8 解码并按行缓冲"| SSE["第 2 层：SSE 帧解析<br/>遇到空行交付一帧，忽略心跳注释"]
+    SSE -->|"按供应商协议解析 JSON 帧"| M["第 3 层：模型增量事件<br/>文本 delta 与 tool_calls 分片按 index 拼接"]
+    M -->|"文字增量"| UI["第 4 层：界面打字机实时渲染"]
+    M -->|"等待完整终态标识 [DONE] + finish_reason"| TOOL["拼齐 JSON 参数并校验后才执行工具"]
+```
 
-| 层 | 交付给下一层的内容 | 边界在哪？ |
-| --- | --- | --- |
-| TCP、HTTP 与客户端读取 | 响应体的一块字节 | 应用一次读取的大小由网络、HTTP 实现和库决定，可能切在中文字符或 JSON 字符串中间。 |
-| SSE | 一条完整事件 | 空行结束一帧。多行 `data:` 用换行拼接。以冒号开头的注释可以忽略。 |
-| 模型协议 | 事件中的文本增量、调用增量、终态 | 用供应商字段判断该事件的含义和关联 ID。 |
-| 界面与应用 | 可见文本、完整工具参数、最终状态 | 文本可以增量展示。工具参数待全部收到并校验后才能执行。 |
+[WHATWG SSE 标准](https://html.spec.whatwg.org/multipage/server-sent-events.html) · [Chat Completions 流式参考](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
 
-**UTF-8** 是 Unicode 文本的一种编码。一个中文字符编码成的多个字节可能分到不同读取块。使用增量解码器可以保留半个字符的字节，等下一次读取补齐。SSE 还允许 `\r\n`、`\r` 和 `\n` 表示行结束，行尾字符本身也可能跨读取块。
+## 1. 先看原始 SSE 帧里藏着什么（Chat Completions）
 
-下面是两条合成 SSE 事件的正文，省略了各包中无关的模型字段。第一条给调用 ID、名字和第一段参数，第二条只给同一调用的后续参数：
+打开 `stream: true` 后，服务器返回的不再是 `application/json`，而是 `Content-Type: text/event-stream`。
+
+下面两条相邻的 SSE 帧（为了阅读省略了无关外层字段）把一次 `summarize_refunds` 调用拆成了两半：第 1 帧给了调用 ID `call_1`、函数名和参数前半截；第 2 帧只给了相同 `index: 0` 下参数的后半截：
 
 ```text
 data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"summarize_refunds","arguments":"{\"amounts\":[10,"}}]},"finish_reason":null}]}
@@ -32,24 +39,26 @@ data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"argu
 
 ```
 
-通过 `choices[].index` 和 `tool_calls[].index` 定位同一个候选、同一个工具调用。遇到首段时记录调用 ID 与工具名，后续把参数原文逐段追加。示例收到 `finish_reason: "tool_calls"`，并等到 Chat Completions 的 `data: [DONE]` 之后，才交付本轮完整调用。若启用了流式用量，终止前还可能收到 `choices: []` 的用量块。 [Chat Completions 创建接口](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)
+> **容易踩的坑**：
+> 1. **必须用 `(choice_index, tool_call_index)` 复合键来拼接**：同一轮模型可能同时提议调用 2 个工具，它们的分片会穿插在先后帧里到达；而且只有首片才带 `id` 和 `name`，后续分片里经常只有 `index` 和 `arguments`！
+> 2. **为什么收到看起来闭合的 `}` 还不敢直接运行工具？** 因为万一后面紧接着半路断网了，或者模型本来后面还跟着第二条联动指令，你提前执行就是残缺事务！必须同时见到 `finish_reason: "tool_calls"` 且等到最终流结束标志 `data: [DONE]` 才放行。若开启了流式用量，结束前还会额外飘过一帧 `choices: []` 只带 `usage` 的统计包，解析时别直接假定 `choices[0]` 一定存在。 [Chat Completions 接口文档](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)
 
-## 2. Responses 的事件粒度
+## 2. Chat Completions vs Responses 流式事件怎么对照？
 
-Responses 把不同用途写进事件类型，客户端从事件的 `type` 判断如何处理。SSE 层的工作保持一致，模型协议层换成如下映射：
+同样走底层的 SSE 传输，两代 OpenAI 接口只是第 3 层「模型事件形状」长相不同：Responses 把每个小动作都写进了显式的 `type` 事件名里，省去了自己猜哪个字段非空：
 
-| Chat Completions | Responses | 应用怎么用 |
-| --- | --- | --- |
-| `delta.content` | `response.output_text.delta` | 逐段更新显示文本。 |
-| `delta.tool_calls[].function.arguments` | `response.function_call_arguments.delta` | 按调用索引或 Item 标识累积参数。 |
-| 工具结束的 `finish_reason` | `response.function_call_arguments.done`、`response.output_item.done` | 读取完整参数或调用 Item，用 `call_id` 对应工具结果。 |
-| `[DONE]` 作为流边界 | `response.completed` 等响应级终态 | 区分完整响应、失败、未完成或缺少终态。 |
+| 要处理的动作 | Chat Completions (`delta`) | Responses (`event.type`) | 应用怎么用？ |
+| --- | --- | --- | --- |
+| **拿一点显示文字** | `delta.content` | `response.output_text.delta` | 立刻追加到页面流式展示 |
+| **攒一点工具参数** | `delta.tool_calls[].function.arguments` | `response.function_call_arguments.delta` | 按 `output_index` / Item ID 把碎片字符串接上去 |
+| **单个工具参数攒完** | 后续看到 `finish_reason: "tool_calls"` | `response.function_call_arguments.done` 或 `output_item.done` | 参数串收齐了，**但还要等整条响应终态！** |
+| **整次流正式收尾** | 收到 `data: [DONE]` | 收到 `response.completed`（或 `incomplete`/`failed`） | 真正确认流没半路摔断，交出完整结果 |
 
-Responses 中参数的 `done` 表示这个部分结束，应用还应读取响应级终态，处理错误、未完成和取消。后续需要发回的 `function_call_output` 使用调用 Item 的 `call_id`。对接时按所选接口处理终态，避免把一个文本分片的结束当作整个请求结束。 [Responses 流式指南](https://developers.openai.com/api/docs/guides/streaming-responses) · [Responses 流式事件参考](https://developers.openai.com/api/reference/resources/responses/streaming-events)
+> **小提示**：Responses 里收到某个 `function_call_arguments.done` 只代表**这一个函数参数块发完了**，不代表整个 HTTP 响应安安全全走完；依然要读到响应级的 `response.completed`（或按需处理 `incomplete`/断线错误）再触发副作用。 [Responses 流式指南](https://developers.openai.com/api/docs/guides/streaming-responses) · [Responses 流式事件参考](https://developers.openai.com/api/reference/resources/responses/streaming-events)
 
-## 3. 用一字节一块复现
+## 3. 极限压测实验：故意「1 个字节 1 个字节」喂进解析器！
 
-把代码保存为 `stream_tools.py`，运行 `python3 stream_tools.py`。这个最小例子消费合成 Chat Completions 流，故意让每次读取只有一个字节。用于全量接入时，还要处理供应商错误、资源上限、背压与工具回填。本例把可执行工具调用留到终态之后交付。
+把下面代码保存为 `stream_tools.py`，只用 Python 3 标准库运行 `python3 stream_tools.py`。为了逼出所有跨块隐藏 bug，脚本故意把带有中文 `"正在核对。"`、心跳注释 `: heartbeat`、分片工具调用、`\r\r` 换行符的字节流**每次只切 1 个字节**喂进去！
 
 ```python
 import codecs
@@ -153,8 +162,11 @@ assert list(events([b"data: unfinished\n"])) == []
 print(status, text, tools)
 ```
 
-期望能恢复「正在核对。」和完整 `amounts`。删掉末尾 `[DONE]` 的帧，即使当前参数看起来已经完整，也得到 `interrupted`，工具调用列表为空。真实客户端取消时要关闭正在读取的响应或让 HTTP 任务中止，并在应用状态里标记取消。已经展示的增量可视为未完成文本。连接中断后是否重试取决于应用状态，尤其要查上一轮有没有已经执行过的动作。
+> **想再深入一层？** 盯住代码里三个实战保命细节：
+> 1. **`codecs.getincrementaldecoder("utf-8-sig")()`**：专门记住上一个字节块剩下的半截中文 UTF-8 字节，等下一字节进来拼成完整字符再吐出（直接对每块调用 `chunk.decode("utf-8")` 在流式下一定会概率性炸 `UnicodeDecodeError`！）。
+> 2. **删掉 `[DONE]` 帧的测试**（第 148 行）：哪怕前面的 JSON 参数已经看着完美闭合且收到了 `finish_reason: "tool_calls"`，只要没见到 `[DONE]` 就直接断流，函数也老实返回 `("interrupted", "正在核对。", [])`，**绝不把没确认完的工具调用丢去执行**！
+> 3. **用户点「停止生成」取消时**：真实客户端要立刻关掉底层 HTTP 连接中止读取省流量，把界面上已经打出的字标成未完成，**万一断网要重试，务必先查上一轮工具到底执行没执行过**（防重复扣款/写入）。
 
 ## 下一篇
 
-[**API-06《Anthropic Messages API 的内容块与事件》**](api-06-anthropic-messages.md) 用同一个退款工具对照块索引、参数增量、`tool_use` 与 `tool_result`。 [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+摸透了 OpenAI 的非流式与流式协议后，工程里几乎避不开的另一家主流模型协议就是 Anthropic Claude。它的接口不再把 `system` 塞进 `messages`、也不分 `function_call` 与 `tool` 角色，而是全部统一装进「内容块（Content Blocks）」！请看下一篇 [API-06《Anthropic Messages API 的内容块与事件》](api-06-anthropic-messages.md)。系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。

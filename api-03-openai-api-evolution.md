@@ -1,32 +1,41 @@
 ---
 title: "LLM 入门 API-03｜从 Chat Completions、Assistants 到 Responses"
-description: "沿用三行退款 CSV，对照 Chat Completions 的消息数组、已退役 Assistants 的 Thread 与 Run，以及 Responses 的类型化条目。追踪两轮文本和一次退款统计函数往返，说明会话状态由谁管理，以及调用 ID 如何关联结果。"
+description: "用「谁来背聊天记录背包、工具往返怎么接」的大白话主线，拆解 OpenAI 三代接口 Chat Completions、已退役 Assistants 与 Responses 的差异，演示两轮文本和退款工具调用的字段迁移，点破 id 与 call_id 混用陷阱。"
 keywords: [llm, api, openai, agent]
 ---
 
 ![三种 API 的状态组织方式，分别使用消息数组、线程与运行、类型化条目。](assets/api-03-openai-api-evolution-cover.jpg)
 
-用户上传三条退款记录，金额依次为 10、空、0。第一轮请模型写报告，第二轮问为什么均值是 5。再让模型调用应用的 `summarize_refunds` 函数算一次。三种接口面对的是同一个任务。读它们的协议时，先问两件事：**上下文保存在哪里？一次生成交回什么对象？**
+如果只看三行退款 CSV（`10, 空, 0`）的算账任务：第一轮写报告，第二轮追问「为什么均值是 5？」，中间还要调一次应用的 `summarize_refunds` 函数。业务一点没变，可翻开 OpenAI 的接口文档却冒出三套名字：**Chat Completions**、**Assistants** 和 **Responses**。
 
-[API-02](api-02-chat-completions-messages.md) 介绍了怎样在应用里保存消息。[API-10](api-10-prompt-comparison.md) 里的「空值排除、零值保留」继续作为业务规则。本篇的 Assistants 部分用来读遗留代码。OpenAI 已于 2026 年 8 月 26 日关闭 Assistants API。 [官方 Assistants 迁移说明](https://developers.openai.com/api/docs/assistants/migration)
+很多人搞混它们，其实看任何一家模型接口，只需要盯死两个灵魂拷问：**1. 聊天历史状态放在谁那儿？ 2. 一次调用交回来什么形状的对象？**
 
-## 1. 三种接口各把状态放在哪里？
+> **先用大白话讲明白**：OpenAI 三代接口的演变，就像**寄包裹方式的升级**：
+> 1. **Chat Completions（自己拎包记账）**：应用自己拿着账本 `messages`，每聊一轮就把从头到尾全部记录打包重发过去。
+> 2. **Assistants（2026-08 已退役，服务端寄存柜）**：你在云端开个 `Thread` 寄存柜把对话存那儿，再派一个 `Run` 任务去跑，程序还得轮询查它有没有停在 `requires_action` 等你交工具结果。
+> 3. **Responses（现代统一接口）**：把对话里的每句话、思考、工具调用请求和工具回执全部统一叫成**带 `type` 的积木条目（Item）**！既可以像以前那样自己传 `input` 列表掌控一切，也可以只传一个 **`previous_response_id`** 或 `conversation` 让服务端续上历史——把多轮对话、工具和内置能力全都收进了一套协议里。
 
-| 接口 | 主要对象 | 第二轮如何继续 | 自定义函数的执行者 |
+```mermaid
+flowchart LR
+    CC["Chat Completions<br/>状态：应用端自己拼 messages 数组<br/>工具回填：role=tool + tool_call_id"] --> AS["Assistants（已于 2026-08 退役）<br/>状态：云端 Thread + 异步 Run 轮询<br/>遗留代码常见 requires_action"]
+    AS --> RS["Responses（当前主推）<br/>状态：应用传 typed Items 或服务端接力<br/>工具回填：function_call_output + call_id"]
+```
+
+说明：OpenAI 已于 **2026 年 8 月 26 日**正式关闭 Assistants API，这里介绍它是为了让你读得懂公司老项目里的遗留代码。 [官方 Assistants 迁移指南](https://developers.openai.com/api/docs/assistants/migration) · [API-02 消息协议](api-02-chat-completions-messages.md)
+
+## 1. 三代接口核心对比账本
+
+| 接口代际 | 核心数据结构 | 第 2 轮怎么把上下文接上？ | 自定义函数由谁执行？ |
 | --- | --- | --- | --- |
-| Chat Completions | `messages` 输入、`choices` 候选输出 | 应用把已有的消息和新问题放回 `messages` | 应用 |
-| Assistants（已退役） | Assistant 配置、Thread、Run | 在已有 Thread 中写入新消息，再创建 Run | 应用执行自定义函数，并把结果提交给等待它的 Run |
-| Responses | `input` 和 `output` 中的类型化 Item | 可回传 Item，也可按场景选 `previous_response_id` 或 Conversations API | 应用处理自定义函数。内置工具按各自协议运行 |
+| **Chat Completions** | `messages` 输入数组 + `choices` 输出 | 应用端每次自己把完整历史和追问重新拼回 `messages` | **你的应用** |
+| **Assistants（已退役）** | `Assistant` + `Thread`（会话容器）+ `Run`（执行记录） | 往旧 `Thread` 里塞一条新消息，再新起一个 `Run` 并轮询状态 | **你的应用**（发现 `requires_action` 后提交结果） |
+| **Responses** | `input` 与 `output` 里的**类型化 Item** | 既可应用端回传 Item 数组，也可用 `previous_response_id` / Conversations API 续接 | **你的应用**（内置工具由平台按各自协议执行） |
 
-**Thread（线程）**是服务端保存的消息容器。**Run（运行）**是让指定 Assistant 在这个 Thread 上处理一次任务的执行记录。旧代码常见顺序为创建 Thread、添加用户消息、创建 Run、观察 Run 状态、读取新消息。需自定义函数时，旧 Run 会到达 `requires_action`，应用读取待调用工具并提交工具输出，再等待结果。一个 Thread 可以先后有多次 Run。
+[Responses 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses)
 
-**Item（条目）**是 Responses 使用的输入输出单元。普通消息、推理记录、函数调用和函数结果有各自的类型。用相同的退款任务观察，类型差异会直接出现在 JSON 里。 [Responses 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses)
+## 2. 两轮纯文本对话：字段是怎么搬家的？
 
-## 2. 两轮文字的字段怎样迁移？
-
-第一轮 Chat Completions 请求带 `developer` 和 `user` 消息，响应中从 `choices[0].message` 取回复。第二轮应用回传这两条消息、上一轮助手回复和「为什么均值是 5？」。[API-02](api-02-chat-completions-messages.md) 记录了完整请求。
-
-Responses 使用 `POST /v1/responses`。同一请求可以把业务规则放在 `instructions`，把用户文字放在 `input`：
+对比前两篇的 Chat Completions 写法（`developer` + `user` 消息数组），改用 Responses 时，请求直接发往 `POST /v1/responses`，业务规则顶层放在 **`instructions`**，用户输入放在 **`input`**：
 
 ```json
 {
@@ -37,7 +46,7 @@ Responses 使用 `POST /v1/responses`。同一请求可以把业务规则放在 
 }
 ```
 
-以下是精简的 Responses 响应示意，ID 用教学值：
+服务端返回的不再是 `choices[0].message`，而是一组按顺序列在 `output` 里的 **Item**（下面是精简后的结构示意）：
 
 ```json
 {
@@ -57,26 +66,40 @@ Responses 使用 `POST /v1/responses`。同一请求可以把业务规则放在 
 }
 ```
 
-手读原始 HTTP 响应时，在 `output` 中查 `type: "message"` 的助手消息，再读其 `content` 中的 `output_text`。部分 SDK（Software Development Kit，软件开发工具包）提供聚合好的 `output_text` 属性，原始协议仍由 Item 与内容块组成。输出可能还包含其他 Item，遍历类型比固定取 `output[0]` 更稳。
+> **容易踩的坑（不要死写 `output[0]`）**：很多 SDK 会提供一个帮你拼好的快捷属性 `output_text`，但拆开原始 JSON 时，一旦模型先思考了一段（`reasoning` Item）或者先调了工具（`function_call` Item），文本消息就可能排在 `output[1]` 甚至后面！**务必遍历 `output`，按 `item["type"] == "message"` 找文本块**。
 
-第二轮若由应用保持上下文，就把首轮用户 Item、首轮响应的完整 `output`、本轮用户 Item 按序作为新 `input`，并再次给出 `instructions`。如果改用 `previous_response_id`，新请求用上一响应 ID 提供上下文，只需传新输入，但上一响应的 `instructions` 不会自动带到新请求。另一种方式是创建持久的 Conversation，后续以 `conversation` 引用其上下文。在一次请求中，`previous_response_id` 和 `conversation` 分别是两种续接方式。选择服务端存储时，也需要考虑项目的数据保留设置。 [会话状态](https://developers.openai.com/api/docs/guides/conversation-state) · [Responses 创建接口](https://developers.openai.com/api/reference/resources/responses/methods/create)
+第 2 轮追问「为什么均值是 5？」时，Responses 提供了三条路：
+1. **应用端全量回传（最可控、最透明）**：把首轮用户条目 + 首轮返回的完整 `output` + 新追问按顺序拼成新的 `input` 数组发出去，再带上 `instructions`。
+2. **用 `previous_response_id` 省掉重传**：直接传入上一轮的 `"resp_demo_1"` 和本轮新问题就行。**注意坑点**：上一轮的 `instructions` 不会自动继承到新请求里，第 2 轮仍需自己传一遍业务规则！
+3. **用 Conversations API**：适合长期持久化会话对象（记得同步评估项目的数据留存合规策略）。 [会话状态官方说明](https://developers.openai.com/api/docs/guides/conversation-state) · [Responses 创建接口](https://developers.openai.com/api/reference/resources/responses/methods/create)
 
-## 3. 同一个自定义函数怎样来回一次？
+## 3. 同一个退款函数 `summarize_refunds` 怎么往返一次？
 
-假定函数已经定义为 `summarize_refunds`，参数 `{"amounts":[10,null,0]}`。应用用实际代码算出 `{"count":2,"missing":1,"mean":5}`。这里对照调用 ID 怎样越过两次 HTTP 请求。下面的形状只保留关键字段，定义与校验会在 API-04 展开。
+如果模型不是直接猜 `5`，而是要求先调用应用里的 `summarize_refunds({"amounts":[10,null,0]})`，两套接口的字段迁移看这一张表就彻底明白：
 
-| 阶段 | Chat Completions | Responses |
+| 工具往返阶段 | Chat Completions 写法 | Responses 写法 |
 | --- | --- | --- |
-| 函数声明 | `tools[].function` 放 `name`、`parameters` 等 | 这些字段直接在 `tools[]` 的函数对象上 |
-| 模型提议调用 | `choices[0].message.tool_calls[]`，其中 `id` 形如 `call_1` | `output[]` 中出现 `type: "function_call"`，用 `call_id` 关联 |
-| 应用追加执行结果 | `{"role":"tool","tool_call_id":"call_1","content":"..."}` | `{"type":"function_call_output","call_id":"call_1","output":"..."}` |
-| 服务继续生成 | 回传先前的助手工具调用消息，以及结果消息 | 用手动回传时保留原调用 Item，再追加函数结果 Item |
+| **1. 注册工具** | 嵌套放在 `tools[].function` 里面 | 扁平化：`name`、`parameters` 直接写在 `tools[]` 对象第一层 |
+| **2. 模型提议调用** | 看 `choices[0].message.tool_calls[]`，用 `id`（如 `call_1`）标识 | 遍历 `output[]`，找 `type: "function_call"` 条目，用 **`call_id`** 关联结果 |
+| **3. 应用回填结果** | 发一条 `{"role":"tool", "tool_call_id":"call_1", "content":"..."}` | 发一条 `{"type":"function_call_output", "call_id":"call_1", "output":"..."}` |
+| **4. 触发继续信号** | 看 `finish_reason == "tool_calls"` | 在 `output` 里扫描到存在待执行的 `function_call` Item |
 
-Responses 的 `function_call` Item 可以同时有 `id` 和 `call_id`。前者标识 Item，后者匹配结果。两种协议里的参数都是需要解析和校验的 JSON 字符串。函数返回后再调用接口，模型才能依据结果组织面向用户的文字。Chat Completions 的 `finish_reason: "tool_calls"` 表示返回了调用提议。Responses 客户端读取输出 Item，发现函数调用后再推进。 [官方工具迁移对照](https://developers.openai.com/api/docs/guides/migrate-to-responses#5-update-function-definitions-and-outputs)
+```mermaid
+sequenceDiagram
+    participant App as 应用端
+    participant API as Responses 接口
+    App->>API: POST /v1/responses (含 input 与 tools)
+    API-->>App: 返回 function_call (id="fc_1", call_id="call_1")
+    Note over App: 解析 arguments 并执行本地算账<br/>得 {"count":2,"missing":1,"mean":5}
+    App->>API: 下一轮 input 回传原条目 + function_call_output (call_id="call_1")
+    API-->>App: 返回最终 output_text 报告
+```
 
-## 4. 离线验收对话与函数 ID
+> **最容易踩的大坑（`id` vs `call_id`）**：看清上面图里！Responses 返回的 `function_call` 对象里**同时有两个长得极像的 ID**：一个是条目自身编号 `"id": "fc_1"`，另一个是调用匹配号 `"call_id": "call_1"`！应用构造 `function_call_output` 回填结果时，**必须把 `"call_id"` 填成 `"call_1"`**——如果不小心填成了 `"fc_1"`，服务端直接拒收！两种协议里的 `arguments` 也全都是 JSON **字符串**，用前必须先 `json.loads` 并校验。 [官方工具迁移对照](https://developers.openai.com/api/docs/guides/migrate-to-responses#5-update-function-definitions-and-outputs)
 
-把下面保存为 `migration_check.py` 并运行 `python3 migration_check.py`。它使用合成响应检查应用侧的上下文组装与结果关联。真实接口的请求和回包字段可以用 [API-01](api-01-raw-http-request.md) 的 HTTP 方法观察。示例里的 `responses_second` 是第二轮请求的 `input`，顶层设置沿用上面的请求。
+## 4. 离线跑通两轮文本与 `call_id` 迁移校验
+
+保存为 `migration_check.py`，运行 `python3 migration_check.py`（只用标准库）：
 
 ```python
 import json
@@ -125,8 +148,8 @@ assert summary == {"count": 2, "missing": 1, "mean": 5}
 print("两轮上下文保留同一条报告，工具结果关联到", responses_tool["call_id"], summary)
 ```
 
-预期输出包含 `call_1` 和 `{'count': 2, 'missing': 1, 'mean': 5.0}`。把 Responses 的结果 `call_id` 错填成 `fc_1`，第一个关联断言就会失败。实际迁移时，可以拿同一批输入做这种断言，再分别验证正文、工具调用与终态，对齐业务结果。
+脚本会在末尾打印 `call_1` 和 `{'count': 2, 'missing': 1, 'mean': 5.0}`。如果你故意把第 118 行的 `responses_call["call_id"]` 错写成 `responses_call["id"]`，第 121 行的断言会立刻炸出 `AssertionError` 把错误挡下来。做接口版本迁移时，用同一批夹具跑这类契约断言最靠谱。
 
 ## 下一篇
 
-[**API-04《Function Calling 与 Structured Outputs》**](api-04-function-calling-structured-outputs.md) 会补齐工具定义、参数校验和结果回填，再把退款报告的格式约束与执行函数分开练习。 [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
+刚理清了工具调度的协议壳子，下一篇就把重点放到「怎么定义函数参数、防着模型乱传坏类型或瞎编数据、以及怎么给最终报告套上死规矩格式」。请看 [API-04《Function Calling 与 Structured Outputs》](api-04-function-calling-structured-outputs.md)。系列入口见 [LLM 与 Agent 学习路线图](llm-agent-learning-roadmap.md)。
