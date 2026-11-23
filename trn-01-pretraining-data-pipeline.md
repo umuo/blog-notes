@@ -1,6 +1,6 @@
 ---
 title: "LLM 训练 TRN-01｜预训练语料与 Token 数据管线"
-description: "用 9 篇退款与报表说明文档走完预训练数据管线：许可白名单、网页清洗与邮箱脱敏、精确与近似去重、测试集去污染、文档级切分、分词打包与 uint16 分片，最后手算一个 [2, 6] 训练批次的移位标签与跨文档注意力掩码。"
+description: "用「办大型出版社收书编百科全书」的大白话类比讲清预训练数据管线，拿 9 篇退款文档走完许可白名单、网页清洗与邮箱脱敏、精确与 3-gram Jaccard 近似去重、5-gram 测试集去污染、文档级切分、打包与 uint16 分片，手算 [2, 6] 移位标签与 6×6 跨文档注意力掩码。"
 keywords: [llm, pretraining, dataset, python]
 ---
 
@@ -9,55 +9,61 @@ keywords: [llm, pretraining, dataset, python]
 > **生成工具**：Antigravity\
 > **生成模型**：Gemini 4 Neon
 
-在 [F-10《模型从预训练到会按要求回答》](https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html) 里，我们看到 **预训练**（Pretraining）的核心任务是让模型根据上文预测下一个 Token（分词后的基本处理单位）。但真实训练开始前，硬盘里往往只有一堆格式杂乱的网页、手册、代码和日志——既可能混着禁止训练的专有文档，也可能夹着大量重复片段，甚至意外包含留出测试集里的原题。
+在 [F-10《模型从预训练到会按要求回答》](https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html) 里，我们看到**预训练（Pretraining）**的核心任务是让模型读海量文本并不断预测下一个 Token（分词后的基本处理单位）。可真实训练开始前，硬盘里躺着的往往只是一堆从网上爬下来的乱七八糟网页、用户手册、代码和日志——既可能混着禁止商业训练的专有文档，也可能夹着十份一模一样的转载文章，甚至意外泄露了将来考试要考的原题！
 
-把原始文档变成模型能直接读取的训练批次，这套流程叫做 **Token 数据管线（Data Pipeline）**。这一篇准备 9 篇合成文档和 1 条来自 [LE-01](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html) 的退款测试题，完整跟踪它们如何经过许可校验、清洗、去重、去污染、文档级切分、分词和打包，最后落成一个 `uint16` 二进制分片和形状为 `[2, 6]` 的训练批次。全篇脚本只依赖 Python 3 标准库，每一步的中间结果都可以手算核对。
+把原始文档变成模型能一口吞下去的规范数字批次，这套流水线就叫做 **Token 数据管线（Data Pipeline）**。
 
-```text
-9 篇原始文档（含来源与许可元数据）
-  │  1. 许可白名单 + 网页清洗 + 邮箱脱敏 + 长度过滤
-  │  2. 精确去重（SHA-256）+ 近似去重（3-gram Jaccard）
-  │  3. 去污染（核对留出评测题 5-gram 重叠）
-  ▼
-4 篇合格文档
-  │  4. 文档级切分（按 family 哈希划入 train / val，先切分再打包）
-  │  5. 仅用 train 建词表 → 分词并追加 <eos> → 写入 train.bin / val.bin
-  ▼
-训练批次 X [2, 6] 与移位标签 Y [2, 6]（含跨文档边界掩码）
+> **先用大白话讲明白**：搭预训练数据管线，就像**编一套大型《大百科全书》之前在收书库房里设了五道安检**：
+> 1. **版权安检（许可白名单）**：没拿到合法授权的内部机密账本（`proprietary-no-train`），门都不准进，直接退货；
+> 2. **擦洗污渍与打码（清洗与 PII 脱敏）**：把网页里的 HTML 尖括号杂草拔掉，把客服邮箱打上马赛克（`redacted_email`），太短凑字数的垃圾按钮（`Click here OK`）也扫出门；
+> 3. **踢掉盗版和洗稿（精确/近似去重）**：内容完全一样只是多几个空格的镜像页退掉；末尾偷偷加了一两个字水长度的转载洗稿页，算算 **Jaccard 重合度**超过 80% 照样退掉，别让模型把废话背了一遍又一遍；
+> 4. **防考前泄题（测试集去污染）**：把留出评测卷里的原题切成连续 5 词窗口逐篇扫描，谁沾上一点原题碎片立刻清退；
+> 5. **先分好卷子再装订成块（文档级切分 + 打包）**：剩下的好文章，必须**先以完整文章为单位按 `family` 哈希分成训练集和验证集**（绝不能把同一篇文章前半截放训练集、后半截放验证集），再追加 `<eos>` 接成一维 `uint16` 二进制长条，切块时遇到跨篇缝隙用 `-100` 和文档隔离掩码彻底焊死！
+
+```mermaid
+flowchart TD
+    RAW["9 篇原始文档（含 doc_id / source / license / family）"] --> L["1. 许可白名单<br/>仅放行 CC-BY-4.0 / MIT -> 拦下 doc-02"]
+    L --> C["2. 清洗、邮箱脱敏与长度过滤<br/>剥 HTML / 替换邮箱 / 词数 >= 5 -> 拦下 doc-04"]
+    C --> D["3. 精确去重 + 近似去重<br/>SHA-256 拦 doc-05 / 3-gram Jaccard 0.875 拦 doc-06"]
+    D --> DEC["4. 评测去污染<br/>5-gram 命中留出题 -> 拦下 doc-07"]
+    DEC --> SP["5. 先按 family 哈希文档级切分<br/>train (3 篇) 与 val (1 篇) 零重叠"]
+    SP --> BIN["6. 仅从 train 建词表并打包<br/>追加 EOS 结束符 -> 写 train.bin / val.bin (uint16)"]
+    BIN --> BATCH["7. 切出 [2, 6] 移位批次 X 与 Y_masked<br/>跨篇边界标 -100 + 6x6 文档内注意力掩码"]
 ```
+
+这一篇准备 9 篇合成文档和 1 条来自 [LE-01](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html) 的退款测试题，全篇脚本只用 Python 3 标准库，让你能手算验算每一张输出清单。
 
 ## 1. 先给语料记账，再过滤、清洗、去重和去污染
 
-预训练用的原始文档集合称为**语料（Corpus）**。任何处理之前，每篇文档都应带上**来源与许可元数据（Provenance & License）**：唯一编号 `doc_id`、来源渠道 `source`、授权协议 `license`、同源案例族 `family` 和正文 `text`。把这份清单连同后续丢弃原因写进 `manifest.json`，模型出问题或要审查合规边界时，才能顺着版本号追回具体来源。
+预训练使用的原始文本集合叫做**语料（Corpus）**。任何加工之前，第一铁律是先给每篇文档贴好**来源与许可元数据（Provenance & License）**：唯一编号 `doc_id`、来源 `source`、协议 `license`、同源案例族 `family` 和正文 `text`。把这份来源台账连同每篇「为什么被丢弃」一起记入 `manifest.json`，日后模型一旦出现版权纠纷或幻觉故障，就能顺着哈希版本号精准溯源。
 
-下面 9 篇文档围绕退款口径与报表导出构造，故意混入了 5 种真实抓取中常见的坏样本。同时固定 1 条留出评测题 `eval-01`：`refund csv test amount 10 empty 0 expected count 2 mean 5`。管线按五个顺序关卡依次筛查：
+下面 9 篇文档围绕退款口径构筑，故意混进了 5 种现实网页抓取中最讨厌的脏样本，同时锁定 1 条留出测试题 `eval-01`：`refund csv test amount 10 empty 0 expected count 2 mean 5`。管线依次经过五关筛查：
 
-1. **许可白名单（License Gate）。** 本例只允许 `CC-BY-4.0` 和 `MIT` 协议。`doc-02` 标记为 `proprietary-no-train`（未授权专有文本），直接拒绝，后续不再进入清洗或分词。
-2. **清洗、脱敏与质量过滤（Cleaning & Quality Filter）。** 去掉 `<p>`、`<div>` 这类 HTML 标签，把 **PII（Personally Identifiable Information，个人可识别信息）** 中的邮箱 `ops@example.com` 替换为占位符 `redacted_email`，再折叠多余空白并提取小写词元。这里设最低词数门槛 `MIN_WORDS = 5`，像 `<div>Click here OK</div>` 这种清洗后只剩 3 个词的页面噪声（`doc-04`）会被丢弃。
-3. **精确去重（Exact Deduplication）。** 把规范化后的正文用 **SHA-256（256 位安全哈希算法，把任意文本压成固定 64 位指纹）** 算摘要。`doc-05` 只是比 `doc-01` 多了前后空格和连续空格，规范化后指纹与 `doc-01` 完全一致，判为精确重复。
-4. **近似去重（Near-Deduplication）。** 转载页面常在末尾多一个词或改一处日期，哈希会完全不同。这里把每篇文档切成连续 3 个词的窗口，称为 **3-gram（3 元词组，在去重中也叫 shingle / 文本瓦片）**，再用 **Jaccard 相似度** 比较两篇文档的 3-gram 集合 `A` 和 `B`：
+1. **许可白名单（License Gate）**：本例只放行 `CC-BY-4.0` 与 `MIT`。`doc-02` 标着 `proprietary-no-train`（未授权内部账本），入口直接拒收。
+2. **清洗、脱敏与质量过滤（Cleaning & Quality Filter）**：先剥离 `<p>`、`<div>` 标签，把 **PII（Personally Identifiable Information，个人可识别信息）** 里的邮箱 `ops@example.com` 打码成 `redacted_email`，再折叠连续空格并抽小写词元。这里设最少词数 `MIN_WORDS = 5`，像 `<div>Click here OK</div>` 这种清完仅剩 3 个词的页面垃圾（`doc-04`）顺手扔掉。
+3. **精确去重（Exact Deduplication）**：对洗干净的规范文本算 **SHA-256（256 位安全散列摘要）**。`doc-05` 只是在 `doc-01` 前后加了几个空格，规范化后指纹与 `doc-01` 一模一样，抓为精确重复。
+4. **近似去重（Near-Deduplication）**：网上转载文章常常在结尾加个「updated」或换个落款日期，导致 SHA-256 完全变样。管线把每篇文本切成长为 3 个词的连续滑动窗口，叫 **3-gram（3 元词组，去重工程里常叫 shingle / 文本瓦片）**，再用 **Jaccard 相似度**算集合重合比例：
 
 ```text
 J(A, B) = |A ∩ B| ÷ |A ∪ B|
 ```
 
-公式中 `A`、`B` 分别是两篇文档的 3-gram 集合，`|A ∩ B|` 是共同出现的 3-gram 个数（单位：个），`|A ∪ B|` 是合并去重后的总个数，结果 `J(A, B)` 是 0 到 1 之间的无量纲比值（0 表示无交集，1 表示完全一致）。手算 `doc-01`（9 个词，共 `9 - 3 + 1 = 7` 个 3-gram）与末尾多了一个 `updated` 的 `doc-06`（10 个词，共 `8` 个 3-gram）：
+公式里 `A`、`B` 分别为两篇文档的 3-gram 集合，`|A ∩ B|` 是两边共有的 3-gram 个数（单位：个），`|A ∪ B|` 是合并去重后的总个数（单位：个），比值 `J(A, B)` 为 0 到 1 的无量纲小数。咱们亲手算一算 `doc-01`（9 个词，产出 `9 - 3 + 1 = 7` 个 3-gram）与结尾多了一个词 `updated` 的 `doc-06`（10 个词，共 `8` 个 3-gram）：
+- `doc-01` 的 7 个 3-gram 全部出现在 `doc-06` 中，所以交集 `|A ∩ B| = 7`；
+- `doc-06` 仅仅多出 1 个末尾新窗口 `(zero, amounts, updated)`，并集 `|A ∪ B| = 8`；
+- 相似度 **`J(doc-01, doc-06) = 7 ÷ 8 = 0.875`** >= 阈值 `0.80` -> 成功抓成近似重复丢弃！
 
-- `doc-01` 的 7 个 3-gram 全部包含在 `doc-06` 里，因此交集 `|A ∩ B| = 7`。
-- `doc-06` 只多出 1 个新窗口 `(zero, amounts, updated)`，因此并集 `|A ∪ B| = 8`。
-- `J(doc-01, doc-06) = 7 ÷ 8 = 0.875`，达到阈值 `0.80`，判定为近似重复并丢弃。
+> **想再深入一层？** 真实预训练有上亿篇网页，两两硬算 Jaccard 的计算量呈平方爆炸。大型工业管线（比如 Hugging Face 的 FineWeb 与 AI2 的 Dolma）都会使用 **MinHash（最小哈希，把庞大词组集合压成极短固定长度数字签名以近似 Jaccard）** 配合 **LSH（Locality-Sensitive Hashing，局部敏感哈希，把高度相似的签名扔进同一个桶里）**，只拿同一个桶里的候选文档做复核。[FineWeb 论文](https://arxiv.org/abs/2406.17557) · [Dolma 论文](https://arxiv.org/abs/2402.00159)
 
-现实中千万级文档不能两两硬算 Jaccard（复杂度与文档数平方成正比）。工业管线（如 Hugging Face 的 FineWeb 与 AI2 的 Dolma）通常用 **MinHash（最小哈希，把大集合压成固定长度签名以近似 Jaccard）** 配合 **LSH（Locality-Sensitive Hashing，局部敏感哈希，把相似签名分入同一哈希桶）** 缩小比对范围，只对同桶候选做复核。 [FineWeb 论文](https://arxiv.org/abs/2406.17557) · [Dolma 论文](https://arxiv.org/abs/2402.00159)
+5. **评测去污染（Decontamination）**：要是训练集混进了考卷原题，模型直接靠死记硬背考满分，所有榜单都失去意义。管线把 `eval-01` 切成全部连续 **5-gram**，只要候选文章命中任意一条就拦截——`doc-07` 因包含 `("refund", "csv", "test", "amount", "10")` 等窗口被准确捉出。GPT-3 论文在更大数据集上使用 **13-gram** 重叠排查泄漏，这里用 5-gram 方便逐条心算验证。[GPT-3 论文（13-gram 去污染）](https://arxiv.org/abs/2005.14165)
 
-5. **去污染（Decontamination）。** 如果训练语料混进了验证题或公开基准的原题，模型靠死记硬背就能拿高分，评测结论会失真。本例提取 `eval-01` 的全部 **5-gram**，检查每篇候选文档是否命中任意一条。`doc-07` 包含 `("refund", "csv", "test", "amount", "10")` 等多个重叠 5-gram，直接拦截。GPT-3 论文在更大规模语料上采用了 **13-gram** 重叠检查来识别基准泄漏；本例文本较短，改用 5-gram 便于逐条肉眼核对。 [GPT-3 论文（13-gram 去污染）](https://arxiv.org/abs/2005.14165)
+9 篇文档过完五关后的总账单如下：
 
-把 9 篇原始文档经过全部关卡的结果汇成一张账单：
-
-| 文档 ID | 来源 / 许可 | 原始正文摘录 | 处置结果 | 原因或去向 |
+| 文档 ID | 来源 / 许可 | 原始正文摘录 | 处置结果 | 原因或最终去向 |
 | --- | --- | --- | --- | --- |
 | `doc-01` | `docs-wiki` / `CC-BY-4.0` | `Refund policy excludes empty cells and keeps zero amounts.` | 保留 | `train`（9 词） |
 | `doc-02` | `internal-erp` / `proprietary-no-train` | `Internal refund ledger contains private customer balances.` | 丢弃 | `disallowed_license` |
-| `doc-03` | `web-crawl` / `CC-BY-4.0` | `<p>CSV export   rules: keep zero. Contact ops@example.com</p>` | 清洗后保留 | 脱敏邮箱，进入 `train`（7 词） |
+| `doc-03` | `web-crawl` / `CC-BY-4.0` | `<p>CSV export   rules: keep zero. Contact ops@example.com</p>` | 清洗保留 | 邮箱脱敏，进入 `train`（7 词） |
 | `doc-04` | `web-crawl` / `CC-BY-4.0` | `<div>Click here OK</div>` | 丢弃 | `too_short`（仅 3 词） |
 | `doc-05` | `mirror-site` / `CC-BY-4.0` | `  Refund   policy excludes empty cells and keeps zero amounts. ` | 丢弃 | `exact_duplicate` |
 | `doc-06` | `blog-repost` / `CC-BY-4.0` | `Refund policy excludes empty cells and keeps zero amounts updated.` | 丢弃 | `near_duplicate(0.875)` |
@@ -67,45 +73,41 @@ J(A, B) = |A ∩ B| ÷ |A ∪ B|
 
 ## 2. 先做文档级切分，再建词表、分词和打包
 
-剩下的 4 篇合格文档，接下来要分成 **训练集**（`train`）和 **验证集**（`val`）。这里有一条很容易踩坑的顺序规则：**先做文档级切分，再做样本打包。**
+经过重重安检留下来的 4 篇合格文章，接下来划分为**训练集（`train`）**和**验证集（`val`）**。
 
-如果先把全部文档拼成一条长 Token 流，再按最后 10% 切出 `val`，或先切成固定窗口再随机打散，同一篇长文章的前半段可能进 `train`、后半段进 `val`；如果同一系列文档的不同版本分散在两边，验证损失也会虚低。本例沿用 [LE-01](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html) 的思路，按同源标识 `family` 计算确定性哈希 `sha256("trn01-v1:" + family) % 4`：余数为 3 进 `val`，其余进 `train`。结果是 `doc-01`、`doc-03`、`doc-09` 进 `train`，`doc-08` 进 `val`。切完后再用断言确认两边的 `family` 不相交，且 3-gram 重叠数为 0。
+> **容易踩的坑**：有一条新手最容易犯反的顺序铁律——**必须先做文档级切分，再做序列打包！** 要是你偷懒先把 4 篇文章首尾拼接成一大条长文本流，再去切出最后 10% 当验证集，某篇文章的前半截进训练集、后半截进验证集，验证集损失会虚假地漂亮得一塌糊涂！本例沿用 [LE-01](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html) 的思想，按同源标识 `family` 算确定性哈希 `sha256("trn01-v1:" + family) % 4`：余数为 3 归入 `val`，其余归 `train`。最终 `doc-01`、`doc-03`、`doc-09` 进 `train`，`doc-08` 进 `val`，并在脚本里死断言两边 `family` 和 `3-gram` 均零重叠。
 
-### 词表、特殊 Token 与 `<unk>` 的启示
+### 词表、特殊 Token 与 `<unk>` 带来的重要启示
 
-为了手算每个数字，脚本只从 `train` 的 3 篇文档统计词表（**绝不偷看 `val` 建词表**），预留两个特殊 Token：`0` 表示 **`<eos>`（End of Sequence，序列 / 文档结束标记；真实分词器常写作 `<|endoftext|>` 或 `<|im_end|>`）**，`1` 表示 **`<unk>`（Unknown，未登录词占位符）**，其余词按在 `train` 中首次出现的顺序编号 `2` 到 `23`，词表大小共 **24**。
+为了让你手动追踪每个整数 ID，脚本**只许翻阅 `train` 的 3 篇文档**统计词表（绝不准偷看 `val` 建词表），预留两个特殊 Token：`0` 是 **`<eos>`（End of Sequence，文档结束符）**，`1` 是 **`<unk>`（Unknown，词表里不认识的新词占位符）**，其余词按 `train` 里第一次露面的次序编为 `2..23`，词表大小恰好 **`24`**。
 
-编码 `val` 中的 `doc-08`（`audit log keeps zero csv cells after export`）时，在 `train` 里出现过的 `keeps(8)`、`zero(9)`、`csv(11)`、`cells(6)`、`export(12)` 正常映射，而没见过的 `audit`、`log`、`after` 都会变成 `1`（`<unk>`）。这恰好说明为什么真实大语言模型不会用简单词级词表，而是使用 [F-01](https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html) 讲过的字节级 **BPE（Byte Pair Encoding，字节对编码）**：任何新词都能拆成已知子词或 UTF-8 字节，不会丢失信息变成 `<unk>`。
+回头拿这本词表去编码验证集 `doc-08`（`audit log keeps zero csv cells after export`）时，`keeps(8)`、`zero(9)`、`csv(11)`、`cells(6)`、`export(12)` 都能对上号，而 `train` 里没出现过的 `audit`、`log`、`after` 全都坍缩成了 `1`（`<unk>`）。亲眼看见这个现象，你就立刻彻悟了为什么现代 LLM 绝不用简单整词词表，而是使用 [F-01](https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html) 讲过的字节级 **BPE（Byte Pair Encoding，字节对编码）**：再罕见的生僻词也能切成认识的子词或底层 UTF-8 字节，绝不会退化成一团 `<unk>`。
 
-### 样本打包与 `uint16` 二进制分片
+### 样本打包与 `uint16` / `uint32` 二进制分片陷阱
 
-模型训练时一次并行处理一个二维矩阵，每一行必须等长（长度记作 `T`，即上下文长度）。如果把长度只有 8 或 10 的短文档各自补齐 `<pad>`（填充标记）到长窗口，大量算力会浪费在填充位上。**样本打包**（Sequence Packing）的做法是：在每篇文档编码末尾追加一个 `<eos>`（ID `0`），把同属一个划分的多篇文档首尾拼成一条连续的一维 Token 流：
+GPU 做矩阵乘法要求同一个批次里每一行序列都等长（设上下文窗口长度 `T = 6`）。要是每篇短文档单独塞一大堆空白补齐符 `<pad>`，大量算力全都在空转浪费。**样本打包（Sequence Packing）**非常干脆：在每篇文档 Token 末尾啪地贴上一个 `<eos>`（ID `0`），接着直接把下一篇文档粘上去，串成一条紧凑无废料的一维流：
+- `train` 流长度 = `doc-01`(9+1) + `doc-03`(7+1) + `doc-09`(7+1) = **26 个 Token**；
+- `val` 流长度 = `doc-08`(8+1) = **9 个 Token**。
 
-- `train` 流长度 = `doc-01`（9 词 + 1 个 `<eos>`）+ `doc-03`（7 + 1）+ `doc-09`（7 + 1）= **26 个 Token**。
-- `val` 流长度 = `doc-08`（8 + 1）= **9 个 Token**。
-
-真实预训练语料动辄数十亿到数万亿 Token，训练循环不会每次都从原始 JSON 重新分词，而是提前把 Token ID 序列写成紧凑的二进制分片文件（如 `train.bin`、`val.bin`），训练时通过 **内存映射**（`memmap`，按需直接从磁盘映射数组片段而不必一次性全部读进内存）随机切片。单个分片的体积可直接计算：
+把这一维整数组按紧实二进制字节流写进磁盘文件（比如 `train.bin` 和 `val.bin`），训练时用 **内存映射（`memmap`）** 从硬盘随机按需切片读取，避免把上百 GB 数据一次性全塞进内存。二进制体积口算极简：
 
 ```text
-文件字节数（Byte） = Token 总数 × 单个 Token 所占字节数
+文件字节数（Byte） = Token 总数 × 单个 Token 占用字节数
 ```
 
-本例词表大小 `24 ≤ 65,535`（即 `2^16 - 1`），用 **`uint16`（16 位无符号整数，每项占 2 字节，小端字节序）** 存储即可：`train.bin` 占 `26 × 2 = 52` 字节，`val.bin` 占 `9 × 2 = 18` 字节。真实工程里要按目标分词器的最大 ID 选数据类型：GPT-2 词表大小 50,257（最大 ID 50,256 ≤ 65,535），nanoGPT 因此用 `uint16`；而 F-01 用到的 Qwen2.5 词表超过 15 万（大于 65,535），存储分片时必须升到 **`uint32`（32 位无符号整数，每项占 4 字节）**，否则高位截断会直接把 ID 写坏。
+本例词表大小 `24 ≤ 65,535`（即 `2^16 - 1`），用 **`uint16`（16 位无符号整数，每项占 2 字节，小端字节序）** 存储即可：`train.bin` 占 `26 × 2 = 52` 字节，`val.bin` 占 `9 × 2 = 18` 字节。真实工程里要按目标分词器的最大 ID 选数据类型：GPT-2 词表大小 50,257（最大 ID 50,256 ≤ 65,535），nanoGPT 的 `prepare.py` 正是如此；而 Qwen2.5 词表超过 15 万（大于 65,535），存储分片时必须升到 **`uint32`（32 位无符号整数，每项占 4 字节）**，否则高位截断会直接把 ID 写坏。
 
 ## 3. 一个 `[2, 6]` 训练批次的输入、移位标签与跨文档边界
 
-现在从 26 个 Token 的 `train` 流中切出一个**训练批次（Batch）**。设批大小 **`B = 2`**（同时喂给模型的样本条数），上下文长度 **`T = 6`**（每条样本的 Token 数），输入张量 `X` 和标签张量 `Y` 的形状都是 **`[B, T] = [2, 6]`**——第 0 轴对应批次里的样本编号 `b ∈ {0, 1}`，第 1 轴对应样本内的时间步 `t ∈ {0, 1, 2, 3, 4, 5}`。
+现在从 `26` 个 Token 的 `train` 串里切出 1 个训练批次：设批大小 **`B = 2`**（并行 2 条样本）、窗口长度 **`T = 6`**（每条含 6 个 Token），输入 `X` 与目标标签 `Y` 的张量形状同为 **`[B, T] = [2, 6]`**——第 0 轴为批内行号 `b ∈ {0, 1}`，第 1 轴为句内步数 `t ∈ {0, 1, 2, 3, 4, 5}`。
 
-因为每个输入位置 `X[b, t]` 都要预测紧跟其后的下一个 Token，切出一条长度为 `T` 的样本需要从 Token 流中取出连续 **`T + 1`** 个元素：
-
+因为语言模型是拿第 `t` 位预测下一位置 `t + 1`，构造一条长度为 `T` 的训练样例其实要向右切片取 **`T + 1`** 个 Token：
 - 输入 `X[b] = stream[start : start + T]`
 - 原始移位标签 `Y_raw[b] = stream[start + 1 : start + 1 + T]`
 
-本例按无重叠步长 `T = 6` 取前两条样本：`row 0` 起点 `start = 0`，`row 1` 起点 `start = 6`。需要顺手区分三种常见切片约定：按步长 `T` 切片时，`row 0` 末尾的 `and(7)` 预测 `row 1` 开头的 `keeps(8)`，不丢任何转移；nanoGPT 的 `get_batch` 在 `[0, len(stream) - T)` 内随机抽 `start`，同样每行算满 `T` 个损失；而把流先切成长度为 `T` 的独立块再在模型内部做 `logits[:-1]` 对 `labels[1:]` 移位（如 Hugging Face 常见的 `group_texts` 写法），每块实际只算 `T - 1` 个损失。
+本例按无重叠步长 `T = 6` 取第 0 行 `start = 0`、第 1 行 `start = 6`。（对照工程细节：步长 `T` 取批不漏掉任何词间转移；nanoGPT `get_batch` 在 `[0, len - T)` 随机挑起点同样算满 `T` 个目标；而部分 Hugging Face 脚本先切成独立块再模型内错一位 `logits[:-1]` vs `labels[1:]`，每块会少算 1 个位置）。逐格摊开这两行，真相全部都在第 1 行的缝隙处：
 
-先把 `row 0` 和 `row 1` 的每个位置逐列展开，对照看最容易混淆的跨文档边界：
-
-| 样本行 | 位置 `t` | 输入 `X`（ID / 词） | 原始标签 `Y_raw`（ID / 词） | 边界掩码后 `Y_masked` | `doc_ids` | 局部位次 `position_ids` |
+| 样本行 | 步 `t` | 输入 `X`（ID / 词） | 原始标签 `Y_raw` | 掩码后 `Y_masked` | 文档编号 `doc_ids` | 重置位置 `position_ids` |
 | --- | ---: | --- | --- | --- | ---: | ---: |
 | `row 0` | 0 | `2` (`refund`) | `3` (`policy`) | `3` (`policy`) | 1 | 0 |
 | `row 0` | 1 | `3` (`policy`) | `4` (`excludes`) | `4` (`excludes`) | 1 | 1 |
@@ -115,15 +117,14 @@ J(A, B) = |A ∩ B| ÷ |A ∪ B|
 | `row 0` | 5 | `7` (`and`) | `8` (`keeps`) | `8` (`keeps`) | 1 | 5 |
 | `row 1` | 0 | `8` (`keeps`) | `9` (`zero`) | `9` (`zero`) | 1 | 0 |
 | `row 1` | 1 | `9` (`zero`) | `10` (`amounts`) | `10` (`amounts`) | 1 | 1 |
-| `row 1` | 2 | `10` (`amounts`) | `0` (`<eos>`) | **`0`（保留）** | 1 | 2 |
+| `row 1` | 2 | `10` (`amounts`) | `0` (`<eos>`) | **`0`（保留算损失）** | 1 | 2 |
 | `row 1` | 3 | `0` (`<eos>`) | `11` (`csv`) | **`-100`（忽略）** | 1 | 3 |
 | `row 1` | 4 | `11` (`csv`) | `12` (`export`) | `12` (`export`) | 3 | **0** |
 | `row 1` | 5 | `12` (`export`) | `13` (`rules`) | `13` (`rules`) | 3 | **1** |
 
-盯住 `row 1` 的 **`t = 2`** 和 **`t = 3`** 这两行，它们把打包边界的两个问题讲得清清楚楚：
-
-1. **为什么 `t = 2` 必须算损失，而 `t = 3` 可以忽略？** 在 `t = 2`，输入是 `doc-01` 的最后一个词 `amounts(10)`，目标是 `doc-01` 自己的结束符 `<eos>(0)`，两者同属文档 1——这一步教模型学会「文章说完时输出结束符」。到了 `t = 3`，输入已经是文档 1 的 `<eos>(0)`，而 `Y_raw` 指向下一篇无关文档 `doc-03` 的首词 `csv(11)`（`doc_ids` 从 `1` 跳到了 `3`）。文档 1 的结尾根本推不出文档 3 的开头，因此在严格边界隔离下把 `Y_masked[1, 3]` 设为 **`-100`**（即 [F-10](https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html) 里 PyTorch 交叉熵的默认 `ignore_index=-100`，该位置不计入损失也不回传梯度）。
-2. **为什么还要做文档内因果注意力掩码和位置重置？** 在普通下三角因果掩码里，`row 1` 位置 `t = 4`（`csv`）和 `t = 5`（`export`）属于 `doc-03`，却能回头注意到 `t = 0..3` 里 `doc-01` 的词。如果在打包流旁边同时记录文档编号 `doc_ids`，就可以构造**文档内因果注意力掩码** `M`（形状 `[T, T]`，行轴 `q` 为当前查询位置，列轴 `k` 为被关注的键位置）：当且仅当 **`k ≤ q` 且 `doc_ids[q] == doc_ids[k]`** 时 `M[q, k] = 1`（允许关注），否则为 `0`（屏蔽）。`row 1` 的 `6 × 6` 掩码长这样：
+盯牢 `row 1` 的 **`t = 2`** 与 **`t = 3`**，打包训练里两个最金贵的细节就全懂了：
+1. **为什么 `t = 2` 要算损失，而 `t = 3` 设为 `-100`？** 在 `t = 2` 时，模型刚读完文档 1 最后一个词 `amounts(10)`，正要学着输出这篇文档自己的句号 **`<eos>(0)`**（教模型啥时候懂得闭嘴收尾！）；可到 `t = 3` 时，输入已经是文档 1 的 `<eos>`，而 `Y_raw` 却指着毫不相干的文档 3 第一个词 `csv(11)`（`doc_ids` 从 `1` 跨到 `3`）！从前一篇写完根本猜不到下一篇开头讲啥，硬算损失就是让模型学瞎猜，于是设成 PyTorch 默认忽略索引 **`-100`**，不计损失也不传梯度！
+2. **为什么还要多做一张文档内注意力掩码 `6 × 6` 和重置 `position_ids`？** 把 `t = 3` 的标签设为 `-100` 只阻止了这一步算错分，可前向传播算 Self-Attention 时，如果不加控制，文档 3 的 `csv(t=4)` 和 `export(t=5)` 一回头依然看得到前一篇文档 1 的单词！如果在旁记录 `doc_ids`，规定**当且仅当 `k ≤ q` 且 `doc_ids[q] == doc_ids[k]` 时允许关注（填 `1`），否则屏蔽（填 `0`）**，`row 1` 就会切出下面这张**分块下三角矩阵**（左上 4×4 和右下 2×2 之间彻底堵死）：
 
 ```text
 q \ k    0(doc1) 1(doc1) 2(doc1) 3(doc1) │ 4(doc3) 5(doc3)
@@ -136,11 +137,11 @@ q \ k    0(doc1) 1(doc1) 2(doc1) 3(doc1) │ 4(doc3) 5(doc3)
 5(doc3)     0       0       0       0    │    1       1
 ```
 
-这是一个分块下三角矩阵：左上角 `4 × 4` 块只让 `doc-01` 内部互看，右下角 `2 × 2` 块只让 `doc-03` 内部互看，左下角全 0 把两篇文档彻底隔开。同时，使用 [F-03](https://blog.lacknb.cn/articles/2026/11/20/1795154536776.html) 里的 **RoPE（Rotary Position Embedding，旋转位置编码）** 时，会把 `doc-03` 开头的 `position_ids` 重置回 `0`（即 `[0, 1, 2, 3, 0, 1]`），避免新文档误以为自己出现在第 4 个位置。早期简化实现（如 GPT-2 与 nanoGPT）通常省略这一步，仅靠 `<eos>` 软分隔；而 Llama 3 技术报告指出，在长上下文续训阶段，启用文档边界注意力掩码对保持长文本结构边界尤为关键。 [Llama 3 论文（文档注意力掩码）](https://arxiv.org/abs/2407.21783)
+同时，配合 [F-03](https://blog.lacknb.cn/articles/2026/11/20/1795154536776.html) 讲的 **RoPE（旋转位置编码）** 时，新文档开头的 `position_ids` 会果断重新从 `0` 起步（`[0, 1, 2, 3, 0, 1]`），免得新文章开头误会自己已经写到了第 4 个词。早年 GPT-2 / nanoGPT 为了图省事省略了这层隔离、仅靠 `<eos>` 软间隔；而 Llama 3 技术报告明确指出，在超长上下文训练阶段，把不同文档注意力彻底隔离对保住结构界线非常关键。[Llama 3 论文（文档注意力掩码）](https://arxiv.org/abs/2407.21783)
 
 ## 4. 用标准库 Python 跑通完整管线
 
-把下面代码保存为 `pretrain_pipeline.py`，在空目录运行 `python3 pretrain_pipeline.py`。脚本只用 Python 3 标准库，会在当前目录生成 `train.bin`、`val.bin` 和 `manifest.json`，并用 `assert` 逐项校验去重、去污染、划分零重叠、二进制读回、标签移位与 6×6 掩码。
+把下面代码存为 `pretrain_pipeline.py`，放在空目录下运行 `python3 pretrain_pipeline.py`。脚本纯使用 Python 3 标准库，会在本目录生成 `train.bin`、`val.bin` 和 `manifest.json`，再用严格 `assert` 依次核验五关去重、跨划分零重叠、小端序读写一致、`-100` 忽略位及 6×6 文档隔离矩阵：
 
 ```python
 from array import array
@@ -352,7 +353,7 @@ for row_idx in range(BATCH_SIZE):
     print(f"row {row_idx} Y_raw={y_raw[row_idx]} Y_masked={y_masked[row_idx]} {y_toks}")
 ```
 
-实跑输出如下（其中 `train.bin` 的 SHA-256 前 16 位为 `8197763aa571157c`，`val.bin` 为 `b2b50b18eb4a3059`）：
+实跑输出如下（`train.bin` SHA-256 前 16 位为 `8197763aa571157c`，`val.bin` 为 `b2b50b18eb4a3059`）：
 
 ```text
 dropped: [('doc-02', 'disallowed_license'), ('doc-04', 'too_short'), ('doc-05', 'exact_duplicate'), ('doc-06', 'near_duplicate(0.875)'), ('doc-07', 'eval_contaminated')]
@@ -366,21 +367,19 @@ row 1 X=[8, 9, 10, 0, 11, 12] ['keeps', 'zero', 'amounts', '<eos>', 'csv', 'expo
 row 1 Y_raw=[9, 10, 0, 11, 12, 13] Y_masked=[9, 10, 0, -100, 12, 13] ['zero', 'amounts', '<eos>', '<IGNORE>', 'export', 'rules']
 ```
 
-两个小改动值得亲手试一次：
-
-1. **调松近似去重阈值或改写 `doc-06`。** 把 `doc-06` 末尾再多加两个新词 `updated yesterday morning`（12 词，10 个 3-gram），Jaccard 会降到 `7 ÷ 10 = 0.700`，低于 `0.80` 而放行；由此可以直观体会去重阈值在「漏掉抄袭变体」与「误杀合理改写」之间的权衡。
-2. **模拟测试集泄漏。** 把 `doc-08`（`val`）里的句子复制到 `doc-09`（`train`）末尾再跑，即使它们的 `family` 不同，脚本里的 `assert train_3grams.isdisjoint(val_3grams)` 也会立刻报错，拦住跨划分重叠。
+两个有意思的小实验推荐你自己改两行试试：
+1. **感受近似去重阈值权衡**：往 `doc-06` 末尾再多添几个新词（比如 `updated yesterday morning`，共 12 词 10 个 3-gram），Jaccard 会降到 `7 ÷ 10 = 0.700 < 0.80` 而逃过拦截；
+2. **模拟测试集跨界泄漏**：把 `doc-08`（验证集）里那句话悄悄贴进 `doc-09`（训练集），即使两者的 `family` 不同，`assert train_3grams.isdisjoint(val_3grams)` 照样瞬间把你拦下来。
 
 ## 5. 从教学管线到真实开源实现
 
-本篇把 9 篇文档的整条管线压缩到了两百来行代码，真实预训练系统会在吞吐和规模上扩展同一套骨架。想继续看工程实现，可以沿着三条线索读：
-
-1. **二进制分片与随机移位取批。** 打开 [nanoGPT 的 `prepare.py`](https://github.com/karpathy/nanoGPT/blob/master/data/openwebtext/prepare.py)，看它如何用 `tiktoken` 的 GPT-2 BPE 给 OpenWebText 分词、在篇尾追加 `eot_token` 并写入 `uint16` 的 `train.bin` / `val.bin`，再到 `train.py` 的 `get_batch()` 对照 `x = data[i:i+block_size]` 和 `y = data[i+1:i+1+block_size]`。
-2. **大规模网页清洗与去重配方。** 读 [FineWeb 论文](https://arxiv.org/abs/2406.17557) 和 [Dolma 论文](https://arxiv.org/abs/2402.00159)，重点看它们怎样在数百亿到万亿 Token 上组合 URL 过滤、语言识别、启发式重复率规则、MinHash LSH 去重，并用小型代理模型在公开基准上做消融，验证每条过滤规则是真的提升了下游能力而不是只把数据变少。
-3. **长上下文打包隔离。** 读 [Llama 3 论文](https://arxiv.org/abs/2407.21783) 的预训练数据与架构章节，对照本篇第 3 节的 6×6 掩码，看真实 GPU 训练如何把每个打包文档的起止偏移量交给变长注意力内核（例如 FlashAttention 的变长接口）来避免显式构造巨大的二维掩码矩阵。
+本篇把 9 篇短文的清洗与打包浓缩进了两百行纯标准库 Python；真正上万亿 Token 的工业系统依然是这同一套骨架，只是每一步换上了高吞吐并行工具：
+1. **二进制分片与随机移位取批**：打开 [nanoGPT 的 `prepare.py`](https://github.com/karpathy/nanoGPT/blob/master/data/openwebtext/prepare.py) 对照它是如何拿 `tiktoken` GPT-2 BPE 编码追加 `eot_token` 写出 `uint16` 的 `train.bin` / `val.bin`，再到 `train.py` 的 `get_batch()` 对照 `x = data[i:i+block_size]` 与 `y = data[i+1:i+1+block_size]`。
+2. **大规模网页清洗与去重配方**：精读 [FineWeb 论文](https://arxiv.org/abs/2406.17557) 与 [Dolma 论文](https://arxiv.org/abs/2402.00159)，关注它们如何先用小模型做消融实验证明每条清洗规则是真正提高了下游分数而不只是单纯删掉数据。
+3. **长上下文变长注意力打包隔离**：看 [Llama 3 论文](https://arxiv.org/abs/2407.21783) 的预训练章节，真实 GPU 集群并不会傻傻构造动辄几万乘几万的稠密二维掩码矩阵，而是直接把每篇文档的起止位置偏移交给 FlashAttention 变长内核 `cu_seqlens` 在底层硬件上原生隔离。
 
 ## 下一篇
 
-二进制分片 `train.bin`、`val.bin` 和形状为 `[B, T]` 的移位批次已经就绪。**TRN-02《从随机权重预训练一个微型语言模型》** 会直接读取这类 Token 分片，把一个批次送进微型 decoder-only Transformer，完整跑通前向传播、下一 Token 交叉熵损失、反向传播、梯度累积、优化器更新与 Checkpoint 保存续训，并与 nanoGPT 的训练循环逐段对照。
+二进制分片 `train.bin`、`val.bin` 和 `[B, T]` 批次已经躺好在硬盘里。[**TRN-02《从随机权重预训练一个微型语言模型》**](trn-02-tiny-language-model.md) 会亲手搭建一个 `14,496` 参数的微型 decoder-only Transformer，直接吞下这批分片跑通前向传播、交叉熵损失、正确加权的梯度累积、AdamW 更新与严丝合缝的断点续训，并到 nanoGPT 源码里逐行认亲。
 
 [LE-05 模型改了，线上效果真的变好了吗](https://blog.lacknb.cn/articles/2026/11/21/1795270264488.html) · [LLM 与 Agent 学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
