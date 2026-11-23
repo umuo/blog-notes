@@ -331,13 +331,13 @@ Google DeepMind 的公开资料分别记录了 **SIMA 2 利用自生成经验训
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| OPS-01 | LLM Gateway 的限流、路由、缓存与降级 | 按 RPM、TPM、并发、预算治理，测试 429、超时、部分流式输出和供应商切换。 |
-| OPS-02 | Agent 安全控制如何落到生产环境 | 将 SEC 与 SBX 中的控制接入权限配置、网络策略、审计、变更审批与事件响应。用分环境回归确认策略实际生效。 |
-| OPS-03 | Sandbox 冷启动和资源回收 | 拆分排队、镜像、运行时、首命令，比较镜像缓存、预热和洁净快照，追踪 P95、闲置成本、隔离与回收。 |
-| OPS-04 | Agent 服务拆分与可靠迁移 | 从模块化单体拆异步执行池，覆盖队列、Outbox、幂等、独立扩缩容、灰度和回滚。 |
-| OPS-05 | 端到端可观测与持续发布 | 统一请求、模型、工具和产物的追踪，制作失败样本、上线门槛、灰度与回滚报告。 |
-| OPS-07 | Prompt、工具契约和在途任务的版本兼容 | 记录每次运行所用的 Prompt、工具输入与输出 Schema 以及模型发布版本。用统计工具的参数变更与结果变更演示兼容层和轨迹回放，验证旧任务恢复、灰度和回滚期间的结果一致性与副作用处理。 |
-| OPS-06 | 用 OpenTelemetry 定位一条 Agent 慢请求 | 固定语义约定版本，用 Trace 关联模型、检索、工具和 Sandbox，把耗时拆成排队与执行。记录 Token、错误与步骤次序，用脱敏与采样保护输入输出。 |
+| OPS-01 | [LLM Gateway 的限流、路由、缓存与降级](https://blog.lacknb.cn/articles/2026/11/23/1795419423601.html)（已发布，[源稿](ops-01-gateway.md)） | 按 RPM、TPM、并发、预算治理，测试 429、超时、部分流式输出和供应商切换。 |
+| OPS-02 | [Agent 安全控制如何落到生产环境](https://blog.lacknb.cn/articles/2026/11/23/1795419425419.html)（已发布，[源稿](ops-02-agent-security.md)） | 将 SEC 与 SBX 中的控制接入权限配置、网络策略、审计、变更审批与事件响应。用分环境回归确认策略实际生效。 |
+| OPS-03 | [Sandbox 冷启动和资源回收](https://blog.lacknb.cn/articles/2026/11/23/1795419427113.html)（已发布，[源稿](ops-03-sandbox-lifecycle.md)） | 拆分排队、镜像、运行时、首命令，比较镜像缓存、预热和洁净快照，追踪 P95、闲置成本、隔离与回收。 |
+| OPS-04 | [Agent 服务拆分与可靠迁移](https://blog.lacknb.cn/articles/2026/11/23/1795419428781.html)（已发布，[源稿](ops-04-reliable-migration.md)） | 从模块化单体拆异步执行池，覆盖队列、Outbox、幂等、独立扩缩容、灰度和回滚。 |
+| OPS-05 | [端到端可观测与持续发布](https://blog.lacknb.cn/articles/2026/11/23/1795419430432.html)（已发布，[源稿](ops-05-progressive-delivery.md)） | 统一请求、模型、工具和产物的追踪，制作失败样本、上线门槛、灰度与回滚报告。 |
+| OPS-07 | [Prompt、工具契约和在途任务的版本兼容](https://blog.lacknb.cn/articles/2026/11/23/1795419432161.html)（已发布，[源稿](ops-07-runtime-versioning.md)） | 记录每次运行所用的 Prompt、工具输入与输出 Schema 以及模型发布版本。用统计工具的参数变更与结果变更演示兼容层和轨迹回放，验证旧任务恢复、灰度和回滚期间的结果一致性与副作用处理。 |
+| OPS-06 | [用 OpenTelemetry 定位一条 Agent 慢请求](https://blog.lacknb.cn/articles/2026/11/23/1795419433902.html)（已发布，[源稿](ops-06-opentelemetry-trace.md)） | 固定语义约定版本，用 Trace 关联模型、检索、工具和 Sandbox，把耗时拆成排队与执行。记录 Token、错误与步骤次序，用脱敏与采样保护输入输出。 |
 
 生产链路观测参考：[OpenTelemetry 的 GenAI Trace 示例](https://opentelemetry.io/blog/2026/genai-observability/)
 

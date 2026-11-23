@@ -1,0 +1,168 @@
+{
+    "report": {
+        "rows": 2,
+        "mean_cents": 500
+    },
+    "OPS-01": {
+        "upstream_429": [
+            "A:429",
+            "B:ok",
+            "done"
+        ],
+        "upstream_timeout": [
+            "A:timeout",
+            "B:ok",
+            "done"
+        ],
+        "partial_stream": [
+            "A:partial",
+            "stream_error:incomplete"
+        ],
+        "tenant_cache": [
+            [
+                "A:ok",
+                "done"
+            ],
+            [
+                "cache_hit"
+            ]
+        ],
+        "cross_tenant": [
+            "A:ok",
+            "done"
+        ],
+        "request_limit": [
+            "429:rpm"
+        ],
+        "token_limit": [
+            "429:tpm"
+        ],
+        "concurrency_limit": [
+            "429:concurrency"
+        ],
+        "budget_limit": [
+            "budget_rejected"
+        ],
+        "fallback_limit": [
+            "A:429",
+            "fallback_budget_exhausted"
+        ]
+    },
+    "OPS-02": {
+        "staging": "allow",
+        "production_identity": "identity_denied",
+        "archive_destination": "target_denied",
+        "changed_report": "approval_invalid",
+        "expired": "approval_invalid",
+        "policy_failure": "policy_unavailable"
+    },
+    "OPS-03": {
+        "p95_virtual_ms": {
+            "cold": 280,
+            "cached": 125,
+            "warm": 50,
+            "clean_snapshot": 70
+        },
+        "samples_per_path": 20,
+        "reclaim": [
+            "revoke",
+            "stop",
+            "discard_overlay",
+            "released"
+        ]
+    },
+    "OPS-04": {
+        "rolled_back_jobs": 0,
+        "deliveries": 2,
+        "receipts": 1
+    },
+    "OPS-05": {
+        "correct_outcomes": 19,
+        "batch_size": 20,
+        "p95_ms": 2800,
+        "canary_weight_before": 5,
+        "canary_weight_after": 0
+    },
+    "OPS-07": {
+        "normalized_column": {
+            "name": "refund_amount",
+            "unit": "CNY_yuan"
+        },
+        "historical": {
+            "mean_cents": 500,
+            "currency": "CNY"
+        },
+        "current": {
+            "mean_cents": 500,
+            "currency": "CNY"
+        },
+        "unknown": "unknown schema",
+        "archive_effects": 1
+    },
+    "OPS-06": {
+        "trace_id": "49db781affe2bcffed807cb0d9a5ce8e",
+        "spans": [
+            [
+                "request",
+                null,
+                0,
+                1850
+            ],
+            [
+                "queue",
+                "request",
+                15,
+                715
+            ],
+            [
+                "retrieval",
+                "request",
+                715,
+                785
+            ],
+            [
+                "model",
+                "request",
+                785,
+                1185
+            ],
+            [
+                "tool",
+                "request",
+                1185,
+                1765
+            ],
+            [
+                "sandbox.lease",
+                "tool",
+                1195,
+                1645
+            ],
+            [
+                "sandbox.command",
+                "tool",
+                1645,
+                1745
+            ],
+            [
+                "artifact",
+                "request",
+                1765,
+                1850
+            ]
+        ],
+        "duration_ms": {
+            "request": 1850,
+            "queue": 700,
+            "retrieval": 70,
+            "model": 400,
+            "tool": 580,
+            "sandbox.lease": 450,
+            "sandbox.command": 100,
+            "artifact": 85
+        },
+        "first_visible_delta_ms": 925,
+        "input_tokens": 620,
+        "output_tokens": 80
+    }
+}

@@ -1,8 +1,8 @@
 # 写作进度
 
-## 当前接续点
+## 当前状态
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 131 篇，尚待发布 7 篇。第十三部分「Vibe Coding 与工程化交付」3 篇已全部发布。按路线图行序，下一篇写作是 **OPS-01《LLM Gateway 的限流、路由、缓存与降级》**。
+初版路线图规划的 14 个专题、138 篇文章已全部发布。第十四部分「生产化专题」共 7 篇，覆盖网关、安全控制、沙箱、迁移、持续发布、版本兼容和追踪排障。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -19,6 +19,7 @@
 | Agent 自进化与递归自我改进 | 5 | [EVO-01《Agent 怎样从错误中学习》](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html) · [专题目录](llm-agent-learning-roadmap.md#11-agent-自进化与递归自我改进rsi) |
 | OpenClaw 与 Hermes Agent 源码案例 | 3 | [CASE-01《OpenClaw 一条消息怎么跑》](https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html) · [专题目录](llm-agent-learning-roadmap.md#12-openclaw-与-hermes-agent-源码案例) |
 | Vibe Coding 与工程化交付 | 3 | [DEV-01《Vibe Coding 怎样做原型》](https://blog.lacknb.cn/articles/2026/11/23/1795418815589.html) · [专题目录](llm-agent-learning-roadmap.md#13-vibe-coding-与工程化交付) |
+| 生产化专题 | 7 | [OPS-01《LLM Gateway 怎样限流、分流、缓存和降级》](https://blog.lacknb.cn/articles/2026/11/23/1795419423601.html) · [专题目录](llm-agent-learning-roadmap.md#14-生产化专题) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -26,6 +27,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布生产化专题 7 篇，完成全部 138 篇 | 归档模型网关故障、审批决策、沙箱回收、SQLite 任务重投、灰度中止、在途版本兼容和追踪排障演练，未部署本地模型 |
 | 2026-11-23 | 发布 DEV-01～DEV-03，完成第十三部分 | 按 ELI5 记录两轮退款页原型、八项规则测试、截图与语义定位对照及归档接管实测，未部署本地模型 |
 | 2026-11-23 | 发布 CASE-01～CASE-03，完成第十二部分 | 按 ELI5 分析固定源码版，归档相同退款任务的原生工具回合、会话恢复、记忆加载和 Hermes 写入审批实测，未部署本地模型 |
 | 2026-11-23 | 发布 EVO-01～EVO-05，完成第十一部分 | 按 ELI5 展开经验发布、训练反馈和研究案例，归档留出评测、授权拒绝和灰度回滚可复跑样本，未部署本地模型 |

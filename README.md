@@ -2,10 +2,10 @@
 
 这里维护 Solo 博客的文章源稿、封面、学习路线图和工程笔记。每篇专题文章在路线图中有固定编号，发布后会补上博客地址。
 
-## 从这里继续
+## 阅读入口
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前十三部分共 131 篇，均已发布。第十三部分「Vibe Coding 与工程化交付」共 3 篇，下一篇是第十四部分的 OPS-01《LLM Gateway 的限流、路由、缓存与降级》。
-- [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。14 个专题共 138 篇，均已发布。第十四部分「生产化专题」共 7 篇，从模型网关讲到在途任务兼容与慢请求排查。
+- [写作进度](PROGRESS.md)记录各专题的发布入口与里程碑。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。
 
