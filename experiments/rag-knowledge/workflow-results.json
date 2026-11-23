@@ -1,0 +1,121 @@
+{
+    "multi_hop": {
+        "one": {
+            "answer": null,
+            "citations": [],
+            "calls": 1,
+            "trace": [
+                {
+                    "query": "refund archive requests",
+                    "hits": [
+                        "alias"
+                    ]
+                }
+            ],
+            "stop": "budget"
+        },
+        "two": {
+            "answer": "09:00",
+            "citations": [
+                "routing/v1/p1#alias",
+                "routing/v1/p2#window"
+            ],
+            "calls": 2,
+            "trace": [
+                {
+                    "query": "refund archive requests",
+                    "hits": [
+                        "alias"
+                    ]
+                },
+                {
+                    "query": "records desk opens weekdays",
+                    "hits": [
+                        "window"
+                    ]
+                }
+            ],
+            "stop": "complete"
+        },
+        "repeat": {
+            "answer": null,
+            "citations": [],
+            "calls": 1,
+            "trace": [
+                {
+                    "query": "refund archive requests",
+                    "hits": []
+                }
+            ],
+            "stop": "repeat"
+        }
+    },
+    "diagnostics": {
+        "retrieval_budget_1": {
+            "ndcg": 1.0,
+            "recall": 0.5,
+            "mrr": 1.0,
+            "faithful": null,
+            "citations": null,
+            "answer_equal": false,
+            "refused": true
+        },
+        "oracle_2": {
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "mrr": 1.0,
+            "faithful": true,
+            "citations": true,
+            "answer_equal": true,
+            "refused": false
+        },
+        "wrong_claim_right_ref": {
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "mrr": 1.0,
+            "faithful": false,
+            "citations": true,
+            "answer_equal": false,
+            "refused": false
+        },
+        "correct_claim_wrong_ref": {
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "mrr": 1.0,
+            "faithful": false,
+            "citations": false,
+            "answer_equal": true,
+            "refused": false
+        }
+    },
+    "wiki": {
+        "before": "# archive-policy\n\n- [policy/v2/p1#approval](raw/policy-v2-p1-approval.md) Refund approval applies to the specific report version. Only an approved report can be archived.\n- [policy/v2/p2#retention](raw/policy-v2-p2-retention.md) Keep an archived refund report for 30 days after approval.\n",
+        "version_conflict": [
+            {
+                "ref": "policy/v2/p2#retention",
+                "days": "30"
+            },
+            {
+                "ref": "policy/v3/p2#retention",
+                "days": "45"
+            }
+        ],
+        "lint_before": {
+            "duplicates": [
+                "# archive-policy"
+            ],
+            "invalid_refs": [
+                "policy/v2/p2#retention"
+            ]
+        },
+        "after_update": "# archive-policy\n\n- [policy/v2/p1#approval](raw/policy-v2-p1-approval.md) Refund approval applies to the specific report version. Only an approved report can be archived.\n- [policy/v3/p2#retention](raw/policy-v3-p2-retention.md) Keep an archived refund report for 45 days after approval.\n",
+        "verified_source": "Keep an archived refund report for 45 days after approval.",
+        "lint_after_source_removed": {
+            "duplicates": [],
+            "invalid_refs": [
+                "policy/v3/p2#retention"
+            ]
+        },
+        "after_rebuild": "# archive-policy\n\n- [policy/v2/p1#approval](raw/policy-v2-p1-approval.md) Refund approval applies to the specific report version. Only an approved report can be archived.\n- Source unavailable: retention\n"
+    }
+}

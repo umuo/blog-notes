@@ -1,0 +1,48 @@
+{
+    "metric_source": "dictionary/v2/p1#amount + dictionary/v2/p1#missing",
+    "range": [
+        "2026-11-01",
+        "2026-12-01"
+    ],
+    "unit": "cents",
+    "scenarios": {
+        "bound_canonical": {
+            "rows": [
+                [
+                    2,
+                    500.0
+                ]
+            ]
+        },
+        "wrong_join": {
+            "rows": [
+                [
+                    3,
+                    466.6666666666667
+                ]
+            ]
+        },
+        "null_as_zero": {
+            "rows": [
+                [
+                    3,
+                    333.3333333333333
+                ]
+            ]
+        },
+        "inclusive_end": {
+            "rows": [
+                [
+                    3,
+                    633.3333333333334
+                ]
+            ]
+        },
+        "write_rejected": {
+            "error": "SQLITE_AUTH"
+        },
+        "budget_rejected": {
+            "error": "SQLITE_INTERRUPT"
+        }
+    }
+}

@@ -1,0 +1,72 @@
+[
+    {
+        "id": "missing",
+        "query": "refund missing NA valid count mean",
+        "evidence": [
+            "missing"
+        ],
+        "terms": [
+            "NA",
+            "Exclude"
+        ],
+        "answer": "A refund amount of NA is missing. Exclude NA from the valid count and mean."
+    },
+    {
+        "id": "currency",
+        "query": "CR-17 refund amount currency",
+        "evidence": [
+            "amount"
+        ],
+        "terms": [
+            "CNY",
+            "CR-17"
+        ],
+        "answer": "Refund amount: refund is measured in CNY. CR-17 is the amount validation rule."
+    },
+    {
+        "id": "archive",
+        "query": "reimbursement approval archive",
+        "evidence": [
+            "approval"
+        ],
+        "terms": [
+            "approved",
+            "archived"
+        ],
+        "answer": "Only an approved report can be archived."
+    },
+    {
+        "id": "retention",
+        "query": "keep archived refund report days after approval",
+        "evidence": [
+            "retention"
+        ],
+        "terms": [
+            "days",
+            "after approval"
+        ],
+        "answer": "Keep an archived refund report for 30 days after approval."
+    },
+    {
+        "id": "cross",
+        "query": "refund missing NA and no valid refund amounts mean",
+        "evidence": [
+            "missing",
+            "empty"
+        ],
+        "terms": [
+            "NA",
+            "empty"
+        ],
+        "answer": "A refund amount of NA is missing. Exclude NA from the valid count and mean. If there are no valid refund amounts, return count 0 and leave the mean empty."
+    },
+    {
+        "id": "unknown",
+        "query": "refund international transfer weekend exchange fee",
+        "evidence": [],
+        "terms": [
+            "exchange fee"
+        ],
+        "answer": null
+    }
+]

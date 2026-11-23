@@ -1,0 +1,21 @@
+[
+    {"id":"dictionary","version":2,"tenant":"school","sections":[
+        {"id":"amount","heading":"Refund CSV / Amount","page":1,"text":"Refund amount: refund is measured in CNY. CR-17 is the amount validation rule."},
+        {"id":"missing","heading":"Refund CSV / Missing values","page":1,"text":"A refund amount of NA is missing. Exclude NA from the valid count and mean."},
+        {"id":"empty","heading":"Refund CSV / Empty result","page":2,"text":"If there are no valid refund amounts, return count 0 and leave the mean empty."}
+    ]},
+    {"id":"policy","version":2,"tenant":"school","sections":[
+        {"id":"approval","heading":"Refund policy / Approval","page":1,"text":"Refund approval applies to the specific report version. Only an approved report can be archived."},
+        {"id":"retention","heading":"Refund policy / Retention","page":2,"text":"Keep an archived refund report for 30 days after approval."}
+    ]},
+    {"id":"routing","version":1,"tenant":"school","sections":[
+        {"id":"alias","heading":"Support routing / Refund archive","page":1,"text":"Refund archive requests are handled by the records desk."},
+        {"id":"window","heading":"Support routing / Records desk hours","page":2,"text":"The records desk opens at 09:00 on weekdays."}
+    ]},
+    {"id":"faq","version":1,"tenant":"school","sections":[
+        {"id":"faq","heading":"Refund approval FAQ","page":1,"text":"Refund approval and refund report questions are common. This refund approval FAQ links to the policy."}
+    ]},
+    {"id":"partner","version":1,"tenant":"partner","sections":[
+        {"id":"private","heading":"Partner refund retention","page":3,"text":"Keep an archived refund report for 90 days after approval."}
+    ]}
+]

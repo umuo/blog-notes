@@ -2,7 +2,7 @@
 
 ## 当前接续点
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 96 篇，尚待发布 42 篇。第七部分「Agent 效果评测」8 篇已全部发布。按路线图行序，下一篇写作是 **KB-11《复杂文档解析，OCR、版面、表格与引用》**。
+整条路线规划 14 个专题、138 篇文章，目前已发布 109 篇，尚待发布 29 篇。第八部分「RAG、Embedding、Rerank 与 LLM Wiki」13 篇已全部发布。按路线图行序，下一篇写作是 **SEC-01《OWASP 是什么，Top 10 怎样用》**。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -13,6 +13,7 @@
 | 推理引擎与模型部署 | 16 | [SERV-01《用 Qwen 0.5B 搭一个极简 vLLM Server》](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html) · [专题目录](llm-agent-learning-roadmap.md#5-推理引擎与模型部署vllm-和-sglang) |
 | Agent、上下文工程、循环与 Harness | 25 | [AGT-01《从工具调用到 Agent Loop》](https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html) · [专题目录](llm-agent-learning-roadmap.md#6-agentcontext-engineeringloop-engineering-与-harness) |
 | Agent 效果评测 | 8 | [AE-06《怎样验证 Agent 真的完成了任务》](https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html) · [专题目录](llm-agent-learning-roadmap.md#7-agent-效果评测) |
+| RAG、Embedding、Rerank 与 LLM Wiki | 13 | [KB-11《复杂文档解析，OCR、版面、表格与引用》](https://blog.lacknb.cn/articles/2026/11/23/1795409706230.html) · [专题目录](llm-agent-learning-roadmap.md#8-ragembeddingrerank-与-llm-wiki) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -20,6 +21,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布 KB-01～KB-13，完成第八部分 | 归档扫描 PDF、退款文档检索与引用、权限版本、SQL、Wiki 更新和公开基准切片实测，未部署本地模型 |
 | 2026-11-23 | 精修第五部分「推理引擎与模型部署」16 篇并同步博客 | 补齐 ELI5 导读、按需深入分层、16 张兼容 Mermaid 9.1.7 的流程图及 serving 实测/模拟演算解析，第 1～5 部分全部 63 篇线上 HTML 校验通过 |
 | 2026-11-23 | 精修第四部分「模型预训练与后训练」12 篇并同步博客 | 补齐 ELI5 导读、按需深入分层、12 张兼容 Mermaid 9.1.7 的流程图及 peft/toy/unsloth 实测剖析，全量线上 HTML 校验通过 |
 | 2026-11-23 | 精修第三部分「评测入门与 LLM 效果评测」10 篇并同步博客 | 补齐 ELI5 导读、按需深入分层、10 张兼容 Mermaid 9.1.7 的流程图及常见踩坑，全量线上 HTML 校验通过 |

@@ -1,0 +1,534 @@
+{
+    "vector_case": {
+        "bm25": [],
+        "vector": [
+            "missing",
+            "faq",
+            "amount"
+        ],
+        "hybrid": [
+            "missing",
+            "faq",
+            "amount"
+        ]
+    },
+    "fixed_amount": [
+        {
+            "source": "dictionary",
+            "version": 2,
+            "tenant": "school",
+            "id": "amount-0",
+            "heading": "Refund CSV / Amount",
+            "page": 1,
+            "start": 0,
+            "end": 35,
+            "text": "Refund amount: refund is measured i"
+        },
+        {
+            "source": "dictionary",
+            "version": 2,
+            "tenant": "school",
+            "id": "amount-35",
+            "heading": "Refund CSV / Amount",
+            "page": 1,
+            "start": 35,
+            "end": 70,
+            "text": "n CNY. CR-17 is the amount validati"
+        },
+        {
+            "source": "dictionary",
+            "version": 2,
+            "tenant": "school",
+            "id": "amount-70",
+            "heading": "Refund CSV / Amount",
+            "page": 1,
+            "start": 70,
+            "end": 78,
+            "text": "on rule."
+        }
+    ],
+    "structure_amount": {
+        "source": "dictionary",
+        "version": 2,
+        "tenant": "school",
+        "id": "amount",
+        "heading": "Refund CSV / Amount",
+        "page": 1,
+        "start": 0,
+        "end": 78,
+        "text": "Refund amount: refund is measured in CNY. CR-17 is the amount validation rule."
+    },
+    "index_changed": [
+        "dictionary/v3/p1#amount",
+        "dictionary/v3/p1#missing",
+        "dictionary/v3/p2#empty"
+    ],
+    "toy_cross_attention": {
+        "exact_action": {
+            "logits": [
+                0.7071067811865475,
+                0.0
+            ],
+            "weights": [
+                0.6697615493266569,
+                0.3302384506733431
+            ],
+            "first_value_weight": 0.6697615493266569
+        },
+        "generic_topic": {
+            "logits": [
+                0.0,
+                0.0
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "first_value_weight": 0.5
+        }
+    },
+    "questions": {
+        "missing": {
+            "initial": [
+                "missing",
+                "empty",
+                "faq",
+                "amount"
+            ],
+            "reordered": [
+                "missing",
+                "empty",
+                "faq",
+                "amount"
+            ],
+            "pair_scores": {
+                "missing": 5,
+                "empty": 4,
+                "faq": 1,
+                "amount": 1
+            },
+            "before_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "before": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "answer": [
+                {
+                    "text": "A refund amount of NA is missing. Exclude NA from the valid count and mean.",
+                    "citation": "dictionary/v2/p1#missing"
+                }
+            ],
+            "gold_only": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            }
+        },
+        "currency": {
+            "initial": [
+                "amount",
+                "faq",
+                "missing",
+                "empty"
+            ],
+            "reordered": [
+                "amount",
+                "missing",
+                "empty",
+                "faq"
+            ],
+            "pair_scores": {
+                "amount": 3,
+                "faq": 1,
+                "missing": 2,
+                "empty": 2
+            },
+            "before_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "before": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "answer": [
+                {
+                    "text": "Refund amount: refund is measured in CNY. CR-17 is the amount validation rule.",
+                    "citation": "dictionary/v2/p1#amount"
+                }
+            ],
+            "gold_only": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            }
+        },
+        "archive": {
+            "initial": [
+                "faq",
+                "alias",
+                "retention",
+                "approval"
+            ],
+            "reordered": [
+                "approval",
+                "retention",
+                "faq",
+                "alias"
+            ],
+            "pair_scores": {
+                "faq": 2,
+                "alias": 2,
+                "retention": 6,
+                "approval": 8
+            },
+            "before_top1": {
+                "ndcg": 0.0,
+                "recall": 0.0,
+                "mrr": 0,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": false,
+                "refused": true
+            },
+            "after_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "before": {
+                "ndcg": 0.0,
+                "recall": 0.0,
+                "mrr": 0,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": false,
+                "refused": true
+            },
+            "after": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": false,
+                "answer_equal": false,
+                "refused": false
+            },
+            "answer": [
+                {
+                    "text": "Only an approved report can be archived.",
+                    "citation": "policy/v2/p1#approval"
+                },
+                {
+                    "text": "Keep an archived refund report for 30 days after approval.",
+                    "citation": "policy/v2/p2#retention"
+                }
+            ],
+            "gold_only": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            }
+        },
+        "retention": {
+            "initial": [
+                "retention",
+                "approval",
+                "faq",
+                "alias"
+            ],
+            "reordered": [
+                "retention",
+                "approval",
+                "faq",
+                "alias"
+            ],
+            "pair_scores": {
+                "retention": 14,
+                "approval": 9,
+                "faq": 3,
+                "alias": 2
+            },
+            "before_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after_top1": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "before": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "answer": [
+                {
+                    "text": "Keep an archived refund report for 30 days after approval.",
+                    "citation": "policy/v2/p2#retention"
+                }
+            ],
+            "gold_only": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            }
+        },
+        "cross": {
+            "initial": [
+                "missing",
+                "empty",
+                "faq",
+                "amount"
+            ],
+            "reordered": [
+                "missing",
+                "empty",
+                "faq",
+                "amount"
+            ],
+            "pair_scores": {
+                "missing": 6,
+                "empty": 6,
+                "faq": 2,
+                "amount": 2
+            },
+            "before_top1": {
+                "ndcg": 1.0,
+                "recall": 0.5,
+                "mrr": 1.0,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": false,
+                "refused": true
+            },
+            "after_top1": {
+                "ndcg": 1.0,
+                "recall": 0.5,
+                "mrr": 1.0,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": false,
+                "refused": true
+            },
+            "before": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "after": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            },
+            "answer": [
+                {
+                    "text": "A refund amount of NA is missing. Exclude NA from the valid count and mean.",
+                    "citation": "dictionary/v2/p1#missing"
+                },
+                {
+                    "text": "If there are no valid refund amounts, return count 0 and leave the mean empty.",
+                    "citation": "dictionary/v2/p2#empty"
+                }
+            ],
+            "gold_only": {
+                "ndcg": 1.0,
+                "recall": 1.0,
+                "mrr": 1.0,
+                "faithful": true,
+                "citations": true,
+                "answer_equal": true,
+                "refused": false
+            }
+        },
+        "unknown": {
+            "initial": [
+                "faq",
+                "amount",
+                "alias",
+                "retention"
+            ],
+            "reordered": [
+                "faq",
+                "amount",
+                "alias",
+                "retention"
+            ],
+            "pair_scores": {
+                "faq": 1,
+                "amount": 1,
+                "alias": 1,
+                "retention": 1
+            },
+            "before_top1": {
+                "ndcg": null,
+                "recall": null,
+                "mrr": null,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": true,
+                "refused": true
+            },
+            "after_top1": {
+                "ndcg": null,
+                "recall": null,
+                "mrr": null,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": true,
+                "refused": true
+            },
+            "before": {
+                "ndcg": null,
+                "recall": null,
+                "mrr": null,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": true,
+                "refused": true
+            },
+            "after": {
+                "ndcg": null,
+                "recall": null,
+                "mrr": null,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": true,
+                "refused": true
+            },
+            "answer": null,
+            "gold_only": {
+                "ndcg": null,
+                "recall": null,
+                "mrr": null,
+                "faithful": null,
+                "citations": null,
+                "answer_equal": true,
+                "refused": true
+            }
+        }
+    },
+    "tenant": {
+        "initial": [
+            "retention",
+            "approval"
+        ],
+        "before": true,
+        "other_tenant": false,
+        "during_update": [],
+        "stale_denied": true,
+        "old_cache_present": false,
+        "purged": true,
+        "new_ref": "policy/v3/p2#retention"
+    }
+}

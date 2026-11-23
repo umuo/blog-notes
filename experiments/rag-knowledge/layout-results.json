@@ -1,0 +1,133 @@
+{
+  "cells" : [
+    {
+      "field" : "refund",
+      "meaning" : "Refund amount",
+      "page" : 1
+    },
+    {
+      "field" : "NA",
+      "meaning" : "Missing value",
+      "page" : 2
+    },
+    {
+      "field" : "report_id",
+      "meaning" : "Report identifier",
+      "page" : 2
+    }
+  ],
+  "columnReadingOrder" : [
+    "Overview",
+    "Amounts use CNY.",
+    "Scope",
+    "Only approved reports are archived."
+  ],
+  "flatReadingOrder" : [
+    "Overview",
+    "Scope",
+    "Amounts use CNY.",
+    "Only approved reports are archived."
+  ],
+  "missingValueQuestion" : {
+    "flat" : false,
+    "layout" : true
+  },
+  "pages" : [
+    {
+      "page" : 1,
+      "plainText" : "",
+      "rows" : [
+        {
+          "text" : "REFUND DATA DICTIONARY",
+          "x" : 0.06833333526666664,
+          "y" : 0.9311111112222222
+        },
+        {
+          "text" : "Overview",
+          "x" : 0.06820461974775843,
+          "y" : 0.8111111111752232
+        },
+        {
+          "text" : "Scope",
+          "x" : 0.5497035179474182,
+          "y" : 0.8100000002975409
+        },
+        {
+          "text" : "Amounts use CNY.",
+          "x" : 0.0666666686333333,
+          "y" : 0.7111111114666666
+        },
+        {
+          "text" : "Only approved reports are archived.",
+          "x" : 0.5516666694583333,
+          "y" : 0.7088888889166667
+        },
+        {
+          "text" : "Field",
+          "x" : 0.06666666613888889,
+          "y" : 0.4399999998518519
+        },
+        {
+          "text" : "Meaning",
+          "x" : 0.4182263190169633,
+          "y" : 0.43666666643727065
+        },
+        {
+          "text" : "refund",
+          "x" : 0.06656613077472777,
+          "y" : 0.33333333345149124
+        },
+        {
+          "text" : "Refund amount",
+          "x" : 0.4166666647000001,
+          "y" : 0.33444444433333337
+        },
+        {
+          "text" : "Page 1",
+          "x" : 0.8666666674166666,
+          "y" : 0.07000000016666669
+        }
+      ]
+    },
+    {
+      "page" : 2,
+      "plainText" : "",
+      "rows" : [
+        {
+          "text" : "REFUND DATA DICTIONARY CONTINUED",
+          "x" : 0.06833333614999997,
+          "y" : 0.9311111112222222
+        },
+        {
+          "text" : "NA",
+          "x" : 0.0683333332,
+          "y" : 0.6444444441333333
+        },
+        {
+          "text" : "Missing value",
+          "x" : 0.41830050162998283,
+          "y" : 0.6422222208288845
+        },
+        {
+          "text" : "report_id",
+          "x" : 0.054112867606327955,
+          "y" : 0.5055555548641745
+        },
+        {
+          "text" : "Report identifier",
+          "x" : 0.4183333322666667,
+          "y" : 0.5088888884888889
+        },
+        {
+          "text" : "Page 2",
+          "x" : 0.8666666659027779,
+          "y" : 0.06999999994444456
+        }
+      ]
+    }
+  ],
+  "tableHeader" : [
+    "Field",
+    "Meaning"
+  ]
+}

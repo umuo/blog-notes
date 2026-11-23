@@ -1,0 +1,87 @@
+{
+    "inputs_sha256": {
+        "corpus.parquet": "243324b35f03d82bd6d98a5f575966876e86cad7ce16e5333a35b1b793dc4f45",
+        "queries.parquet": "1c37956c5dc8b810b60302323c24d1a9e79e26411ba8f5ad9d0888642e2a9034",
+        "test.tsv": "0864bb985e0ca2367ba217977e72004d549054b2b06666ed9d4825ac7c21284c",
+        "hotpot-rows.json": "a71fcb881d92bfb5a6a1b1163757fd20129606a45b804d17fa6a89e546b3b13d",
+        "hotpot_evaluate_v1.py": "d35fc91a6db21d791dbdda11daf3856e9359f5701d54e3eefba20d88fecc02c0"
+    },
+    "scifact": {
+        "corpus_count": 5183,
+        "query_ids": [
+            "1",
+            "3",
+            "5",
+            "13",
+            "36",
+            "42",
+            "48",
+            "49",
+            "50",
+            "51"
+        ],
+        "metrics": {
+            "overlap": {
+                "recall_at_10": 0.55,
+                "ndcg_at_10": 0.40605895846965084
+            },
+            "bm25": {
+                "recall_at_10": 0.75,
+                "ndcg_at_10": 0.6455285910760186
+            }
+        }
+    },
+    "hotpot_distractor": {
+        "ids": [
+            "5a8b57f25542995d1e6f1371",
+            "5a8c7595554299585d9e36b6",
+            "5a85ea095542994775f606a8",
+            "5adbf0a255429947ff17385a",
+            "5a8e3ea95542995a26add48d"
+        ],
+        "metrics": {
+            "constant_yes_lexical_support": {
+                "em": 0.2,
+                "f1": 0.2,
+                "prec": 0.2,
+                "recall": 0.2,
+                "sp_em": 0.2,
+                "sp_f1": 0.43714285714285717,
+                "sp_prec": 0.5,
+                "sp_recall": 0.4066666666666666,
+                "joint_em": 0.0,
+                "joint_f1": 0.0,
+                "joint_prec": 0.0,
+                "joint_recall": 0.0
+            },
+            "gold_answer_lexical_support": {
+                "em": 1.0,
+                "f1": 1.0,
+                "prec": 1.0,
+                "recall": 1.0,
+                "sp_em": 0.2,
+                "sp_f1": 0.43714285714285717,
+                "sp_prec": 0.5,
+                "sp_recall": 0.4066666666666666,
+                "joint_em": 0.2,
+                "joint_f1": 0.43714285714285717,
+                "joint_prec": 0.5,
+                "joint_recall": 0.4066666666666666
+            },
+            "gold_answer_and_support": {
+                "em": 1.0,
+                "f1": 1.0,
+                "prec": 1.0,
+                "recall": 1.0,
+                "sp_em": 1.0,
+                "sp_f1": 1.0,
+                "sp_prec": 1.0,
+                "sp_recall": 1.0,
+                "joint_em": 1.0,
+                "joint_f1": 1.0,
+                "joint_prec": 1.0,
+                "joint_recall": 1.0
+            }
+        }
+    }
+}
