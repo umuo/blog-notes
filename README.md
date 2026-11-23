@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前十部分共 120 篇，均已发布。第十部分「Sandbox 分类、源码与实测」共 5 篇，下一篇是第十一部分的 EVO-01《Agent 自进化有哪些模式》。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前十一部分共 125 篇，均已发布。第十一部分「Agent 自进化与递归自我改进」共 5 篇，下一篇是第十二部分的 CASE-01《OpenClaw 设计思想与运行链路》。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。

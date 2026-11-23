@@ -281,11 +281,11 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| EVO-01 | Agent 自进化有哪些模式 | 对照轨迹反思、事实记忆、过程知识或 Skills 沉淀，以及基于回归集调整 Prompt 与路由。用同一个用户纠正示例展示写入什么、何时召回、如何判断收益。 |
-| EVO-02 | 从任务反馈到可审计的经验发布 | 选择有来源的有效经验 → 草拟候选记忆或 Skill → 用隔离回放和留出样本评测 → 审阅、版本化激活与回滚。验证任务收益、误记污染、作用域和权限边界。 |
-| EVO-03 | 模型如何参与训练下一版模型 | 以 STaR 和 Self-Rewarding Language Models 为例，跟踪候选数据生成、验证或奖励、训练、独立评测与下一轮。对照一次训练与多轮迭代，用留出集观察正确率、反馈偏差与能力回归。先学 TRN-08、TRN-12 与 LE-03。 |
-| EVO-04 | Google DeepMind 实例，SIMA 2 与 AlphaEvolve | 分别追踪 SIMA 2 怎样将自生成经验用于训练下一代 Agent，以及 AlphaEvolve 怎么用自动评分筛选算法候选、优化 Gemini 训练中的计算内核。写清更新对象、评估信号和公开证据的适用范围。 |
-| EVO-05 | 给 Agent 或普通程序加一个反馈改进 Agent | 应用继续处理业务，独立观察 Agent 只读分析脱敏日志、Trace 和指标。把重复失败变成可复现样本，提出一项候选变更，隔离回放并用固定留出集对照。通过预设的质量、权限和成本检查后提交审阅，再灰度发布。线上指标退化时回滚，把本轮结论作为下一轮输入。 |
+| EVO-01 | [Agent 自进化有哪些模式](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html)（已发布，[源稿](evo-01-agent-improvement-modes.md)） | 对照轨迹反思、事实记忆、过程知识或 Skills 沉淀，以及基于回归集调整 Prompt 与路由。用同一个用户纠正示例展示写入什么、何时召回、如何判断收益。 |
+| EVO-02 | [从任务反馈到可审计的经验发布](https://blog.lacknb.cn/articles/2026/11/23/1795417259258.html)（已发布，[源稿](evo-02-auditable-experience.md)） | 选择有来源的有效经验 → 草拟候选记忆或 Skill → 用隔离回放和留出样本评测 → 审阅、版本化激活与回滚。验证任务收益、误记污染、作用域和权限边界。 |
+| EVO-03 | [模型如何参与训练下一版模型](https://blog.lacknb.cn/articles/2026/11/23/1795417260943.html)（已发布，[源稿](evo-03-model-feedback-training.md)） | 以 STaR 和 Self-Rewarding Language Models 为例，跟踪候选数据生成、验证或奖励、训练、独立评测与下一轮。对照一次训练与多轮迭代，用留出集观察正确率、反馈偏差与能力回归。先学 TRN-08、TRN-12 与 LE-03。 |
+| EVO-04 | [Google DeepMind 实例，SIMA 2 与 AlphaEvolve](https://blog.lacknb.cn/articles/2026/11/23/1795417262667.html)（已发布，[源稿](evo-04-sima-alphaevolve.md)） | 分别追踪 SIMA 2 怎样将自生成经验用于训练下一代 Agent，以及 AlphaEvolve 怎么用自动评分筛选算法候选、优化 Gemini 训练中的计算内核。写清更新对象、评估信号和公开证据的适用范围。 |
+| EVO-05 | [给 Agent 或普通程序加一个反馈改进 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795417264333.html)（已发布，[源稿](evo-05-feedback-improvement-loop.md)） | 应用继续处理业务，独立观察 Agent 只读分析脱敏日志、Trace 和指标。把重复失败变成可复现样本，提出一项候选变更，隔离回放并用固定留出集对照。通过预设的质量、权限和成本检查后提交审阅，再灰度发布。线上指标退化时回滚，把本轮结论作为下一轮输入。 |
 
 实战以「前次报告把空值当成零，用户纠正了口径」为例，分别回放旧版和新版，区分当次数据规则与可跨任务复用的流程。候选经验只能调整已授权范围内的任务步骤，权限仍由可信运行时检查。 [Hermes Skills 与经验沉淀](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) · [Hermes Memory 与写入审批](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)
 

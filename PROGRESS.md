@@ -2,7 +2,7 @@
 
 ## 当前接续点
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 120 篇，尚待发布 18 篇。第十部分「Sandbox 分类、源码与实测」5 篇已全部发布。按路线图行序，下一篇写作是 **EVO-01《Agent 自进化有哪些模式》**。
+整条路线规划 14 个专题、138 篇文章，目前已发布 125 篇，尚待发布 13 篇。第十一部分「Agent 自进化与递归自我改进」5 篇已全部发布。按路线图行序，下一篇写作是 **CASE-01《OpenClaw 设计思想与运行链路》**。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -16,6 +16,7 @@
 | RAG、Embedding、Rerank 与 LLM Wiki | 13 | [KB-11《复杂文档解析，OCR、版面、表格与引用》](https://blog.lacknb.cn/articles/2026/11/23/1795409706230.html) · [专题目录](llm-agent-learning-roadmap.md#8-ragembeddingrerank-与-llm-wiki) |
 | LLM 与 Agent 安全护栏 | 6 | [SEC-01《OWASP 是什么，Top 10 怎样用》](https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html) · [专题目录](llm-agent-learning-roadmap.md#9-llm-与-agent-安全护栏) |
 | Sandbox 分类、源码与实测 | 5 | [SBX-01《沙箱怎么分类，怎样给自己的任务画边界》](https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html) · [专题目录](llm-agent-learning-roadmap.md#10-sandbox-分类源码与实测) |
+| Agent 自进化与递归自我改进 | 5 | [EVO-01《Agent 怎样从错误中学习》](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html) · [专题目录](llm-agent-learning-roadmap.md#11-agent-自进化与递归自我改进rsi) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -23,6 +24,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布 EVO-01～EVO-05，完成第十一部分 | 按 ELI5 展开经验发布、训练反馈和研究案例，归档留出评测、授权拒绝和灰度回滚可复跑样本，未部署本地模型 |
 | 2026-11-23 | 发布 SBX-01～SBX-05，完成第十部分 | 按 ELI5 展开沙箱分类与源码阅读，归档 macOS、Docker 与 OpenSandbox 实测、首输出样本和清理证据，未部署本地模型 |
 | 2026-11-23 | 发布 SEC-01～SEC-06，完成第九部分 | 核对两份 OWASP 2026 清单，归档内容校验、审批绑定、预算回滚和第三方委派的合成实测，未部署本地模型 |
 | 2026-11-23 | 发布 KB-01～KB-13，完成第八部分 | 归档扫描 PDF、退款文档检索与引用、权限版本、SQL、Wiki 更新和公开基准切片实测，未部署本地模型 |

@@ -1,0 +1,75 @@
+{
+    "iterations": [
+        {
+            "round": 0,
+            "held_out": [
+                false,
+                false,
+                false,
+                true
+            ]
+        },
+        {
+            "round": 1,
+            "accepted": [
+                {
+                    "category": "mixed",
+                    "rule": "skip_missing"
+                }
+            ],
+            "held_out": [
+                true,
+                true,
+                false,
+                true
+            ],
+            "rule_votes": {
+                "mixed": 1
+            }
+        },
+        {
+            "round": 2,
+            "accepted": [
+                {
+                    "category": "empty",
+                    "rule": "skip_missing"
+                }
+            ],
+            "held_out": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "rule_votes": {
+                "mixed": 1,
+                "empty": 1
+            }
+        }
+    ],
+    "judge": {
+        "proxy_preferred": "zero_fill",
+        "oracle_preferred": "skip_missing",
+        "description_word_count": {
+            "zero_fill": 12,
+            "skip_missing": 4
+        }
+    },
+    "search": {
+        "candidates": {
+            "two_pass": {
+                "correct": 4,
+                "visits": 22
+            },
+            "zero_fill": {
+                "correct": 1,
+                "visits": 11
+            },
+            "one_pass": {
+                "correct": 4,
+                "visits": 11
+            }
+        },
+        "selected": "one_pass"
+    }
+}

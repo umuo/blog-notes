@@ -1,0 +1,165 @@
+{
+    "modes": {
+        "old_report": [
+            3,
+            3.3333333333333335
+        ],
+        "same_session_retry": [
+            2,
+            5
+        ],
+        "next_session_without_release": [
+            3,
+            3.3333333333333335
+        ],
+        "next_session_with_release": [
+            2,
+            5
+        ],
+        "legacy_on_new_release": [
+            2,
+            3
+        ],
+        "other_org_on_new_release": [
+            2,
+            3
+        ]
+    },
+    "clusters": {
+        "v1/wrong_missing_rule": 2,
+        "v1/format_error": 1
+    },
+    "baseline": {
+        "checks": {
+            "unseen-missing": false,
+            "unseen-empty": false,
+            "unseen-zero": true,
+            "legacy": true,
+            "other-tenant": true
+        },
+        "passed": 3,
+        "total": 5,
+        "known_correction_passed": false,
+        "same_capabilities": true,
+        "verified_source": false,
+        "eligible": false
+    },
+    "scoped": {
+        "checks": {
+            "unseen-missing": true,
+            "unseen-empty": true,
+            "unseen-zero": true,
+            "legacy": true,
+            "other-tenant": true
+        },
+        "passed": 5,
+        "total": 5,
+        "known_correction_passed": true,
+        "same_capabilities": true,
+        "verified_source": true,
+        "eligible": true
+    },
+    "overbroad": {
+        "checks": {
+            "unseen-missing": true,
+            "unseen-empty": true,
+            "unseen-zero": true,
+            "legacy": false,
+            "other-tenant": false
+        },
+        "passed": 3,
+        "total": 5,
+        "known_correction_passed": true,
+        "same_capabilities": true,
+        "verified_source": true,
+        "eligible": false
+    },
+    "capability_expansion": {
+        "checks": {
+            "unseen-missing": true,
+            "unseen-empty": true,
+            "unseen-zero": true,
+            "legacy": true,
+            "other-tenant": true
+        },
+        "passed": 5,
+        "total": 5,
+        "known_correction_passed": true,
+        "same_capabilities": false,
+        "verified_source": true,
+        "eligible": false
+    },
+    "unknown_provenance": {
+        "checks": {
+            "unseen-missing": true,
+            "unseen-empty": true,
+            "unseen-zero": true,
+            "legacy": true,
+            "other-tenant": true
+        },
+        "passed": 5,
+        "total": 5,
+        "known_correction_passed": true,
+        "same_capabilities": true,
+        "verified_source": false,
+        "eligible": false
+    },
+    "canary_simulation": {
+        "control": {
+            "requests": 4,
+            "success_rate": 1.0,
+            "p95_ms": 95,
+            "cents_per_success": 2.0
+        },
+        "candidate": {
+            "requests": 4,
+            "success_rate": 0.75,
+            "p95_ms": 190,
+            "cents_per_success": 3.0
+        },
+        "active_before_rollback": "v2",
+        "active_after_rollback": "v1"
+    },
+    "audit": [
+        [
+            "submitted",
+            "v2",
+            "observer"
+        ],
+        [
+            "submitted",
+            "global",
+            "observer"
+        ],
+        [
+            "submitted",
+            "bad-policy",
+            "observer"
+        ],
+        [
+            "submitted",
+            "unverified",
+            "observer"
+        ],
+        [
+            "denied",
+            "v2",
+            "observer"
+        ],
+        [
+            "denied",
+            "global",
+            "reviewer"
+        ],
+        [
+            "activated",
+            "v2",
+            "reviewer"
+        ],
+        [
+            "rollback",
+            "v2",
+            "reviewer"
+        ]
+    ]
+}
