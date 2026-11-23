@@ -1,0 +1,17 @@
+{
+  "name": "refund-report-fixture",
+  "manifest_version": "1.0.0",
+  "hosts": {
+    "pi": {
+      "discovered": true,
+      "version": "0.70.0",
+      "description_matches": true
+    },
+    "codex": {
+      "discovered": true,
+      "scope": "repo",
+      "version": "codex-cli 0.167.0"
+    }
+  },
+  "automatic_model_selection_tested": false
+}

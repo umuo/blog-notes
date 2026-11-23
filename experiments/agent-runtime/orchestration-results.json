@@ -1,0 +1,118 @@
+{
+  "feedback": {
+    "corrected": {
+      "status": "accepted",
+      "iterations": 2,
+      "issues": [
+        [
+          "count"
+        ]
+      ]
+    },
+    "stuck": {
+      "status": "needs_human",
+      "iterations": 2,
+      "issues": [
+        [
+          "count"
+        ]
+      ]
+    },
+    "exhausted": {
+      "status": "budget_exhausted",
+      "iterations": 2,
+      "issues": [
+        [
+          "count"
+        ],
+        [
+          "mean"
+        ]
+      ]
+    }
+  },
+  "scheduling": {
+    "events": [
+      "start:statistics",
+      "start:dictionary",
+      "finish:dictionary",
+      "finish:statistics",
+      "assemble"
+    ],
+    "merged": {
+      "count": 2,
+      "mean": "5",
+      "missing": "NA"
+    },
+    "partial": [
+      "ok",
+      "ValueError"
+    ],
+    "timed_out_task_cancelled": true
+  },
+  "governance": {
+    "rows": [
+      {
+        "expected": "csv_stats",
+        "candidates": [
+          "csv_stats",
+          "csv_preview"
+        ],
+        "chosen": "csv_stats"
+      },
+      {
+        "expected": "csv_preview",
+        "candidates": [
+          "csv_preview",
+          "csv_stats"
+        ],
+        "chosen": "csv_stats"
+      },
+      {
+        "expected": "log_search",
+        "candidates": [
+          "log_search",
+          "archive_report"
+        ],
+        "chosen": "log_search"
+      },
+      {
+        "expected": "archive_report",
+        "candidates": [
+          "archive_report",
+          "csv_preview"
+        ],
+        "chosen": "archive_report"
+      }
+    ],
+    "recall_at_2": 4,
+    "selections_correct": 3,
+    "tests": 4
+  },
+  "collaboration": {
+    "route": "refund_statistics",
+    "worker_proposals": {
+      "stats-worker": {
+        "count": 2,
+        "mean": "5"
+      },
+      "review-worker": {
+        "count": 3,
+        "mean": "5"
+      }
+    },
+    "conflicting_fields": [
+      "count"
+    ],
+    "merged": {
+      "count": 2,
+      "mean": "5"
+    },
+    "status": "awaiting_approval",
+    "archive_permission": {
+      "stats-worker": false,
+      "review-worker": false,
+      "owner_after_approval": true
+    }
+  }
+}

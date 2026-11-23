@@ -1,0 +1,19 @@
+{
+  "sdk": "1.21.1",
+  "history_events": 24,
+  "resumed": true,
+  "unchanged_replay": "passed",
+  "changed_replay": "NondeterminismError",
+  "result": {
+    "receipt": "refund-01/archive",
+    "report": {
+      "count": 2,
+      "mean": "5"
+    }
+  },
+  "activity_attempts": {
+    "read": 1,
+    "archive": 2
+  },
+  "archive_rows": 1
+}

@@ -157,31 +157,31 @@
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| AGT-01 | 从工具调用到 Agent Loop | 模型提出动作 → 运行时校验并执行 → Observation 回填 → 下一轮。实现最终答案、澄清、失败、取消、步数与预算终止。 |
-| AGT-17 | Context Engineering 总览 | 画上下文数据流，定义权威状态、可检索资料、工具观察和历史的作用域。按任务阶段决定选择、组装、压缩和回读，并用上下文快照回归。 |
-| AGT-02 | 上下文组装与 Prompt 层级 | 组装系统约束、任务状态、相关历史、工具定义、检索证据。打印一轮实际 Prompt，说明外部工具输出的信任边界。 |
-| AGT-03 | 超长工具输出怎么处理 | 执行器限额、服务端聚合、按样本和区间取证、产物外置、引用回读。用几万行日志验证错误在中间仍能定位。 |
-| AGT-04 | 上下文裁剪 | 计算可用 Token 预算，裁掉冗余或过时内容，维护工具调用配对，保留早期关键约束。用固定回放验证裁剪前后同一任务。 |
-| AGT-05 | 上下文压缩 | 把旧阶段整理为结构化摘要，保留来源、决策、产物和待办。注入摘要与执行状态冲突，验证状态恢复不重复提交。 |
-| AGT-06 | 短期记忆与 Checkpoint | 区分本次模型输入、任务状态和会话历史。模拟执行中断与恢复，验证同一会话能继续。 |
-| AGT-07 | 长期记忆的写入、检索与治理 | 以跨会话偏好为例，记录命名空间、来源、版本和删除规则。测试显式偏好更新、误记、串租户和索引残留。 |
-| AGT-08 | 工具超时、取消、重试与幂等 | 区分网络故障、参数错误、超时未知结果和可安全重试动作。验证已成功但未收到回执的恢复路径。 |
-| AGT-09 | 工具并发与依赖调度 | 用依赖图区分可并行读、冲突写和顺序约束。处理并发配额、部分失败、结果乱序和取消传播。 |
-| AGT-10 | 工具太多时如何做工具治理 | 权限过滤、按域分组、候选召回、Schema 精简、按需加载。测正确工具召回率与选中率，区分召回和选择错误。 |
-| AGT-11 | MCP、Tools 和 Skills 的职责 | 画出一轮工具执行。Tool 是可调用能力，MCP 连接宿主与能力服务，Skill 封装一套可复用的任务说明和配套材料。标明真正做授权与执行的层。 |
-| AGT-19 | MCP Server 原理与协议生命周期 | 画清 Host、Client、Server，以及 Tools、Resources、Prompts。固定协议版本，对照初始化和能力协商、发现和调用，拆解 stdio 与 Streamable HTTP 的交互。 |
-| AGT-20 | 从零实现一个最小 MCP Server | 用官方 SDK 暴露只读的 CSV 列统计工具和数据字典资源。先用客户端观察原始协议，再接入 Agent，验证 Schema、错误、超时和输出预算，讨论本地与远程授权边界。 |
-| AGT-21 | Agent Skills 的设计、加载与测试 | 用 SKILL.md 的元数据做发现，命中后读取任务说明，需要时再读脚本或参考资料。把报告口径写成 Skill 并在两个可用宿主验证触发、版本与权限。 |
-| AGT-18 | Loop Engineering 与反馈闭环 | 练习规划 → 执行 → 核验 → 修复，设计明确验收、无进展检测、重试预算与停止条件。对比单轮工具循环、外层反馈循环和跨会话接力，验证失败时能够退出或交给人工。 |
-| AGT-12 | Agent Harness 源码阅读 | 先用自己的最小 Loop 对照，再选 Pi 或 OpenHands，固定 tag 追踪一条消息从会话状态、Loop、工具执行与事件发布到结果。标出模型适配、文件及环境接入、生命周期和权限边界。 |
-| AGT-13 | Workflow、Agent 与混合编排 | 对照顺序链、路由、并行汇聚、评估再改写和自主循环。用同一任务演示确定性步骤、开放决策与人工审批如何组合。 |
-| AGT-14 | 多 Agent 协作的几种模式 | 编排者与 Worker、按域 Handoff、生成者与评审者、共享任务队列。比较任务依赖、上下文隔离、合并与冲突、共享写入权限和成本。 |
-| AGT-22 | A2A 协议与跨 Agent 委派 | 固定协议版本，读 Agent Card、Message、Task 和 Artifact。对照本进程内的 Handoff 与跨服务委派，明确能力发现、身份和任务所有者。 |
-| AGT-15 | Agent 的长任务与人机协作 | 持久化状态机、等待审批、断点续跑、事件重放、重复投递。复现 Worker 中断和用户重连。 |
-| AGT-24 | 持久化工作流的事件重放与状态恢复 | 用 Temporal 对照手写 Checkpoint，把模型和外部写操作放进 Activity，说明确定性重放与 Activity 重试的关系。暂停 Worker 后恢复，验证已记录结果继续使用，未知副作用按业务动作 ID 核对。 |
-| AGT-23 | A2A 实战，两个 Agent 如何交接长任务 | 让报告 Agent 委派只读校验，并获取状态或产物。演示同步结果和流式状态，按所选协议版本验证取消、失败与断线后的状态查询。用应用层关联 ID 避免误提交，明确产物访问授权。 |
-| AGT-16 | Agent 运行轨迹与调试 | 为模型、工具、状态和产物加关联 ID，跟踪一次任务为什么失败。保留脱敏轨迹供下一章做批量评测。 |
-| AGT-25 | Agent 前端事件协议与生成式 UI | 用 AG-UI 展示运行状态、工具进度与一次审批，用 A2UI 的声明式组件描述呈现报告卡片。复用 API-05 的流式传输知识，区分事件协议与 UI 描述，验证断线后的状态恢复、审批绑定和取消。 |
+| AGT-01 | [从工具调用到 Agent Loop](https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html)（已发布，[源稿](agt-01-agent-loop.md)） | 模型提出动作 → 运行时校验并执行 → Observation 回填 → 下一轮。实现最终答案、澄清、失败、取消、步数与预算终止。 |
+| AGT-17 | [Context Engineering 总览](https://blog.lacknb.cn/articles/2026/11/23/1795402335217.html)（已发布，[源稿](agt-17-context-engineering.md)） | 画上下文数据流，定义权威状态、可检索资料、工具观察和历史的作用域。按任务阶段决定选择、组装、压缩和回读，并用上下文快照回归。 |
+| AGT-02 | [上下文组装与 Prompt 层级](https://blog.lacknb.cn/articles/2026/11/23/1795402336863.html)（已发布，[源稿](agt-02-prompt-assembly.md)） | 组装系统约束、任务状态、相关历史、工具定义、检索证据。打印一轮实际 Prompt，说明外部工具输出的信任边界。 |
+| AGT-03 | [超长工具输出怎么处理](https://blog.lacknb.cn/articles/2026/11/23/1795402338418.html)（已发布，[源稿](agt-03-large-tool-outputs.md)） | 执行器限额、服务端聚合、按样本和区间取证、产物外置、引用回读。用几万行日志验证错误在中间仍能定位。 |
+| AGT-04 | [上下文裁剪](https://blog.lacknb.cn/articles/2026/11/23/1795402340040.html)（已发布，[源稿](agt-04-context-trimming.md)） | 计算可用 Token 预算，裁掉冗余或过时内容，维护工具调用配对，保留早期关键约束。用固定回放验证裁剪前后同一任务。 |
+| AGT-05 | [上下文压缩](https://blog.lacknb.cn/articles/2026/11/23/1795402341623.html)（已发布，[源稿](agt-05-context-compaction.md)） | 把旧阶段整理为结构化摘要，保留来源、决策、产物和待办。注入摘要与执行状态冲突，验证状态恢复不重复提交。 |
+| AGT-06 | [短期记忆与 Checkpoint](https://blog.lacknb.cn/articles/2026/11/23/1795402343288.html)（已发布，[源稿](agt-06-short-term-checkpoints.md)） | 区分本次模型输入、任务状态和会话历史。模拟执行中断与恢复，验证同一会话能继续。 |
+| AGT-07 | [长期记忆的写入、检索与治理](https://blog.lacknb.cn/articles/2026/11/23/1795402344957.html)（已发布，[源稿](agt-07-long-term-memory.md)） | 以跨会话偏好为例，记录命名空间、来源、版本和删除规则。测试显式偏好更新、误记、串租户和索引残留。 |
+| AGT-08 | [工具超时、取消、重试与幂等](https://blog.lacknb.cn/articles/2026/11/23/1795402346585.html)（已发布，[源稿](agt-08-tool-retries.md)） | 区分网络故障、参数错误、超时未知结果和可安全重试动作。验证已成功但未收到回执的恢复路径。 |
+| AGT-09 | [工具并发与依赖调度](https://blog.lacknb.cn/articles/2026/11/23/1795402348200.html)（已发布，[源稿](agt-09-tool-scheduling.md)） | 用依赖图区分可并行读、冲突写和顺序约束。处理并发配额、部分失败、结果乱序和取消传播。 |
+| AGT-10 | [工具太多时如何做工具治理](https://blog.lacknb.cn/articles/2026/11/23/1795402349728.html)（已发布，[源稿](agt-10-tool-governance.md)） | 权限过滤、按域分组、候选召回、Schema 精简、按需加载。测正确工具召回率与选中率，区分召回和选择错误。 |
+| AGT-11 | [MCP、Tools 和 Skills 的职责](https://blog.lacknb.cn/articles/2026/11/23/1795402351437.html)（已发布，[源稿](agt-11-mcp-tools-skills.md)） | 画出一轮工具执行。Tool 是可调用能力，MCP 连接宿主与能力服务，Skill 封装一套可复用的任务说明和配套材料。标明真正做授权与执行的层。 |
+| AGT-19 | [MCP Server 原理与协议生命周期](https://blog.lacknb.cn/articles/2026/11/23/1795402353046.html)（已发布，[源稿](agt-19-mcp-lifecycle.md)） | 画清 Host、Client、Server，以及 Tools、Resources、Prompts。固定协议版本，对照初始化和能力协商、发现和调用，拆解 stdio 与 Streamable HTTP 的交互。 |
+| AGT-20 | [从零实现一个最小 MCP Server](https://blog.lacknb.cn/articles/2026/11/23/1795402354859.html)（已发布，[源稿](agt-20-mcp-csv-server.md)） | 用官方 SDK 暴露只读的 CSV 列统计工具和数据字典资源。先用客户端观察原始协议，再接入 Agent，验证 Schema、错误、超时和输出预算，讨论本地与远程授权边界。 |
+| AGT-21 | [Agent Skills 的设计、加载与测试](https://blog.lacknb.cn/articles/2026/11/23/1795402356468.html)（已发布，[源稿](agt-21-agent-skills.md)） | 用 SKILL.md 的元数据做发现，命中后读取任务说明，需要时再读脚本或参考资料。把报告口径写成 Skill 并在两个可用宿主验证触发、版本与权限。 |
+| AGT-18 | [Loop Engineering 与反馈闭环](https://blog.lacknb.cn/articles/2026/11/23/1795402358094.html)（已发布，[源稿](agt-18-feedback-loop.md)） | 练习规划 → 执行 → 核验 → 修复，设计明确验收、无进展检测、重试预算与停止条件。对比单轮工具循环、外层反馈循环和跨会话接力，验证失败时能够退出或交给人工。 |
+| AGT-12 | [Agent Harness 源码阅读](https://blog.lacknb.cn/articles/2026/11/23/1795402359765.html)（已发布，[源稿](agt-12-agent-harness-source.md)） | 先用自己的最小 Loop 对照，再选 Pi 或 OpenHands，固定 tag 追踪一条消息从会话状态、Loop、工具执行与事件发布到结果。标出模型适配、文件及环境接入、生命周期和权限边界。 |
+| AGT-13 | [Workflow、Agent 与混合编排](https://blog.lacknb.cn/articles/2026/11/23/1795402361827.html)（已发布，[源稿](agt-13-workflow-orchestration.md)） | 对照顺序链、路由、并行汇聚、评估再改写和自主循环。用同一任务演示确定性步骤、开放决策与人工审批如何组合。 |
+| AGT-14 | [多 Agent 协作的几种模式](https://blog.lacknb.cn/articles/2026/11/23/1795402363518.html)（已发布，[源稿](agt-14-multi-agent-patterns.md)） | 编排者与 Worker、按域 Handoff、生成者与评审者、共享任务队列。比较任务依赖、上下文隔离、合并与冲突、共享写入权限和成本。 |
+| AGT-22 | [A2A 协议与跨 Agent 委派](https://blog.lacknb.cn/articles/2026/11/23/1795402365108.html)（已发布，[源稿](agt-22-a2a-protocol.md)） | 固定协议版本，读 Agent Card、Message、Task 和 Artifact。对照本进程内的 Handoff 与跨服务委派，明确能力发现、身份和任务所有者。 |
+| AGT-15 | [Agent 的长任务与人机协作](https://blog.lacknb.cn/articles/2026/11/23/1795402366758.html)（已发布，[源稿](agt-15-long-running-tasks.md)） | 持久化状态机、等待审批、断点续跑、事件重放、重复投递。复现 Worker 中断和用户重连。 |
+| AGT-24 | [持久化工作流的事件重放与状态恢复](https://blog.lacknb.cn/articles/2026/11/23/1795402368648.html)（已发布，[源稿](agt-24-temporal-replay.md)） | 用 Temporal 对照手写 Checkpoint，把模型和外部写操作放进 Activity，说明确定性重放与 Activity 重试的关系。暂停 Worker 后恢复，验证已记录结果继续使用，未知副作用按业务动作 ID 核对。 |
+| AGT-23 | [A2A 实战，两个 Agent 如何交接长任务](https://blog.lacknb.cn/articles/2026/11/23/1795402370736.html)（已发布，[源稿](agt-23-a2a-long-task.md)） | 让报告 Agent 委派只读校验，并获取状态或产物。演示同步结果和流式状态，按所选协议版本验证取消、失败与断线后的状态查询。用应用层关联 ID 避免误提交，明确产物访问授权。 |
+| AGT-16 | [Agent 运行轨迹与调试](https://blog.lacknb.cn/articles/2026/11/23/1795402373955.html)（已发布，[源稿](agt-16-agent-tracing.md)） | 为模型、工具、状态和产物加关联 ID，跟踪一次任务为什么失败。保留脱敏轨迹供下一章做批量评测。 |
+| AGT-25 | [Agent 前端事件协议与生成式 UI](https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html)（已发布，[源稿](agt-25-ag-ui-a2ui.md)） | 用 AG-UI 展示运行状态、工具进度与一次审批，用 A2UI 的声明式组件描述呈现报告卡片。复用 API-05 的流式传输知识，区分事件协议与 UI 描述，验证断线后的状态恢复、审批绑定和取消。 |
 
 延伸阅读：[Anthropic Agent 架构模式](https://www.anthropic.com/research/building-effective-agents) · [Anthropic 上下文工程](https://www.anthropic.com/research/effective-context-engineering-for-ai-agents) · [Anthropic 多智能体实录](https://www.anthropic.com/research/multi-agent-research-system) · [LangChain Memory](https://docs.langchain.com/oss/python/concepts/memory) · [Anthropic 长任务 Harness](https://www.anthropic.com/research/effective-harnesses-for-long-running-agents)
 

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>退款报告事件回放</title>
+<style>
+    body { margin: 40px auto; padding: 0 20px; max-width: 720px; font: 16px system-ui; color: #182c30; background: #f4f8f7; }
+    section { margin: 20px 0; border: 1px solid #c3d6d0; border-radius: 10px; padding: 16px; background: white; }
+    button, input { font: inherit; }
+    button { margin: 8px 8px 0 0; padding: 6px 12px; }
+    #events { overflow-wrap: anywhere; }
+</style>
+<h1>退款报告事件回放</h1>
+<label>选择 <code>ui-results.json</code> <input id="fixture" type="file" accept=".json,application/json"></label>
+<section aria-labelledby="status-title">
+    <h2 id="status-title">运行状态</h2>
+    <p id="status" role="status">等待选择实验记录</p>
+    <button id="approve" disabled>查看审批请求</button>
+    <button id="cancel" disabled>查看取消结果</button>
+    <pre id="request"></pre>
+</section>
+<section aria-labelledby="report-title">
+    <h2 id="report-title">报告卡片</h2>
+    <p id="card"></p>
+</section>
+<details>
+    <summary>事件记录</summary>
+    <ol id="events"></ol>
+</details>
+<script>
+    const get = (id) => document.getElementById(id);
+    let replay;
+    const summaries = {
+        RUN_STARTED: "运行开始",
+        TOOL_CALL_START: "开始请求退款统计",
+        TOOL_CALL_RESULT: "收到统计结果",
+        STATE_SNAPSHOT: "读取任务状态快照",
+        RUN_FINISHED: "运行已结束",
+    };
+
+    function renderCard(messages) {
+        const created = messages.find((message) => message.version === "1.0" && message.createSurface)?.createSurface;
+        const components = messages.find((message) => message.updateComponents?.surfaceId === created?.surfaceId)
+            ?.updateComponents.components;
+        const root = components?.find((component) => component.id === "root" && component.component === "Card");
+        const child = components?.find((component) => component.id === root?.child && component.component === "Text");
+        const model = messages.find((message) => message.updateDataModel?.surfaceId === created?.surfaceId
+            && message.updateDataModel.path === child?.text?.["@path"])?.updateDataModel;
+        get("card").textContent = typeof model?.value === "string" ? model.value : "";
+    }
+
+    get("fixture").onchange = async (event) => {
+        replay = null;
+        get("approve").disabled = true;
+        get("cancel").disabled = true;
+        get("card").textContent = "";
+        get("request").textContent = "";
+        get("events").replaceChildren();
+        try {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            if (file.size > 262144) {
+                throw new Error("实验记录超过 256 KiB");
+            }
+            replay = JSON.parse(await file.text());
+            for (const frame of replay.events) {
+                const item = document.createElement("li");
+                item.textContent = summaries[frame.type] || frame.type;
+                get("events").append(item);
+            }
+            renderCard(replay.a2ui);
+            const waiting = replay.events.at(-1)?.outcome?.type === "interrupt";
+            get("status").textContent = waiting ? "等待确认当前报告" : "记录已加载";
+            get("approve").disabled = !waiting;
+            get("cancel").disabled = replay.cancel?.outcome?.type !== "cancelled";
+        } catch (error) {
+            get("status").textContent = "读取失败：" + error.message;
+        }
+    };
+    get("approve").onclick = () => {
+        get("request").textContent = JSON.stringify(replay.resume_request, null, 2);
+    };
+    get("cancel").onclick = () => {
+        get("status").textContent = "取消场景回放：任务已取消";
+        get("request").textContent = JSON.stringify(replay.cancel, null, 2);
+    };
+</script>
+</html>

@@ -1,0 +1,204 @@
+{
+  "state_at_approval": {
+    "step": 2,
+    "report": {
+      "count": 2,
+      "mean": "5"
+    },
+    "confirmed": null,
+    "status": "awaiting_approval",
+    "seen": [
+      "c-1"
+    ]
+  },
+  "stale_approval_rejected": true,
+  "model_observations": [
+    [],
+    [
+      {
+        "tool_call_id": "c-1",
+        "result": {
+          "report": {
+            "count": 2,
+            "mean": "5"
+          }
+        }
+      }
+    ]
+  ],
+  "archive_rows": 1,
+  "recovery": [
+    {
+      "run_id": "refund-01",
+      "seq": 1,
+      "event": "checkpoint",
+      "version": 4,
+      "status": "completed"
+    },
+    {
+      "run_id": "refund-01",
+      "seq": 2,
+      "event": "reconciled",
+      "action_id": "refund-01/archive/d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0"
+    }
+  ],
+  "cases": {
+    "clarify": "needs_input",
+    "early_final": "failed",
+    "invalid_args": "failed",
+    "write_without_approval": "failed",
+    "duplicate_call": "failed",
+    "cancel": "cancelled",
+    "limit": "limit",
+    "budget": "budget"
+  },
+  "trace": [
+    {
+      "run_id": "refund-01",
+      "seq": 1,
+      "event": "decision",
+      "span_id": "step-1",
+      "decision_kind": "tool"
+    },
+    {
+      "run_id": "refund-01",
+      "seq": 2,
+      "event": "tool_result",
+      "call_id": "c-1",
+      "ok": true,
+      "result": {
+        "report": {
+          "count": 2,
+          "mean": "5"
+        }
+      },
+      "span_id": "step-1"
+    },
+    {
+      "run_id": "refund-01",
+      "seq": 3,
+      "event": "checkpoint",
+      "version": 1,
+      "status": "ready"
+    },
+    {
+      "run_id": "refund-01",
+      "seq": 4,
+      "event": "decision",
+      "span_id": "step-2",
+      "decision_kind": "final"
+    },
+    {
+      "run_id": "refund-01",
+      "seq": 5,
+      "event": "checkpoint",
+      "version": 2,
+      "status": "awaiting_approval"
+    }
+  ],
+  "failure_traces": {
+    "invalid_args": [
+      {
+        "run_id": "invalid_args",
+        "seq": 1,
+        "event": "decision",
+        "span_id": "step-1",
+        "decision_kind": "tool"
+      },
+      {
+        "run_id": "invalid_args",
+        "seq": 2,
+        "event": "tool_result",
+        "call_id": "c-1",
+        "ok": false,
+        "error": "ValueError",
+        "span_id": "step-1"
+      },
+      {
+        "run_id": "invalid_args",
+        "seq": 3,
+        "event": "checkpoint",
+        "version": 1,
+        "status": "failed"
+      }
+    ],
+    "write_without_approval": [
+      {
+        "run_id": "write_without_approval",
+        "seq": 1,
+        "event": "decision",
+        "span_id": "step-1",
+        "decision_kind": "tool"
+      },
+      {
+        "run_id": "write_without_approval",
+        "seq": 2,
+        "event": "tool_result",
+        "call_id": "w-1",
+        "ok": false,
+        "error": "PermissionError",
+        "span_id": "step-1"
+      },
+      {
+        "run_id": "write_without_approval",
+        "seq": 3,
+        "event": "checkpoint",
+        "version": 1,
+        "status": "failed"
+      }
+    ],
+    "duplicate_call": [
+      {
+        "run_id": "duplicate_call",
+        "seq": 1,
+        "event": "decision",
+        "span_id": "step-1",
+        "decision_kind": "tool"
+      },
+      {
+        "run_id": "duplicate_call",
+        "seq": 2,
+        "event": "tool_result",
+        "call_id": "c-1",
+        "ok": true,
+        "result": {
+          "report": {
+            "count": 2,
+            "mean": "5"
+          }
+        },
+        "span_id": "step-1"
+      },
+      {
+        "run_id": "duplicate_call",
+        "seq": 3,
+        "event": "checkpoint",
+        "version": 1,
+        "status": "ready"
+      },
+      {
+        "run_id": "duplicate_call",
+        "seq": 4,
+        "event": "decision",
+        "span_id": "step-2",
+        "decision_kind": "tool"
+      },
+      {
+        "run_id": "duplicate_call",
+        "seq": 5,
+        "event": "validation_failed",
+        "error": "invalid or duplicate call id",
+        "call_id": "c-1",
+        "span_id": "step-2"
+      },
+      {
+        "run_id": "duplicate_call",
+        "seq": 6,
+        "event": "checkpoint",
+        "version": 2,
+        "status": "failed"
+      }
+    ]
+  },
+  "stale_checkpoint_rejected": true
+}

@@ -1,0 +1,31 @@
+{
+  "sdk": "0.3.22",
+  "protocol": "0.3.0",
+  "advertised": "refund-check",
+  "application_id": "application-001",
+  "registry_task_reused": true,
+  "artifact": {
+    "artifactId": "validation-01",
+    "metadata": {
+      "report_hash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0",
+      "read_only": true
+    },
+    "name": "refund-validation",
+    "parts": [
+      {
+        "kind": "text",
+        "text": "{\"count\": 2, \"mean\": \"5\"}"
+      }
+    ]
+  },
+  "stream_kinds": [
+    "task",
+    "status-update",
+    "artifact-update",
+    "status-update"
+  ],
+  "status_after_new_request": "completed",
+  "cancel_ack": "canceled",
+  "failure_status": "failed",
+  "cross_scope_error": -32001
+}

@@ -1,0 +1,168 @@
+{
+  "ag_ui_version": "1.0",
+  "a2ui_version": "1.0",
+  "events": [
+    {
+      "type": "RUN_STARTED",
+      "threadId": "refund-thread",
+      "runId": "report-01",
+      "protocolVersion": "1.0"
+    },
+    {
+      "type": "TOOL_CALL_START",
+      "toolCallId": "ui-csv-1",
+      "toolCallName": "csv_stats"
+    },
+    {
+      "type": "TOOL_CALL_ARGS",
+      "toolCallId": "ui-csv-1",
+      "delta": "{\"column\":\"refund\"}"
+    },
+    {
+      "type": "TOOL_CALL_END",
+      "toolCallId": "ui-csv-1"
+    },
+    {
+      "type": "TOOL_CALL_RESULT",
+      "messageId": "report-observation",
+      "toolCallId": "ui-csv-1",
+      "content": "{\"count\": 2, \"mean\": \"5\"}",
+      "role": "tool"
+    },
+    {
+      "type": "CUSTOM",
+      "name": "refund/a2ui",
+      "value": [
+        {
+          "version": "1.0",
+          "createSurface": {
+            "surfaceId": "refund-card",
+            "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
+          }
+        },
+        {
+          "version": "1.0",
+          "updateComponents": {
+            "surfaceId": "refund-card",
+            "components": [
+              {
+                "id": "root",
+                "component": "Card",
+                "child": "summary"
+              },
+              {
+                "id": "summary",
+                "component": "Text",
+                "text": {
+                  "@path": "/summary"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "version": "1.0",
+          "updateDataModel": {
+            "surfaceId": "refund-card",
+            "path": "/summary",
+            "value": "有效 2 条，均值 5"
+          }
+        }
+      ]
+    },
+    {
+      "type": "STATE_SNAPSHOT",
+      "snapshot": {
+        "status": "awaiting_approval",
+        "report": {
+          "count": 2,
+          "mean": "5"
+        },
+        "report_hash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0"
+      }
+    },
+    {
+      "type": "RUN_FINISHED",
+      "threadId": "refund-thread",
+      "runId": "report-01",
+      "outcome": {
+        "type": "interrupt",
+        "interrupts": [
+          {
+            "id": "confirm-01",
+            "reason": "report_approval",
+            "metadata": {
+              "reportHash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sample_sse": "data: {\"type\":\"TOOL_CALL_START\",\"toolCallId\":\"ui-csv-1\",\"toolCallName\":\"csv_stats\"}\n\n",
+  "a2ui": [
+    {
+      "version": "1.0",
+      "createSurface": {
+        "surfaceId": "refund-card",
+        "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
+      }
+    },
+    {
+      "version": "1.0",
+      "updateComponents": {
+        "surfaceId": "refund-card",
+        "components": [
+          {
+            "id": "root",
+            "component": "Card",
+            "child": "summary"
+          },
+          {
+            "id": "summary",
+            "component": "Text",
+            "text": {
+              "@path": "/summary"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0",
+      "updateDataModel": {
+        "surfaceId": "refund-card",
+        "path": "/summary",
+        "value": "有效 2 条，均值 5"
+      }
+    }
+  ],
+  "resume_request": {
+    "threadId": "refund-thread",
+    "runId": "report-02",
+    "protocolVersion": "1.0",
+    "messages": [],
+    "resume": [
+      {
+        "interruptId": "confirm-01",
+        "status": "resolved",
+        "payload": {
+          "reportHash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0"
+        }
+      }
+    ]
+  },
+  "after_gap": "gap",
+  "after_snapshot": "applied",
+  "after_replayed_event": "duplicate",
+  "old_approval_rejected": true,
+  "current_approval_archive_rows": 1,
+  "cancel": {
+    "type": "RUN_FINISHED",
+    "threadId": "refund-thread",
+    "runId": "report-cancel",
+    "outcome": {
+      "type": "cancelled"
+    }
+  }
+}

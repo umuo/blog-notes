@@ -1,0 +1,67 @@
+{
+  "pi": "0.70.0",
+  "provider_called": false,
+  "inputs": [
+    [
+      "user"
+    ],
+    [
+      "user",
+      "assistant",
+      "toolResult"
+    ]
+  ],
+  "events": [
+    {
+      "type": "agent_start"
+    },
+    {
+      "type": "turn_start"
+    },
+    {
+      "type": "message_start"
+    },
+    {
+      "type": "message_end"
+    },
+    {
+      "type": "message_start"
+    },
+    {
+      "type": "message_end"
+    },
+    {
+      "type": "tool_execution_start",
+      "toolCallId": "pi-call-1"
+    },
+    {
+      "type": "tool_execution_end",
+      "toolCallId": "pi-call-1"
+    },
+    {
+      "type": "message_start"
+    },
+    {
+      "type": "message_end"
+    },
+    {
+      "type": "turn_end"
+    },
+    {
+      "type": "turn_start"
+    },
+    {
+      "type": "message_start"
+    },
+    {
+      "type": "message_end"
+    },
+    {
+      "type": "turn_end"
+    },
+    {
+      "type": "agent_end"
+    }
+  ],
+  "final": "报告已生成，等待确认。"
+}

@@ -1,0 +1,186 @@
+{
+  "snapshots": {
+    "prepare": [
+      {
+        "role": "system",
+        "content": "归档前必须确认当前报告摘要。"
+      },
+      {
+        "role": "user",
+        "content": "统计退款 CSV 的有效数量和均值。"
+      }
+    ],
+    "report": [
+      {
+        "role": "system",
+        "content": "归档前必须确认当前报告摘要。"
+      },
+      {
+        "role": "user",
+        "content": "统计退款 CSV 的有效数量和均值。"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "csv-1",
+            "name": "csv_stats",
+            "arguments": {
+              "column": "refund"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "csv-1",
+        "content": {
+          "source": "refund.csv",
+          "status": "ok",
+          "report": {
+            "count": 2,
+            "mean": "5"
+          },
+          "untrusted_note": "仅供引用的 CSV 字段内容"
+        }
+      }
+    ],
+    "approve": [
+      {
+        "role": "system",
+        "content": "归档前必须确认当前报告摘要。"
+      },
+      {
+        "role": "system",
+        "content": {
+          "report_hash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0",
+          "approval": "missing"
+        }
+      },
+      {
+        "role": "user",
+        "content": "统计退款 CSV 的有效数量和均值。"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "csv-1",
+            "name": "csv_stats",
+            "arguments": {
+              "column": "refund"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "csv-1",
+        "content": {
+          "source": "refund.csv",
+          "status": "ok",
+          "report": {
+            "count": 2,
+            "mean": "5"
+          },
+          "untrusted_note": "仅供引用的 CSV 字段内容"
+        }
+      }
+    ]
+  },
+  "snapshot_hashes": {
+    "prepare": "1208b67bccd703b507449a25d29c5fcb008bb9c22a51d8a0b57b452a17b917e0",
+    "report": "91cd31f3889c2e033f0e5b4ebd39e06ac4412adf49e682076b997640593fec3c",
+    "approve": "bb1141884e73a7f3caaea8a40beef95f159b98c615a61e81409fae19632c3e84"
+  },
+  "trim": {
+    "window": 120,
+    "output": 30,
+    "margin": 10,
+    "mandatory": 52,
+    "available": 28,
+    "optional_before": 49,
+    "optional_after": 28,
+    "removed": [
+      "old_weather"
+    ],
+    "retained": [
+      "csv-1 request and observation",
+      "small_preview"
+    ],
+    "report_before": {
+      "count": 2,
+      "mean": "5"
+    },
+    "report_after": {
+      "count": 2,
+      "mean": "5"
+    }
+  },
+  "compaction": {
+    "summary": {
+      "sources": [
+        "refund.csv#L2-L4",
+        "csv-1"
+      ],
+      "report_hash": "d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0",
+      "decisions": [
+        "ignore NA"
+      ],
+      "pending": [
+        "archive"
+      ]
+    },
+    "authoritatively_persisted": {
+      "archive_status": "completed",
+      "action_id": "refund-01/archive/d101d3f5bcff6436dc37557fc5f0fdf7fb149a3b97b4ea7a619c24ce8b312ca0"
+    },
+    "resume_decision": "skip_archive"
+  },
+  "log": {
+    "lines": 50000,
+    "byte_count": 1000036,
+    "error_count": 2,
+    "resource_sha256": "07dad6a37d9243d0144e785649c565bfee41d3ef264f63ac56e8854f3798bdf0",
+    "candidates": [
+      {
+        "line": 24731,
+        "kind": "refund_mismatch"
+      },
+      {
+        "line": 34912,
+        "kind": "refund_mismatch"
+      }
+    ],
+    "returned_summary_bytes": 248,
+    "read_back": "24731 ERROR refund row total mismatch"
+  },
+  "memory": {
+    "previous": [
+      {
+        "tenant": "a",
+        "user": "u",
+        "key": "number_format",
+        "value": "one-decimal",
+        "version": 2,
+        "source": "explicit_user",
+        "deleted": false
+      }
+    ],
+    "other_scope": [
+      {
+        "tenant": "b",
+        "user": "u",
+        "key": "number_format",
+        "value": "percent",
+        "version": 1,
+        "source": "explicit_user",
+        "deleted": false
+      }
+    ],
+    "after_delete": [],
+    "inferred_written": false,
+    "stale_write_succeeded": false,
+    "index_entries_remaining": 3
+  }
+}

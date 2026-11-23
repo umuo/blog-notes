@@ -1,0 +1,193 @@
+{
+  "sdk": {
+    "sdk": "1.27.0",
+    "protocol": "2025-11-25",
+    "tool_schema": {
+      "properties": {
+        "column": {
+          "const": "refund",
+          "title": "Column",
+          "type": "string"
+        },
+        "delay_ms": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Delay Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "column"
+      ],
+      "title": "csv_statsArguments",
+      "type": "object"
+    },
+    "resources": [
+      "report://refund/dictionary"
+    ],
+    "dictionary": {
+      "column": "refund",
+      "missing": "NA",
+      "mean_type": "decimal_string",
+      "aggregation": "mean over non-missing rows"
+    },
+    "result": {
+      "source": "refund-fixture",
+      "count": 2,
+      "mean": "5"
+    },
+    "invalid_is_error": true,
+    "unknown_is_error": true,
+    "client_deadline_hit": true,
+    "session_usable_after_timeout": true
+  },
+  "wire": [
+    {
+      "sent": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2025-11-25",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "refund-raw-probe",
+            "version": "1.0"
+          }
+        }
+      },
+      "received": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "protocolVersion": "2025-11-25",
+          "capabilities": {
+            "experimental": {},
+            "prompts": {
+              "listChanged": false
+            },
+            "resources": {
+              "subscribe": false,
+              "listChanged": false
+            },
+            "tools": {
+              "listChanged": false
+            }
+          },
+          "serverInfo": {
+            "name": "refund-fixture",
+            "version": "1.27.0"
+          }
+        }
+      }
+    },
+    {
+      "sent": {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized"
+      }
+    },
+    {
+      "sent": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list"
+      },
+      "received": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "tools": [
+            {
+              "name": "csv_stats",
+              "description": "Read the fixed refund column. Delay is a bounded timeout-test fixture.",
+              "inputSchema": {
+                "properties": {
+                  "column": {
+                    "const": "refund",
+                    "title": "Column",
+                    "type": "string"
+                  },
+                  "delay_ms": {
+                    "default": 0,
+                    "maximum": 1000,
+                    "minimum": 0,
+                    "title": "Delay Ms",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "column"
+                ],
+                "title": "csv_statsArguments",
+                "type": "object"
+              },
+              "outputSchema": {
+                "properties": {
+                  "source": {
+                    "title": "Source",
+                    "type": "string"
+                  },
+                  "count": {
+                    "title": "Count",
+                    "type": "integer"
+                  },
+                  "mean": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Mean"
+                  }
+                },
+                "required": [
+                  "source",
+                  "count",
+                  "mean"
+                ],
+                "title": "StatsResult",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sent": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "csv_stats",
+          "arguments": {
+            "column": "refund"
+          }
+        }
+      },
+      "received": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\n  \"source\": \"refund-fixture\",\n  \"count\": 2,\n  \"mean\": \"5\"\n}"
+            }
+          ],
+          "structuredContent": {
+            "source": "refund-fixture",
+            "count": 2,
+            "mean": "5"
+          },
+          "isError": false
+        }
+      }
+    }
+  ]
+}

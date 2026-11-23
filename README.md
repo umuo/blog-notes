@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前五部分共 63 篇，均已发布。第五部分「推理引擎与模型部署」共 16 篇，下一篇是第六部分的 AGT-01《从工具调用到 Agent Loop》。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前六部分共 88 篇，均已发布。第六部分「Agent、Context Engineering、Loop Engineering 与 Harness」共 25 篇，下一篇是第七部分的 AE-06《第一篇，如何验证 Agent 真的完成了任务》。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。
