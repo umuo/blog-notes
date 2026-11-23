@@ -1,0 +1,147 @@
+{
+    "content": {
+        "samples": {
+            "normal": {
+                "should_review": false,
+                "sent_to_review": false
+            },
+            "sensitive": {
+                "should_review": true,
+                "sent_to_review": true
+            },
+            "ordinary_reference": {
+                "should_review": false,
+                "sent_to_review": true
+            },
+            "category_only": {
+                "should_review": true,
+                "sent_to_review": false
+            }
+        },
+        "confusion": {
+            "true_positive": 1,
+            "false_positive": 1,
+            "false_negative": 1,
+            "true_negative": 1
+        },
+        "outputs": {
+            "legal": {
+                "status": "allow",
+                "html_text": "4 &lt; 6",
+                "evidence_id": "refund/p1"
+            },
+            "invalid_json": {
+                "status": "invalid_json"
+            },
+            "extra_field": {
+                "status": "invalid_schema"
+            },
+            "outside_evidence": {
+                "status": "invalid_reference"
+            },
+            "dependency_unavailable": {
+                "status": "review_unavailable"
+            },
+            "input_limit": "input_limit"
+        }
+    },
+    "broker": {
+        "before": {
+            "read": "uploaded_document",
+            "unsupported_route": "resource_denied",
+            "other_tenant": "identity_denied",
+            "before_approval": "approval_required"
+        },
+        "after": {
+            "report_changed": "approval_required",
+            "approval_expired": "approval_expired",
+            "failure": "rolled_back",
+            "authoritative_version_changed": "report_stale",
+            "retry": "archived",
+            "duplicate": "already_archived",
+            "budget": "budget_denied"
+        },
+        "rows_after_failure": 0,
+        "budget_after_failure": 1,
+        "final_rows": 1,
+        "audit": [
+            {
+                "sequence": 1,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "read_report",
+                "outcome": "read_allowed"
+            },
+            {
+                "sequence": 2,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "read_report",
+                "outcome": "resource_denied"
+            },
+            {
+                "sequence": 3,
+                "actor": "worker-a",
+                "tenant": "partner",
+                "action": "archive_report",
+                "outcome": "identity_denied"
+            },
+            {
+                "sequence": 4,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "approval_required"
+            },
+            {
+                "sequence": 5,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "approval_required"
+            },
+            {
+                "sequence": 6,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "approval_expired"
+            },
+            {
+                "sequence": 7,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "rolled_back"
+            },
+            {
+                "sequence": 8,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "report_stale"
+            },
+            {
+                "sequence": 9,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "archived"
+            },
+            {
+                "sequence": 10,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "already_archived"
+            },
+            {
+                "sequence": 11,
+                "actor": "worker-a",
+                "tenant": "school",
+                "action": "archive_report",
+                "outcome": "budget_denied"
+            }
+        ]
+    }
+}

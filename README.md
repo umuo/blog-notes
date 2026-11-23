@@ -4,7 +4,7 @@
 
 ## 从这里继续
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前八部分共 109 篇，均已发布。第八部分「RAG、Embedding、Rerank 与 LLM Wiki」共 13 篇，下一篇是第九部分的 SEC-01《OWASP 是什么，Top 10 怎样用》。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。前九部分共 115 篇，均已发布。第九部分「LLM 与 Agent 安全护栏」共 6 篇，下一篇是第十部分的 SBX-01《沙箱分类与威胁建模》。
 - [写作进度](PROGRESS.md)记录已经完成的阶段和下一篇的接续点。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。

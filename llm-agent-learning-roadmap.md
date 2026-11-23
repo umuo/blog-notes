@@ -252,12 +252,12 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| SEC-01 | OWASP 是什么，Top 10 怎样用 | 介绍 OWASP Foundation、GenAI Security Project 及风险清单的用途。为自己的系统建资产、威胁、控制、负责人和验证矩阵。 |
-| SEC-02 | OWASP Top 10 for LLM Applications | 以 2026 版官方材料为主，逐项映射到模型输入、检索、输出处理、发布与运行环境。每类明确影响、缓解措施和防御验收。 |
-| SEC-03 | OWASP Top 10 for Agentic Applications | 以 2026 版为主，结合 Agent 工具调用、身份与权限、记忆、跨 Agent 信任和供应链梳理风险。在同一个案例中对照两份清单的关注点。 |
-| SEC-04 | LLM 应用的输入、输出和数据护栏 | 设计内容规则、敏感信息处理、输出 Schema、输出展示与下游执行约束。用合成正反样本观察误拦、漏判、延迟与失败处理。 |
-| SEC-05 | Agent 工具调用、审批与运行时护栏 | 把租户授权、审批参数绑定、预算、日志和网络或文件策略落到执行边界。验证外部内容可以被读取，但其文字不能改变工具权限或审批要求。 |
-| SEC-06 | 第三方模型、MCP Server、Skill 与 A2A 的信任链 | 记录服务身份、授权委派、版本来源、依赖与审批边界。用合成夹具验证第三方描述更新、授权撤回、权限范围收窄与执行审计。 |
+| SEC-01 | [OWASP 是什么，Top 10 怎样用](https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html)（已发布，[源稿](sec-01-owasp-risk-matrix.md)） | 介绍 OWASP Foundation、GenAI Security Project 及风险清单的用途。为自己的系统建资产、威胁、控制、负责人和验证矩阵。 |
+| SEC-02 | [OWASP Top 10 for LLM Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411163039.html)（已发布，[源稿](sec-02-llm-top-ten.md)） | 以 2026 版官方材料为主，逐项映射到模型输入、检索、输出处理、发布与运行环境。每类明确影响、缓解措施和防御验收。 |
+| SEC-03 | [OWASP Top 10 for Agentic Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411164811.html)（已发布，[源稿](sec-03-agentic-top-ten.md)） | 以 2026 版为主，结合 Agent 工具调用、身份与权限、记忆、跨 Agent 信任和供应链梳理风险。在同一个案例中对照两份清单的关注点。 |
+| SEC-04 | [LLM 应用的输入、输出和数据护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411166416.html)（已发布，[源稿](sec-04-input-output-rails.md)） | 设计内容规则、敏感信息处理、输出 Schema、输出展示与下游执行约束。用合成正反样本观察误拦、漏判、延迟与失败处理。 |
+| SEC-05 | [Agent 工具调用、审批与运行时护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411168053.html)（已发布，[源稿](sec-05-tool-approval.md)） | 把租户授权、审批参数绑定、预算、日志和网络或文件策略落到执行边界。验证外部内容可以被读取，但其文字不能改变工具权限或审批要求。 |
+| SEC-06 | [第三方模型、MCP Server、Skill 与 A2A 的信任链](https://blog.lacknb.cn/articles/2026/11/23/1795411169711.html)（已发布，[源稿](sec-06-third-party-trust.md)） | 记录服务身份、授权委派、版本来源、依赖与审批边界。用合成夹具验证第三方描述更新、授权撤回、权限范围收窄与执行审计。 |
 
 护栏原型可读 **NeMo Guardrails**，用一个内容规则和一个工具审批流程对照应用层、工具代理和 Sandbox 的职责；涉及用户授权的决策由可信执行边界再次检查。 [OWASP Foundation](https://owasp.org/about/) · [LLM Applications Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) · [Agentic Applications Top 10 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) · [NeMo Guardrails](https://github.com/NVIDIA-NeMo/Guardrails) · [MCP 授权规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 

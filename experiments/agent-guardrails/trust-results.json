@@ -1,0 +1,94 @@
+{
+    "cases": {
+        "registered": "allow_read",
+        "description_changed": "version_review_required",
+        "artifact_changed": "version_review_required",
+        "unregistered_identity": "service_identity_denied",
+        "different_task": "scope_denied",
+        "write_routed_to_broker": "send_to_approval_broker",
+        "old_generation": "grant_inactive",
+        "narrow_read": "allow_read",
+        "narrow_write": "scope_denied",
+        "expired": "grant_inactive",
+        "revoked": "grant_inactive"
+    },
+    "audit": [
+        {
+            "case": "registered",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "allow_read"
+        },
+        {
+            "case": "description_changed",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "version_review_required"
+        },
+        {
+            "case": "artifact_changed",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "version_review_required"
+        },
+        {
+            "case": "unregistered_identity",
+            "provider": "catalog-b",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "service_identity_denied"
+        },
+        {
+            "case": "different_task",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "scope_denied"
+        },
+        {
+            "case": "write_routed_to_broker",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "send_to_approval_broker"
+        },
+        {
+            "case": "old_generation",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-1",
+            "decision": "grant_inactive"
+        },
+        {
+            "case": "narrow_read",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-2",
+            "decision": "allow_read"
+        },
+        {
+            "case": "narrow_write",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-2",
+            "decision": "scope_denied"
+        },
+        {
+            "case": "expired",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-2",
+            "decision": "grant_inactive"
+        },
+        {
+            "case": "revoked",
+            "provider": "catalog-a",
+            "release": "v1",
+            "grant_id": "delegation-2",
+            "decision": "grant_inactive"
+        }
+    ]
+}
