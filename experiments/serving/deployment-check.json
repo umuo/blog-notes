@@ -1,0 +1,25 @@
+{
+  "health": {
+    "old": 200,
+    "new": 200
+  },
+  "route": [
+    {
+      "step": "old",
+      "release": "refund-01",
+      "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```"
+    },
+    {
+      "step": "promote",
+      "release": "refund-02",
+      "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```"
+    },
+    {
+      "step": "rollback",
+      "release": "refund-01",
+      "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```"
+    }
+  ],
+  "concurrent_status": 429,
+  "recovery_status": 200
+}

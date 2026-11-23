@@ -1,0 +1,43 @@
+{
+  "mlflow": "3.9.0",
+  "versions": {
+    "1": {
+      "release_id": "refund-01",
+      "manifest_sha256": "011f9ffdc36a1fb2327136b6e3db8db8be7d22e515e8092de0fa287affe4d869",
+      "registered_version": 1,
+      "has_run": true
+    },
+    "2": {
+      "release_id": "refund-02",
+      "manifest_sha256": "0b7423c3e84d45165e25fec3ac46aa30036e926b853aa5b12ccd0443866ece7b",
+      "registered_version": 2,
+      "has_run": true
+    }
+  },
+  "transitions": [
+    {
+      "step": "deploy",
+      "release_id": "refund-01",
+      "version": 1,
+      "request_header": {
+        "X-Release-Id": "refund-01"
+      }
+    },
+    {
+      "step": "promote",
+      "release_id": "refund-02",
+      "version": 2,
+      "request_header": {
+        "X-Release-Id": "refund-02"
+      }
+    },
+    {
+      "step": "rollback",
+      "release_id": "refund-01",
+      "version": 1,
+      "request_header": {
+        "X-Release-Id": "refund-01"
+      }
+    }
+  ]
+}

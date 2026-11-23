@@ -132,22 +132,22 @@
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| SERV-01 | 用 Qwen 0.5B 搭一个极简 vLLM Server | 固定环境后启动 `vllm serve Qwen/Qwen2.5-0.5B-Instruct`，验收模型列表、普通 Chat Completion、流式 Chat Completion，记下生成参数与实际 Token 用量。 |
-| SERV-02 | 一次请求从浏览器到引擎再回浏览器 | 浏览器 `fetch` POST → 应用后端按需代理 → vLLM HTTP 路由与输入处理 → 引擎调度 → 模型 Worker → Token 解码与 SSE → 客户端增量渲染。记录同一请求 ID 及各层时间。 |
-| SERV-03 | 读 vLLM V1 源码，从路由跟到模型前向 | 在固定 tag 下记录实际文件和方法：入口与 Chat 路由、模板及 Tokenization、异步引擎客户端、Engine Core、Scheduler、Worker 和输出处理。用一条短请求标出进程、任务及数据结构的交接。 |
-| SERV-04 | PagedAttention、Continuous Batching 和 Prefix Cache | 按请求画 KV 块分配及调度过程。比较同前缀、不同前缀与不同并发，测缓存利用率、排队、TTFT、ITL 和吞吐。 |
-| SERV-05 | 端到端流式调试和取消 | 记录第一个 HTTP 字节、第一条 SSE、第一段可见文字和结束事件。定位代理缓冲、HTTP/SSE 分帧、慢消费者、客户端取消与服务端请求回收。 |
-| SERV-06 | Chunked Prefill 与 Speculative Decoding | 对比输入调度与输出生成的优化目标。固定模型、硬件和数据，分别做单因素实验，记录并发、TTFT、ITL、吞吐，启用投机解码时再记录草稿接受率。 |
-| SERV-07 | SGLang 源码与 vLLM 对照 | 让同一个 Qwen 模型跑通 OpenAI 兼容请求，固定版本跟 Scheduler 与 RadixAttention 前缀复用。与 SERV-03～SERV-04 对照缓存、批处理和流式输出；工具及结构化能力按版本实测。 |
-| SERV-12 | 模型注册、产物血缘与版本发布 | 用 MLflow 建立从实验、数据和评测到发布模型的关联，固定基座、Tokenizer、模板、Adapter 与量化配置。用一条请求的发布 ID 查回完整产物，并演示恢复到上一组通过验证的版本。 |
-| SERV-08 | 从训练产物部署成单机推理服务 | 从基座、Tokenizer、模板、Adapter 或合并权重和量化产物生成部署清单。比较适配器挂载与合并两种路径的兼容性，验证容器、健康检查、模型预热、限流、流式断开和旧版本回滚。 |
-| SERV-13 | 本地推理与模型格式，llama.cpp 和 MLX-LM | 在 Apple Silicon 上从同一个 Qwen 基座准备 GGUF 与 MLX 权重，核对 Tokenizer、Chat Template、量化方法和实际硬件后端。对照加载时间、峰值内存、TTFT、输出速率和样本质量。 |
-| SERV-09 | 部署优化，从显存预算到延迟与吞吐 | 先算权重、KV Cache 与工作区显存，再用输入长度、输出长度、到达速率和并发构造负载。依次测试批处理、缓存、量化和预热，标注 OOM、队列、TTFT、ITL、P95 和满足延迟目标的吞吐。 |
-| SERV-14 | GPU 性能剖析，从请求时间线到内核 | 在固定输入、输出和并发下，用 Nsight Systems 对齐 Prefill、Decode、CPU 调度、数据搬运与 CUDA 内核。先定位等待或计算热点，再验证一次配置变更对延迟和吞吐的影响。 |
-| SERV-10 | 多 GPU 与分离式推理部署 | 学数据并行、张量并行、流水线并行，MoE 再看专家并行。解释显存、通信和节点拓扑；Prefill/Decode 分离作为进阶，测 KV 传输开销与跨节点尾延迟。 |
-| SERV-11 | 两种引擎的生产基准与选型报告 | 使用相同模型权重、量化和采样配置、请求流和硬件，区分冷暖缓存。先验证结果、协议和取消语义，再对照延迟、吞吐、每成功请求成本和操作复杂度。 |
-| SERV-15 | 推理服务容量规划与弹性伸缩 | 从目标 P95 和请求长度分布推导单副本容量。用稳态和突发流量比较队列长度、在途请求与 GPU 利用率作为扩缩容信号，观测新副本就绪、预热、缩容抖动、达标吞吐和成本。 |
-| SERV-16 | 离线批量推理与异步作业 | 用同一批文档做字段抽取，比较在线并发请求与提交离线批次。给任务和输入行分配稳定 ID，验证乱序结果关联、部分失败后按失败项重跑及重复结果去重，衡量整批完成时间和单位成本。说明异步提交与 SERV-04 的引擎内部批处理如何处在不同层。 |
+| SERV-01 | [用 Qwen 0.5B 搭一个极简 vLLM Server](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html)（已发布，[源稿](serv-01-vllm-server.md)） | 固定环境后启动 `vllm serve Qwen/Qwen2.5-0.5B-Instruct`，验收模型列表、普通 Chat Completion、流式 Chat Completion，记下生成参数与实际 Token 用量。 |
+| SERV-02 | [一次请求从浏览器到引擎再回浏览器](https://blog.lacknb.cn/articles/2026/11/23/1795400442549.html)（已发布，[源稿](serv-02-request-lifecycle.md)） | 浏览器 `fetch` POST → 应用后端按需代理 → vLLM HTTP 路由与输入处理 → 引擎调度 → 模型 Worker → Token 解码与 SSE → 客户端增量渲染。记录同一请求 ID 及各层时间。 |
+| SERV-03 | [读 vLLM V1 源码，从路由跟到模型前向](https://blog.lacknb.cn/articles/2026/11/23/1795400444175.html)（已发布，[源稿](serv-03-vllm-v1-source.md)） | 在固定 tag 下记录实际文件和方法：入口与 Chat 路由、模板及 Tokenization、异步引擎客户端、Engine Core、Scheduler、Worker 和输出处理。用一条短请求标出进程、任务及数据结构的交接。 |
+| SERV-04 | [PagedAttention、Continuous Batching 和 Prefix Cache](https://blog.lacknb.cn/articles/2026/11/23/1795400445885.html)（已发布，[源稿](serv-04-paged-attention-batching.md)） | 按请求画 KV 块分配及调度过程。比较同前缀、不同前缀与不同并发，测缓存利用率、排队、TTFT、ITL 和吞吐。 |
+| SERV-05 | [端到端流式调试和取消](https://blog.lacknb.cn/articles/2026/11/23/1795400447564.html)（已发布，[源稿](serv-05-streaming-cancellation.md)） | 记录第一个 HTTP 字节、第一条 SSE、第一段可见文字和结束事件。定位代理缓冲、HTTP/SSE 分帧、慢消费者、客户端取消与服务端请求回收。 |
+| SERV-06 | [Chunked Prefill 与 Speculative Decoding](https://blog.lacknb.cn/articles/2026/11/23/1795400449358.html)（已发布，[源稿](serv-06-prefill-speculative.md)） | 对比输入调度与输出生成的优化目标。固定模型、硬件和数据，分别做单因素实验，记录并发、TTFT、ITL、吞吐，启用投机解码时再记录草稿接受率。 |
+| SERV-07 | [SGLang 源码与 vLLM 对照](https://blog.lacknb.cn/articles/2026/11/23/1795400451069.html)（已发布，[源稿](serv-07-sglang-source.md)） | 让同一个 Qwen 模型跑通 OpenAI 兼容请求，固定版本跟 Scheduler 与 RadixAttention 前缀复用。与 SERV-03～SERV-04 对照缓存、批处理和流式输出；工具及结构化能力按版本实测。 |
+| SERV-12 | [模型注册、产物血缘与版本发布](https://blog.lacknb.cn/articles/2026/11/23/1795400452835.html)（已发布，[源稿](serv-12-model-registry.md)） | 用 MLflow 建立从实验、数据和评测到发布模型的关联，固定基座、Tokenizer、模板、Adapter 与量化配置。用一条请求的发布 ID 查回完整产物，并演示恢复到上一组通过验证的版本。 |
+| SERV-08 | [从训练产物部署成单机推理服务](https://blog.lacknb.cn/articles/2026/11/23/1795400454476.html)（已发布，[源稿](serv-08-single-node-deployment.md)） | 从基座、Tokenizer、模板、Adapter 或合并权重和量化产物生成部署清单。比较适配器挂载与合并两种路径的兼容性，验证容器、健康检查、模型预热、限流、流式断开和旧版本回滚。 |
+| SERV-13 | [本地推理与模型格式，llama.cpp 和 MLX-LM](https://blog.lacknb.cn/articles/2026/11/23/1795400456136.html)（已发布，[源稿](serv-13-llamacpp-mlx.md)） | 在 Apple Silicon 上从同一个 Qwen 基座准备 GGUF 与 MLX 权重，核对 Tokenizer、Chat Template、量化方法和实际硬件后端。对照加载时间、峰值内存、TTFT、输出速率和样本质量。 |
+| SERV-09 | [部署优化，从显存预算到延迟与吞吐](https://blog.lacknb.cn/articles/2026/11/23/1795400457884.html)（已发布，[源稿](serv-09-inference-optimization.md)） | 先算权重、KV Cache 与工作区显存，再用输入长度、输出长度、到达速率和并发构造负载。依次测试批处理、缓存、量化和预热，标注 OOM、队列、TTFT、ITL、P95 和满足延迟目标的吞吐。 |
+| SERV-14 | [GPU 性能剖析，从请求时间线到内核](https://blog.lacknb.cn/articles/2026/11/23/1795400459614.html)（已发布，[源稿](serv-14-gpu-profiling.md)） | 在固定输入、输出和并发下，用 Nsight Systems 对齐 Prefill、Decode、CPU 调度、数据搬运与 CUDA 内核。先定位等待或计算热点，再验证一次配置变更对延迟和吞吐的影响。 |
+| SERV-10 | [多 GPU 与分离式推理部署](https://blog.lacknb.cn/articles/2026/11/23/1795400461248.html)（已发布，[源稿](serv-10-distributed-inference.md)） | 学数据并行、张量并行、流水线并行，MoE 再看专家并行。解释显存、通信和节点拓扑；Prefill/Decode 分离作为进阶，测 KV 传输开销与跨节点尾延迟。 |
+| SERV-11 | [两种引擎的生产基准与选型报告](https://blog.lacknb.cn/articles/2026/11/23/1795400462988.html)（已发布，[源稿](serv-11-engine-benchmark.md)） | 使用相同模型权重、量化和采样配置、请求流和硬件，区分冷暖缓存。先验证结果、协议和取消语义，再对照延迟、吞吐、每成功请求成本和操作复杂度。 |
+| SERV-15 | [推理服务容量规划与弹性伸缩](https://blog.lacknb.cn/articles/2026/11/23/1795400464747.html)（已发布，[源稿](serv-15-serving-capacity.md)） | 从目标 P95 和请求长度分布推导单副本容量。用稳态和突发流量比较队列长度、在途请求与 GPU 利用率作为扩缩容信号，观测新副本就绪、预热、缩容抖动、达标吞吐和成本。 |
+| SERV-16 | [离线批量推理与异步作业](https://blog.lacknb.cn/articles/2026/11/23/1795400466528.html)（已发布，[源稿](serv-16-offline-batch.md)） | 用同一批文档做字段抽取，比较在线并发请求与提交离线批次。给任务和输入行分配稳定 ID，验证乱序结果关联、部分失败后按失败项重跑及重复结果去重，衡量整批完成时间和单位成本。说明异步提交与 SERV-04 的引擎内部批处理如何处在不同层。 |
 
 源码文章以 **一条请求的跟踪记录** 为验收。至少展示实际请求体、模板结果或 Token IDs、调度与输出事件、浏览器可见结果。对客户端取消，实测引擎是否回收同一请求。OpenAI 兼容接口按实际覆盖范围写，示范用 Chat Completions，Responses 和 Anthropic 形态另做兼容性对照。 [vLLM V1 架构](https://docs.vllm.ai/en/stable/design/arch_overview/) · [vLLM Prefix Cache](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/) · [PagedAttention 论文](https://arxiv.org/abs/2309.06180) · [vLLM 调度与调优](https://docs.vllm.ai/en/stable/configuration/optimization/) · [vLLM 投机解码实验](https://docs.vllm.ai/projects/speculators/en/stable/user_guide/tutorials/throughput_interactivity/) · [vLLM Benchmark CLI](https://docs.vllm.ai/en/latest/benchmarking/cli/) · [SGLang 文档](https://docs.sglang.io/) · [MLflow Model Registry](https://mlflow.org/docs/latest/ml/model-registry/) · [llama.cpp](https://github.com/ggml-org/llama.cpp) · [MLX-LM](https://github.com/ml-explore/mlx-lm) · [Nsight Systems](https://docs.nvidia.com/nsight-systems/UserGuide/index.html) · [vLLM 指标](https://docs.vllm.ai/en/latest/design/metrics/) · [OpenAI Batch API](https://developers.openai.com/api/docs/guides/batch)
 

@@ -1,0 +1,122 @@
+{
+  "job_id": "refund-batch-01",
+  "model": "default_model",
+  "input_order": [
+    "mixed",
+    "zero",
+    "empty",
+    "decimal"
+  ],
+  "completion_order": [
+    "zero",
+    "decimal",
+    "mixed",
+    "empty"
+  ],
+  "first_failures": [
+    "empty"
+  ],
+  "replayed_write_rows": 0,
+  "submit_ms": 0.4929169999741134,
+  "batch_elapsed_ms": 1857.029834000059,
+  "online_elapsed_ms": 2212.855708999996,
+  "online_passed": 0,
+  "items": [
+    {
+      "item_id": "13b7eccdfc2f1673",
+      "sample": "mixed",
+      "status": "done",
+      "attempts": 1,
+      "result": {
+        "request_id": "refund-batch-01-13b7eccdfc2f1673",
+        "response_header_id": null,
+        "id": "chatcmpl-232fdaf0-bc98-47d3-8c2f-2b389ff2908c",
+        "headers_ms": 918.461,
+        "elapsed_ms": 918.504,
+        "usage": {
+          "prompt_tokens": 74,
+          "completion_tokens": 21,
+          "total_tokens": 95,
+          "prompt_tokens_details": {
+            "cached_tokens": 73
+          }
+        },
+        "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+        "passed": false,
+        "finish": "stop"
+      }
+    },
+    {
+      "item_id": "552a63073034f67a",
+      "sample": "decimal",
+      "status": "done",
+      "attempts": 1,
+      "result": {
+        "request_id": "refund-batch-01-552a63073034f67a",
+        "response_header_id": null,
+        "id": "chatcmpl-007d1723-d978-43f6-800d-a6ef0b49a96b",
+        "headers_ms": 866.964,
+        "elapsed_ms": 867.094,
+        "usage": {
+          "prompt_tokens": 74,
+          "completion_tokens": 21,
+          "total_tokens": 95,
+          "prompt_tokens_details": {
+            "cached_tokens": 73
+          }
+        },
+        "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+        "passed": false,
+        "finish": "stop"
+      }
+    },
+    {
+      "item_id": "7683b6280a59bd04",
+      "sample": "empty",
+      "status": "done",
+      "attempts": 2,
+      "result": {
+        "request_id": "refund-batch-01-7683b6280a59bd04",
+        "response_header_id": null,
+        "id": "chatcmpl-3482e8e2-6935-47c4-8fc4-cc0b5b841ad6",
+        "headers_ms": 531.838,
+        "elapsed_ms": 531.879,
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 20,
+          "total_tokens": 92,
+          "prompt_tokens_details": {
+            "cached_tokens": 71
+          }
+        },
+        "text": "```json\n{\n  \"count\": 0,\n  \"mean\": null\n}\n```",
+        "passed": false,
+        "finish": "stop"
+      }
+    },
+    {
+      "item_id": "a82e0f2e3476d050",
+      "sample": "zero",
+      "status": "done",
+      "attempts": 1,
+      "result": {
+        "request_id": "refund-batch-01-a82e0f2e3476d050",
+        "response_header_id": null,
+        "id": "chatcmpl-4068a82d-58a5-4cc9-a968-53b1ba5d9342",
+        "headers_ms": 819.063,
+        "elapsed_ms": 819.115,
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 20,
+          "total_tokens": 92,
+          "prompt_tokens_details": {
+            "cached_tokens": 71
+          }
+        },
+        "text": "```json\n{\n  \"count\": 0,\n  \"mean\": null\n}\n```",
+        "passed": false,
+        "finish": "stop"
+      }
+    }
+  ]
+}

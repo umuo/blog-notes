@@ -1,0 +1,35 @@
+{
+  "rows": [
+    {
+      "decode_e2e_ms": 1411.428,
+      "decode_longest_event_gap_ms": 146.184,
+      "prefill_ttft_ms": 161.493,
+      "prompt_tokens": 718,
+      "done": true
+    },
+    {
+      "decode_e2e_ms": 729.207,
+      "decode_longest_event_gap_ms": 121.762,
+      "prefill_ttft_ms": 155.794,
+      "prompt_tokens": 718,
+      "done": true
+    },
+    {
+      "decode_e2e_ms": 839.469,
+      "decode_longest_event_gap_ms": 170.349,
+      "prefill_ttft_ms": 149.424,
+      "prompt_tokens": 718,
+      "done": true
+    },
+    {
+      "decode_e2e_ms": 796.119,
+      "decode_longest_event_gap_ms": 94.899,
+      "prefill_ttft_ms": 158.143,
+      "prompt_tokens": 718,
+      "done": true
+    }
+  ],
+  "median_long_ttft_ms": 156.9685,
+  "median_short_worst_gap_ms": 133.973,
+  "spec_counters": {}
+}

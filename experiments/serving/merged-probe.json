@@ -1,0 +1,140 @@
+{
+  "model": "default_model",
+  "nonstream": {
+    "request_id": "serv-demo",
+    "response_header_id": null,
+    "id": "chatcmpl-3c858e6f-cdab-402f-a538-57160fe1cce2",
+    "headers_ms": 2354.785,
+    "elapsed_ms": 2354.987,
+    "usage": {
+      "prompt_tokens": 74,
+      "completion_tokens": 10,
+      "total_tokens": 84,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": "{\"count\":2,\"mean\":4}",
+    "passed": false,
+    "finish": "stop"
+  },
+  "stream": {
+    "request_id": "serv-demo",
+    "response_header_id": null,
+    "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+    "headers_ms": 4.104,
+    "first_line_ms": 121.417,
+    "first_event_ms": 295.998,
+    "ttft_ms": 296.26,
+    "elapsed_ms": 1239.883,
+    "visible_event_intervals_ms": [
+      107.706,
+      108.276,
+      99.581,
+      97.442,
+      100.446,
+      109.982,
+      106.793,
+      102.241
+    ],
+    "usage": {
+      "prompt_tokens": 74,
+      "completion_tokens": 10,
+      "total_tokens": 84,
+      "prompt_tokens_details": {
+        "cached_tokens": 73
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "text": "{\"count\":2,\"mean\":4}",
+    "passed": false,
+    "first_events": [
+      {
+        "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399482,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "{\""
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399482,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "count"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399482,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "\":"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399482,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d443f4d7-3810-410c-8530-bab367cc9b28",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399482,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": ",\""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

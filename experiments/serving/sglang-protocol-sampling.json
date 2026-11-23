@@ -1,0 +1,72 @@
+{
+  "schema": {
+    "status": 200,
+    "text": "{\"count\":2,\"mean\":4}",
+    "passed": false
+  },
+  "canceled": {
+    "request_id": "isolated-abort",
+    "response_header_id": null,
+    "id": "affe234ed67141039f5e73ec78252d11",
+    "headers_ms": 215.869,
+    "first_line_ms": 215.968,
+    "first_event_ms": 215.996,
+    "ttft_ms": 216.133,
+    "elapsed_ms": 216.275,
+    "visible_event_intervals_ms": [],
+    "usage": null,
+    "finish": null,
+    "done": false,
+    "text": "```",
+    "passed": false,
+    "first_events": [
+      {
+        "id": "affe234ed67141039f5e73ec78252d11",
+        "object": "chat.completion.chunk",
+        "created": 1795400120,
+        "model": "refund",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "reasoning_content": null,
+              "role": "assistant",
+              "content": ""
+            },
+            "logprobs": null,
+            "finish_reason": null,
+            "matched_stop": null
+          }
+        ]
+      },
+      {
+        "id": "affe234ed67141039f5e73ec78252d11",
+        "object": "chat.completion.chunk",
+        "created": 1795400120,
+        "model": "refund",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "reasoning_content": null,
+              "content": "```"
+            },
+            "logprobs": null,
+            "finish_reason": null,
+            "matched_stop": null
+          }
+        ]
+      }
+    ]
+  },
+  "counters": {
+    "sglang:num_aborted_requests_total{engine_type=\"unified\",model_name=\"refund\"}": [
+      0,
+      1.0
+    ],
+    "sglang:num_running_reqs{engine_type=\"unified\",model_name=\"refund\",moe_ep_rank=\"0\",pp_rank=\"0\",tp_rank=\"0\"}": [
+      0.0,
+      0.0
+    ]
+  }
+}

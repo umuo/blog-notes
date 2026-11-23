@@ -1,0 +1,41 @@
+{
+  "flush": {
+    "trace": "33.50 ms HTTP 响应头 browser-ae28e302-9a9b-43cd-8997-4e75776f3e49\n104.00 ms 第一个数据块 \n149.50 ms 第一条 SSE \n149.60 ms 第一段文字加入 DOM \n149.80 ms 下一帧回调 \n394.80 ms 结束事件 \n",
+    "output": "Count: 3\nMean: 4.0",
+    "proxy": {
+      "id": "browser-ae28e302-9a9b-43cd-8997-4e75776f3e49",
+      "outcome": "complete",
+      "mode": "flush",
+      "upstream_headers_ms": 14.849,
+      "client_headers_ms": 14.927,
+      "first_write_ms": 75.883,
+      "elapsed_ms": 376.885
+    }
+  },
+  "buffer": {
+    "trace": "343.30 ms HTTP 响应头 browser-baffaf30-97ab-47b7-96d7-b847235bd55b\n344.10 ms 第一个数据块 \n344.20 ms 第一条 SSE \n344.20 ms 第一段文字加入 DOM \n344.40 ms 结束事件 \n345.50 ms 下一帧回调 \n",
+    "output": "Count: 3\nMean: 4.0",
+    "proxy": {
+      "id": "browser-baffaf30-97ab-47b7-96d7-b847235bd55b",
+      "outcome": "complete",
+      "mode": "buffer",
+      "upstream_headers_ms": 3.788,
+      "client_headers_ms": 326.123,
+      "first_write_ms": 326.14,
+      "elapsed_ms": 326.142
+    }
+  },
+  "cancel": {
+    "trace": "18.90 ms HTTP 响应头 browser-3f11894a-bec0-4b1d-8e31-ed136508dc0c\n80.40 ms 第一个数据块 \n110.50 ms 第一条 SSE \n110.60 ms 第一段文字加入 DOM \n114.50 ms 下一帧回调 \n151.40 ms 客户端取消 signal is aborted without reason\n",
+    "output": "Sure,",
+    "proxy": {
+      "id": "browser-3f11894a-bec0-4b1d-8e31-ed136508dc0c",
+      "outcome": "connection_closed",
+      "mode": "flush",
+      "upstream_headers_ms": 2.99,
+      "client_headers_ms": 3.036,
+      "first_write_ms": 42.642,
+      "elapsed_ms": 144.266
+    }
+  }
+}

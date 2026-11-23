@@ -2,7 +2,7 @@
 
 ## 当前接续点
 
-整条路线规划 14 个专题、138 篇文章，目前已发布 47 篇，尚待发布 91 篇。第四部分「模型预训练与后训练」12 篇已全部发布。按路线图行序，下一篇写作是 **SERV-01《用 Qwen 0.5B 搭一个极简 vLLM Server》**。
+整条路线规划 14 个专题、138 篇文章，目前已发布 63 篇，尚待发布 75 篇。第五部分「推理引擎与模型部署」16 篇已全部发布。按路线图行序，下一篇写作是 **AGT-01《从工具调用到 Agent Loop》**。
 
 | 已发布专题 | 篇数 | 阅读入口 |
 | --- | ---: | --- |
@@ -10,6 +10,7 @@
 | LLM API 与流式协议 | 10 | [API-01《从原始 HTTP 请求认识 LLM API》](https://blog.lacknb.cn/articles/2026/11/21/1795268752670.html) |
 | 评测入门与 LLM 效果评测 | 10 | [LE-07《什么是评测，如何跑通第一条用例》](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html) |
 | 模型预训练与后训练 | 12 | [TRN-01《预训练语料与 Token 数据管线》](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html) · [专题目录](llm-agent-learning-roadmap.md#4-模型预训练与后训练) |
+| 推理引擎与模型部署 | 16 | [SERV-01《用 Qwen 0.5B 搭一个极简 vLLM Server》](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html) · [专题目录](llm-agent-learning-roadmap.md#5-推理引擎与模型部署vllm-和-sglang) |
 
 公开入口见[置顶学习路线图](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)。详细范围、先修顺序和源稿见[仓库路线图](llm-agent-learning-roadmap.md)。写作和发布流程见 [AGENTS.md](AGENTS.md)。
 
@@ -17,6 +18,7 @@
 
 | 日期 | 进展 | 记录 |
 | --- | --- | --- |
+| 2026-11-23 | 发布 SERV-01～SERV-16，完成第五部分 | 归档推理引擎、流式、模型注册、部署和批作业实测，以及标明口径的调度及容量演算。核对公开正文、封面与置顶目录 |
 | 2026-11-23 | 发布 [TRN-05](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)、[TRN-06](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)、[TRN-07](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)、[TRN-08](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)、[TRN-11](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)、[TRN-12](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)、[TRN-09](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)，完成第四部分 | 归档 Qwen LoRA、DPO 和 Unsloth 实测，以及强化学习、蒸馏和数据筛选的教学实验。逐篇核对公开正文、封面与置顶路线图 |
 | 2026-11-22 | 发布 [TRN-04《SFT 怎么把对话变成监督信号》](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html) | 核对公开正文、封面与实测结果，已同步置顶路线图 |
 | 2026-11-22 | 完成 [TRN-04 本地稿](trn-04-sft-supervision.md) | 实测 Qwen 多轮助手标签、填充与截断，在六组留出题上比较基座、提示词和 SFT |

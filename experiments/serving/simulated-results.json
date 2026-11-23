@@ -1,0 +1,649 @@
+{
+  "paged": [
+    {
+      "request": "A",
+      "block_table": [
+        1,
+        2,
+        3
+      ],
+      "cached_tokens": 0
+    },
+    {
+      "request": "B",
+      "block_table": [
+        1,
+        2,
+        4
+      ],
+      "cached_tokens": 8
+    },
+    {
+      "request": "C",
+      "block_table": [
+        5,
+        6,
+        7
+      ],
+      "cached_tokens": 0
+    }
+  ],
+  "decoding": {
+    "prefill_chunks": [
+      7,
+      7,
+      4
+    ],
+    "decode_slots_per_tick": 1,
+    "accepted": 5,
+    "drafted": 6,
+    "output": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "memory": {
+    "weight_bytes": 988065536,
+    "kv_bytes_per_token": 12288,
+    "occupied_slots": 3008,
+    "kv_bytes_four_requests": 147849216,
+    "events_ms": [
+      [
+        0,
+        8,
+        "cpu"
+      ],
+      [
+        8,
+        10,
+        "copy"
+      ],
+      [
+        11,
+        15,
+        "kernel"
+      ],
+      [
+        14,
+        18,
+        "kernel"
+      ],
+      [
+        18,
+        21,
+        "cpu"
+      ]
+    ],
+    "gpu_active_wall_ms": 7,
+    "gpu_sum_kernel_ms": 8,
+    "transfer_2048_tokens_bytes": 25165824,
+    "estimated_wire_ms": 10.0663296
+  },
+  "capacity": {
+    "fixed": {
+      "requests": 183,
+      "completed": 183,
+      "max_queue": 36,
+      "p95_seconds": 8,
+      "within_3_seconds": 105,
+      "replicas_seconds": 45,
+      "timeline": [
+        {
+          "tick": 0,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 1,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 2,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 3,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 4,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 5,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 6,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 7,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 8,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 9,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 10,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 11,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 12,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 6
+        },
+        {
+          "tick": 13,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 12
+        },
+        {
+          "tick": 14,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 18
+        },
+        {
+          "tick": 15,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 24
+        },
+        {
+          "tick": 16,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 30
+        },
+        {
+          "tick": 17,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 36
+        },
+        {
+          "tick": 18,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 34
+        },
+        {
+          "tick": 19,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 32
+        },
+        {
+          "tick": 20,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 30
+        },
+        {
+          "tick": 21,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 28
+        },
+        {
+          "tick": 22,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 26
+        },
+        {
+          "tick": 23,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 24
+        },
+        {
+          "tick": 24,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 22
+        },
+        {
+          "tick": 25,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 20
+        },
+        {
+          "tick": 26,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 18
+        },
+        {
+          "tick": 27,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 16
+        },
+        {
+          "tick": 28,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 14
+        },
+        {
+          "tick": 29,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 12
+        },
+        {
+          "tick": 30,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 10
+        },
+        {
+          "tick": 31,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 8
+        },
+        {
+          "tick": 32,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 6
+        },
+        {
+          "tick": 33,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 4
+        },
+        {
+          "tick": 34,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 2
+        },
+        {
+          "tick": 35,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 36,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 37,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 38,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 39,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 40,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 41,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 42,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 43,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 44,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        }
+      ]
+    },
+    "queue": {
+      "requests": 183,
+      "completed": 183,
+      "max_queue": 25,
+      "p95_seconds": 3,
+      "within_3_seconds": 178,
+      "replicas_seconds": 64,
+      "timeline": [
+        {
+          "tick": 0,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 1,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 2,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 3,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 4,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 5,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 6,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 7,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 8,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 9,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 10,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 11,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 12,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 6
+        },
+        {
+          "tick": 13,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 12
+        },
+        {
+          "tick": 14,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 18
+        },
+        {
+          "tick": 15,
+          "arrivals": 11,
+          "ready": 1,
+          "queued": 24
+        },
+        {
+          "tick": 16,
+          "arrivals": 11,
+          "ready": 2,
+          "queued": 25
+        },
+        {
+          "tick": 17,
+          "arrivals": 11,
+          "ready": 3,
+          "queued": 21
+        },
+        {
+          "tick": 18,
+          "arrivals": 3,
+          "ready": 3,
+          "queued": 9
+        },
+        {
+          "tick": 19,
+          "arrivals": 3,
+          "ready": 3,
+          "queued": 0
+        },
+        {
+          "tick": 20,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 21,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 22,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 23,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 24,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 25,
+          "arrivals": 3,
+          "ready": 2,
+          "queued": 0
+        },
+        {
+          "tick": 26,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 27,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 28,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 29,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 30,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 31,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 32,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 33,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 34,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 35,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 36,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 37,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 38,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 39,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 40,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 41,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 42,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 43,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        },
+        {
+          "tick": 44,
+          "arrivals": 3,
+          "ready": 1,
+          "queued": 0
+        }
+      ]
+    }
+  }
+}

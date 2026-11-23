@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推理请求追踪</title>
+<body>
+    <h1>推理请求追踪</h1>
+    <button id="start">生成</button>
+    <button id="cancel" disabled>取消</button>
+    <pre id="output" aria-live="polite"></pre>
+    <pre id="trace"></pre>
+    <script>
+        const start = document.querySelector("#start");
+        const cancel = document.querySelector("#cancel");
+        const trace = document.querySelector("#trace");
+        const output = document.querySelector("#output");
+        let controller;
+        cancel.onclick = () => controller.abort();
+        start.onclick = async () => {
+            start.disabled = true;
+            cancel.disabled = false;
+            trace.textContent = "";
+            output.textContent = "";
+            controller = new AbortController();
+            const began = performance.now();
+            const id = "browser-" + crypto.randomUUID();
+            const mark = (label, extra = "") => {
+                trace.textContent += `${(performance.now() - began).toFixed(2)} ms ${label} ${extra}\n`;
+            };
+            const render = async (data) => {
+                if (data === "[DONE]") {
+                    mark("结束事件");
+                    return;
+                }
+                const event = JSON.parse(data);
+                const text = event.choices?.[0]?.delta?.content;
+                if (text) {
+                    const first = !output.textContent;
+                    output.textContent += text;
+                    if (first) {
+                        mark("第一段文字加入 DOM");
+                        requestAnimationFrame(() => mark("下一帧回调"));
+                    }
+                }
+            };
+            try {
+                const params = new URLSearchParams(location.search);
+                const selected = params.get("model");
+                const long = params.has("long");
+                const models = await fetch("/v1/models", { signal: controller.signal }).then((r) => r.json());
+                const response = await fetch("/v1/chat/completions", {
+                    method: "POST",
+                    signal: controller.signal,
+                    headers: { "Content-Type": "application/json", "X-Request-Id": id },
+                    body: JSON.stringify({
+                        model: selected || models.data[0].id,
+                        messages: [{role: "user", content: long
+                            ? "Print numbers 1 to 500, one per line."
+                            : "Refund CSV: 4, NA, 6. Ignore NA. Answer with count and mean."}],
+                        stream: true, temperature: 0, max_tokens: long ? 256 : 48,
+                    }),
+                });
+                mark("HTTP 响应头", response.headers.get("X-Request-Id") || "");
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+                let pending = "";
+                let firstChunk = true;
+                let firstEvent = true;
+                let lines = [];
+                try {
+                    while (true) {
+                        const {done, value} = await reader.read();
+                        if (done) {
+                            break;
+                        }
+                        if (firstChunk) {
+                            mark("第一个数据块");
+                            firstChunk = false;
+                        }
+                        pending += value;
+                        let newline;
+                        while ((newline = pending.indexOf("\n")) !== -1) {
+                            const line = pending.slice(0, newline).replace(/\r$/, "");
+                            pending = pending.slice(newline + 1);
+                            if (line.startsWith("data:")) {
+                                lines.push(line.slice(5).replace(/^ /, ""));
+                            } else if (line === "" && lines.length) {
+                                if (firstEvent) {
+                                    mark("第一条 SSE");
+                                    firstEvent = false;
+                                }
+                                await render(lines.join("\n"));
+                                lines = [];
+                            }
+                        }
+                    }
+                } finally {
+                    reader.releaseLock();
+                }
+            } catch (error) {
+                mark(error.name === "AbortError" ? "客户端取消" : "请求失败", error.message);
+            } finally {
+                start.disabled = false;
+                cancel.disabled = true;
+            }
+        };
+    </script>
+</body>
+</html>

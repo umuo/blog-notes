@@ -1,0 +1,71 @@
+{
+  "schema": {
+    "status": 500,
+    "detail": "{\"object\":\"error\",\"message\":\"Grammar accept_token failed: Tokens not accepted: 73594\\nAccepted tokens: []\\nKey string: {\\\"type\\\": \\\"object\\\", \\\"properties\\\": {\\\"count\\\": {\\\"type\\\": \\\"integer\\\"}, \\\"mean\\\": {\\\"type\\\": [\\\"number\\\", \\\"null\\\"]}}, \\\"required\\\": [\\\"count\\\", \\\"mean\\\"], \\\"additionalProperties\\\": false}\",\"type\":\"500\",\"param\":null,\"code\":500}"
+  },
+  "canceled": {
+    "request_id": "isolated-abort",
+    "response_header_id": null,
+    "id": "669705809b1a43de829c50da647e948b",
+    "headers_ms": 33.777,
+    "first_line_ms": 33.819,
+    "first_event_ms": 33.832,
+    "ttft_ms": 33.875,
+    "elapsed_ms": 33.904,
+    "visible_event_intervals_ms": [],
+    "usage": null,
+    "finish": null,
+    "done": false,
+    "text": "```",
+    "passed": false,
+    "first_events": [
+      {
+        "id": "669705809b1a43de829c50da647e948b",
+        "object": "chat.completion.chunk",
+        "created": 1795400009,
+        "model": "refund",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "reasoning_content": null,
+              "role": "assistant",
+              "content": ""
+            },
+            "logprobs": null,
+            "finish_reason": null,
+            "matched_stop": null
+          }
+        ]
+      },
+      {
+        "id": "669705809b1a43de829c50da647e948b",
+        "object": "chat.completion.chunk",
+        "created": 1795400009,
+        "model": "refund",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "reasoning_content": null,
+              "content": "```"
+            },
+            "logprobs": null,
+            "finish_reason": null,
+            "matched_stop": null
+          }
+        ]
+      }
+    ]
+  },
+  "counters": {
+    "sglang:num_aborted_requests_total{engine_type=\"unified\",model_name=\"refund\"}": [
+      1.0,
+      2.0
+    ],
+    "sglang:num_running_reqs{engine_type=\"unified\",model_name=\"refund\",moe_ep_rank=\"0\",pp_rank=\"0\",tp_rank=\"0\"}": [
+      0.0,
+      0.0
+    ]
+  }
+}

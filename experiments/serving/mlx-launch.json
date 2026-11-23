@@ -1,0 +1,257 @@
+{
+  "ready_seconds": 3.2418617089997497,
+  "peak_sampled_loading_rss_bytes": 516636672,
+  "rss_bytes_after_warm": 1372422144,
+  "cold": {
+    "request_id": "cold",
+    "response_header_id": null,
+    "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+    "headers_ms": 870.552,
+    "first_line_ms": 1736.587,
+    "first_event_ms": 2065.574,
+    "ttft_ms": 2066.449,
+    "elapsed_ms": 2508.777,
+    "visible_event_intervals_ms": [
+      22.609,
+      23.576,
+      23.312,
+      44.551,
+      21.424,
+      20.545,
+      41.997,
+      21.649,
+      43.763,
+      21.232,
+      22.17,
+      45.778,
+      21.738,
+      22.087,
+      20.123
+    ],
+    "usage": {
+      "prompt_tokens": 74,
+      "completion_tokens": 21,
+      "total_tokens": 95,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+    "passed": false,
+    "first_events": [
+      {
+        "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399507,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "```"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399507,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399507,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "\n"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399507,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "{\n"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-d6fdf2ab-9a86-49c3-983c-99888b307e4e",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399507,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "  \""
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "warm": {
+    "request_id": "warm",
+    "response_header_id": null,
+    "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+    "headers_ms": 4.456,
+    "first_line_ms": 78.87,
+    "first_event_ms": 106.624,
+    "ttft_ms": 106.654,
+    "elapsed_ms": 528.271,
+    "visible_event_intervals_ms": [
+      20.291,
+      20.575,
+      20.295,
+      39.224,
+      19.898,
+      21.463,
+      43.953,
+      20.833,
+      42.755,
+      23.648,
+      22.207,
+      41.85,
+      20.833,
+      21.592,
+      21.114
+    ],
+    "usage": {
+      "prompt_tokens": 74,
+      "completion_tokens": 21,
+      "total_tokens": 95,
+      "prompt_tokens_details": {
+        "cached_tokens": 73
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "text": "```json\n{\n  \"count\": 2,\n  \"mean\": 5\n}\n```",
+    "passed": false,
+    "first_events": [
+      {
+        "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399510,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "```"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399510,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399510,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "\n"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399510,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "{\n"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chatcmpl-a5ddd3b6-7c39-455e-92a1-ab19e86de524",
+        "system_fingerprint": "0.32.2-0.32.4-macOS-15.5-arm64-arm-64bit-applegpu_g13g",
+        "object": "chat.completion.chunk",
+        "model": "default_model",
+        "created": 1795399510,
+        "choices": [
+          {
+            "index": 0,
+            "finish_reason": null,
+            "delta": {
+              "role": "assistant",
+              "content": "  \""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "cpu_container": {
+    "version": "0.21.0",
+    "arch": "linux/arm64",
+    "image_digest": "sha256:2990e8ea76ee828a523598922efda6bc06513d48bdf91cc280aae415c144f5ce",
+    "dtype": "float16",
+    "worker_loaded_weights": true,
+    "weight_load_seconds": 33.84,
+    "entered_compilation_warmup": true,
+    "http_verified": false
+  },
+  "mlx_plugin": {
+    "version": "0.33.0",
+    "core": "0.33.0+cpu",
+    "model_registry_check_started": true,
+    "http_verified": false
+  }
+}

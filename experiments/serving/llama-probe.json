@@ -1,0 +1,784 @@
+{
+  "model": "default_model",
+  "nonstream": {
+    "request_id": "serv-demo",
+    "response_header_id": null,
+    "id": "chatcmpl-IdTE4QkHbosovw0RqHDw3GUP2I2Tz6Tk",
+    "headers_ms": 518.141,
+    "elapsed_ms": 518.207,
+    "usage": {
+      "completion_tokens": 20,
+      "prompt_tokens": 74,
+      "total_tokens": 94,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": "```json\n{\n  \"count\": 1,\n  \"mean\": null\n}\n```",
+    "passed": false,
+    "finish": "stop"
+  },
+  "stream": {
+    "request_id": "serv-demo",
+    "response_header_id": null,
+    "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+    "headers_ms": 2.631,
+    "first_line_ms": 22.573,
+    "first_event_ms": 22.603,
+    "ttft_ms": 22.697,
+    "elapsed_ms": 401.275,
+    "visible_event_intervals_ms": [
+      19.154,
+      19.736,
+      19.693,
+      19.357,
+      18.19,
+      19.729,
+      19.368,
+      19.038,
+      18.289,
+      19.615,
+      19.633,
+      19.477,
+      22.672,
+      23.171,
+      21.05,
+      19.855,
+      20.6,
+      19.382
+    ],
+    "usage": {
+      "completion_tokens": 20,
+      "prompt_tokens": 74,
+      "total_tokens": 94,
+      "prompt_tokens_details": {
+        "cached_tokens": 73
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "text": "```json\n{\n  \"count\": 1,\n  \"mean\": null\n}\n```",
+    "passed": false,
+    "first_events": [
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "role": "assistant",
+              "content": null
+            }
+          }
+        ],
+        "created": 1795399381,
+        "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      },
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "content": "```"
+            }
+          }
+        ],
+        "created": 1795399381,
+        "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      },
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "content": "json"
+            }
+          }
+        ],
+        "created": 1795399381,
+        "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      },
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "content": "\n"
+            }
+          }
+        ],
+        "created": 1795399381,
+        "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      },
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "content": "{\n"
+            }
+          }
+        ],
+        "created": 1795399381,
+        "id": "chatcmpl-TubbR36RuWFNzQfXYHeHrhQ59QZeHuDj",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      }
+    ]
+  },
+  "before": {},
+  "cache_unique": {
+    "concurrency": 1,
+    "same_prefix": false,
+    "requests": 8,
+    "completed": 8,
+    "correct": 2,
+    "duration_s": 2.377959667000141,
+    "p50_ttft_ms": 112.276,
+    "p95_ttft_ms": 116.871,
+    "p95_e2e_ms": 312.03,
+    "median_visible_event_gap_ms": 20.0575,
+    "completion_tokens": 80,
+    "tokens_per_second": 33.642286330668554,
+    "correctness_goodput": 0.8410571582667139,
+    "slo_goodput": 0.8410571582667139,
+    "rows": [
+      {
+        "request_id": "serv-unique-0",
+        "response_header_id": null,
+        "id": "chatcmpl-LsM60Ed4HffeaWDfIBvjhr07GPfRyf5s",
+        "headers_ms": 2.722,
+        "first_line_ms": 111.183,
+        "first_event_ms": 111.197,
+        "ttft_ms": 111.231,
+        "elapsed_ms": 312.03,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 298,
+          "total_tokens": 308,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-unique-1",
+        "response_header_id": null,
+        "id": "chatcmpl-doXCC6KyQvDzV7vKNC5c2IKameNKD7D4",
+        "headers_ms": 4.209,
+        "first_line_ms": 112.206,
+        "first_event_ms": 112.224,
+        "ttft_ms": 112.276,
+        "elapsed_ms": 291.745,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 296,
+          "total_tokens": 306,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-unique-2",
+        "response_header_id": null,
+        "id": "chatcmpl-U6r8gkCoWmRRwTpOfacGEEU9GgmY96Y7",
+        "headers_ms": 3.347,
+        "first_line_ms": 110.106,
+        "first_event_ms": 110.12,
+        "ttft_ms": 110.156,
+        "elapsed_ms": 288.827,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 296,
+          "total_tokens": 306,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-unique-3",
+        "response_header_id": null,
+        "id": "chatcmpl-paNd0LCAd0zGmGjuaG8qR2TViIAjxaO7",
+        "headers_ms": 5.253,
+        "first_line_ms": 116.319,
+        "first_event_ms": 116.332,
+        "ttft_ms": 116.367,
+        "elapsed_ms": 303.755,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 298,
+          "total_tokens": 308,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-unique-4",
+        "response_header_id": null,
+        "id": "chatcmpl-YxupvI8tb2TtfvtZZtUyBgORAFzHhWcK",
+        "headers_ms": 2.678,
+        "first_line_ms": 116.633,
+        "first_event_ms": 116.775,
+        "ttft_ms": 116.871,
+        "elapsed_ms": 296.569,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 298,
+          "total_tokens": 308,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-unique-5",
+        "response_header_id": null,
+        "id": "chatcmpl-0jleW9zlhaJBfB9w26EJgqD8SPWbINRR",
+        "headers_ms": 5.092,
+        "first_line_ms": 116.019,
+        "first_event_ms": 116.038,
+        "ttft_ms": 116.084,
+        "elapsed_ms": 309.029,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 296,
+          "total_tokens": 306,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-unique-6",
+        "response_header_id": null,
+        "id": "chatcmpl-0E5f6QtYFInrosxlX10FOJqojc2ZaGhi",
+        "headers_ms": 6.0,
+        "first_line_ms": 111.538,
+        "first_event_ms": 111.55,
+        "ttft_ms": 111.582,
+        "elapsed_ms": 285.589,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 296,
+          "total_tokens": 306,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-unique-7",
+        "response_header_id": null,
+        "id": "chatcmpl-P3SZ2ytUjqd43SCviqZc75fPGi2szuam",
+        "headers_ms": 3.16,
+        "first_line_ms": 113.721,
+        "first_event_ms": 113.741,
+        "ttft_ms": 113.791,
+        "elapsed_ms": 286.339,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 298,
+          "total_tokens": 308,
+          "prompt_tokens_details": {
+            "cached_tokens": 62
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      }
+    ]
+  },
+  "after_unique": {},
+  "cache_shared": {
+    "concurrency": 1,
+    "same_prefix": true,
+    "requests": 8,
+    "completed": 8,
+    "correct": 2,
+    "duration_s": 1.8611318329994901,
+    "p50_ttft_ms": 27.3,
+    "p95_ttft_ms": 145.09,
+    "p95_e2e_ms": 316.524,
+    "median_visible_event_gap_ms": 18.782,
+    "completion_tokens": 80,
+    "tokens_per_second": 42.98459602996964,
+    "correctness_goodput": 1.074614900749241,
+    "slo_goodput": 1.074614900749241,
+    "rows": [
+      {
+        "request_id": "serv-shared-0",
+        "response_header_id": null,
+        "id": "chatcmpl-o36zMXlt4a50gzkaSuiriBBZlmA4lN2b",
+        "headers_ms": 2.237,
+        "first_line_ms": 109.321,
+        "first_event_ms": 109.339,
+        "ttft_ms": 109.392,
+        "elapsed_ms": 275.288,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-shared-1",
+        "response_header_id": null,
+        "id": "chatcmpl-LcOR82aBNFLQnuZG9uXv1MSCkW5Hbtx9",
+        "headers_ms": 2.355,
+        "first_line_ms": 111.224,
+        "first_event_ms": 111.236,
+        "ttft_ms": 111.268,
+        "elapsed_ms": 278.068,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-shared-2",
+        "response_header_id": null,
+        "id": "chatcmpl-flWkeh6dT1EPwRlnhjPNtYokWnlv961x",
+        "headers_ms": 2.169,
+        "first_line_ms": 27.177,
+        "first_event_ms": 27.19,
+        "ttft_ms": 27.223,
+        "elapsed_ms": 205.699,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 282
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-shared-3",
+        "response_header_id": null,
+        "id": "chatcmpl-mUWXJ87MMUnRyR01yl5DMXys5GvOI8Ae",
+        "headers_ms": 2.206,
+        "first_line_ms": 145.035,
+        "first_event_ms": 145.05,
+        "ttft_ms": 145.09,
+        "elapsed_ms": 316.524,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-shared-4",
+        "response_header_id": null,
+        "id": "chatcmpl-1yexm69rEDJa2ouqJTYDhiTXZbZ1hAPH",
+        "headers_ms": 2.226,
+        "first_line_ms": 27.254,
+        "first_event_ms": 27.267,
+        "ttft_ms": 27.3,
+        "elapsed_ms": 199.423,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-shared-5",
+        "response_header_id": null,
+        "id": "chatcmpl-sWXc3mMd4QENcAVKoAyl6kNhh7e0yAzo",
+        "headers_ms": 1.933,
+        "first_line_ms": 25.333,
+        "first_event_ms": 25.344,
+        "ttft_ms": 25.384,
+        "elapsed_ms": 197.211,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-shared-6",
+        "response_header_id": null,
+        "id": "chatcmpl-Zl9UeF1GUeGZoZyUvJuKiiTUIgDPAFWf",
+        "headers_ms": 2.6,
+        "first_line_ms": 25.489,
+        "first_event_ms": 25.497,
+        "ttft_ms": 25.524,
+        "elapsed_ms": 193.721,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 282
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-shared-7",
+        "response_header_id": null,
+        "id": "chatcmpl-lY2fgw6OgDwggs4zf0ik8r76AJET7jQt",
+        "headers_ms": 3.113,
+        "first_line_ms": 27.295,
+        "first_event_ms": 27.305,
+        "ttft_ms": 27.332,
+        "elapsed_ms": 194.691,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      }
+    ]
+  },
+  "after_shared": {},
+  "concurrent": {
+    "concurrency": 4,
+    "same_prefix": true,
+    "requests": 8,
+    "completed": 8,
+    "correct": 2,
+    "duration_s": 0.9296394579996559,
+    "p50_ttft_ms": 48.321,
+    "p95_ttft_ms": 427.002,
+    "p95_e2e_ms": 670.229,
+    "median_visible_event_gap_ms": 23.433,
+    "completion_tokens": 80,
+    "tokens_per_second": 86.05486709023663,
+    "correctness_goodput": 2.1513716772559155,
+    "slo_goodput": 2.1513716772559155,
+    "rows": [
+      {
+        "request_id": "serv-concurrent-0",
+        "response_header_id": null,
+        "id": "chatcmpl-t2p6yquyClbPhGuqwf6P46G649s2QsQo",
+        "headers_ms": 2.127,
+        "first_line_ms": 27.17,
+        "first_event_ms": 27.182,
+        "ttft_ms": 27.215,
+        "elapsed_ms": 644.46,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 280
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-concurrent-1",
+        "response_header_id": null,
+        "id": "chatcmpl-mE0RHUvnmAtJiOc5ExvaMsvYyTTzjTuf",
+        "headers_ms": 27.181,
+        "first_line_ms": 424.386,
+        "first_event_ms": 424.405,
+        "ttft_ms": 424.464,
+        "elapsed_ms": 669.721,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-concurrent-2",
+        "response_header_id": null,
+        "id": "chatcmpl-70fddHNbVfjdpXaJNoB2bGIcHOOFWC8n",
+        "headers_ms": 26.895,
+        "first_line_ms": 425.364,
+        "first_event_ms": 425.383,
+        "ttft_ms": 425.443,
+        "elapsed_ms": 669.709,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-concurrent-3",
+        "response_header_id": null,
+        "id": "chatcmpl-ZHOeCFJ1gmZdeA9C5gCuZg4j3GykcqfW",
+        "headers_ms": 26.785,
+        "first_line_ms": 426.888,
+        "first_event_ms": 426.916,
+        "ttft_ms": 427.002,
+        "elapsed_ms": 670.229,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-concurrent-4",
+        "response_header_id": null,
+        "id": "chatcmpl-LfI2YM5oTcjaDWmLUFlQVRC2wynQW4c2",
+        "headers_ms": 27.837,
+        "first_line_ms": 48.135,
+        "first_event_ms": 48.148,
+        "ttft_ms": 49.154,
+        "elapsed_ms": 259.685,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 289
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":4}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-concurrent-5",
+        "response_header_id": null,
+        "id": "chatcmpl-7IvM8fHs51KQjNL4eN7uJqGlwnM46MHB",
+        "headers_ms": 24.053,
+        "first_line_ms": 48.133,
+        "first_event_ms": 48.137,
+        "ttft_ms": 48.155,
+        "elapsed_ms": 258.929,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 287
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":1,\"mean\":null}",
+        "passed": false
+      },
+      {
+        "request_id": "serv-concurrent-6",
+        "response_header_id": null,
+        "id": "chatcmpl-72DylfN8pIt1I3yEn0J1pIzY7A0NbQ33",
+        "headers_ms": 23.841,
+        "first_line_ms": 48.304,
+        "first_event_ms": 48.307,
+        "ttft_ms": 48.321,
+        "elapsed_ms": 258.893,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 288,
+          "total_tokens": 298,
+          "prompt_tokens_details": {
+            "cached_tokens": 287
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":0,\"mean\":null}",
+        "passed": true
+      },
+      {
+        "request_id": "serv-concurrent-7",
+        "response_header_id": null,
+        "id": "chatcmpl-81eFkNyjPlQjSQU4K27r8QVyL5bgnUZc",
+        "headers_ms": 23.342,
+        "first_line_ms": 47.983,
+        "first_event_ms": 48.002,
+        "ttft_ms": 48.058,
+        "elapsed_ms": 258.466,
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 290,
+          "total_tokens": 300,
+          "prompt_tokens_details": {
+            "cached_tokens": 289
+          }
+        },
+        "finish": "stop",
+        "done": true,
+        "text": "{\"count\":3,\"mean\":4}",
+        "passed": false
+      }
+    ]
+  },
+  "after_concurrent": {},
+  "cancel": {
+    "request_id": "serv-abort",
+    "response_header_id": null,
+    "id": "chatcmpl-D5q5Dg3n6qkginUMO6zMmT7Hn1jKG8rA",
+    "headers_ms": 2.546,
+    "first_line_ms": 36.086,
+    "first_event_ms": 36.096,
+    "ttft_ms": 36.124,
+    "elapsed_ms": 36.143,
+    "visible_event_intervals_ms": [],
+    "usage": null,
+    "finish": null,
+    "done": false,
+    "text": "```",
+    "passed": false,
+    "first_events": [
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "role": "assistant",
+              "content": null
+            }
+          }
+        ],
+        "created": 1795399386,
+        "id": "chatcmpl-D5q5Dg3n6qkginUMO6zMmT7Hn1jKG8rA",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      },
+      {
+        "choices": [
+          {
+            "finish_reason": null,
+            "index": 0,
+            "delta": {
+              "content": "```"
+            }
+          }
+        ],
+        "created": 1795399386,
+        "id": "chatcmpl-D5q5Dg3n6qkginUMO6zMmT7Hn1jKG8rA",
+        "model": "default_model",
+        "system_fingerprint": "b12642-5bacb7c86",
+        "object": "chat.completion.chunk"
+      }
+    ]
+  },
+  "after_cancel": {}
+}
