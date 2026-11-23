@@ -1,0 +1,12 @@
+{
+    "sdk": "1.2.1",
+    "workload_image": "python:3.12.12-slim",
+    "ready_state": "Running",
+    "requested_egress": "deny",
+    "report": {
+        "valid_count": 2,
+        "mean": 5.0
+    },
+    "expiry_extended": true,
+    "status_after_delete": 404
+}

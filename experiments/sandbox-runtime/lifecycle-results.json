@@ -1,0 +1,39 @@
+{
+    "id": "session-1",
+    "create_retry": "session-1",
+    "quota": "quota_exceeded",
+    "before_run": "unavailable",
+    "completed": "completed",
+    "other_tenant": "unavailable",
+    "artifact": {
+        "valid_count": 2,
+        "mean": 5.0
+    },
+    "destroy": "destroyed",
+    "destroy_retry": "already_absent",
+    "after_destroy": "unavailable",
+    "after_expiry": "unavailable",
+    "remaining": 0,
+    "audit": [
+        [
+            "session-1",
+            "created"
+        ],
+        [
+            "session-1",
+            "job_completed"
+        ],
+        [
+            "session-1",
+            "destroyed"
+        ],
+        [
+            "session-2",
+            "created"
+        ],
+        [
+            "session-2",
+            "destroyed"
+        ]
+    ]
+}

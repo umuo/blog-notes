@@ -1,0 +1,135 @@
+{
+    "environment": {
+        "host": "Darwin 15.5 arm64",
+        "docker": "28.5.1",
+        "docker_context": "desktop-linux",
+        "image": "python@sha256:f3fa41d74a768c2fce8016b98c191ae8c1bacd8f1152870a3f9f87d350920b7c",
+        "mac_profile": "fixture.sb: v1 targeted deny fixture"
+    },
+    "boundaries": {
+        "baseline": {
+            "report": {
+                "valid_count": 2,
+                "mean": 5.0
+            },
+            "python": "3.14.0",
+            "checks": {
+                "other_file": "allowed",
+                "child_other_file": "allowed",
+                "fixture_listener": "allowed"
+            }
+        },
+        "mac_policy": {
+            "report": {
+                "valid_count": 2,
+                "mean": 5.0
+            },
+            "python": "3.14.0",
+            "checks": {
+                "other_file": "denied",
+                "child_other_file": "denied",
+                "fixture_listener": "denied"
+            }
+        },
+        "docker": {
+            "report": {
+                "valid_count": 2,
+                "mean": 5.0
+            },
+            "python": "3.12.12",
+            "checks": {
+                "other_file": "not_visible",
+                "child_other_file": "not_visible",
+                "fixture_listener": "not_reachable",
+                "readonly_mount": "denied",
+                "interfaces": {
+                    "erspan0": "down",
+                    "gre0": "down",
+                    "gretap0": "down",
+                    "ip6_vti0": "down",
+                    "ip6gre0": "down",
+                    "ip6tnl0": "down",
+                    "ip_vti0": "down",
+                    "lo": "unknown",
+                    "sit0": "down",
+                    "tunl0": "down"
+                },
+                "ipv4_default_route": false
+            }
+        }
+    },
+    "timings": {
+        "mac_process": {
+            "n": 10,
+            "p50_ms": 54.33,
+            "p95_ms": 129.89,
+            "samples_ms": [
+                63.14,
+                51.18,
+                52.66,
+                49.64,
+                129.89,
+                106.95,
+                95.08,
+                49.86,
+                53.41,
+                55.24
+            ]
+        },
+        "docker_cached_create_to_first": {
+            "n": 10,
+            "p50_ms": 295.51,
+            "p95_ms": 472.07,
+            "samples_ms": [
+                321.34,
+                298.72,
+                292.3,
+                284.99,
+                260.69,
+                401.83,
+                472.07,
+                353.24,
+                284.93,
+                256.4
+            ]
+        },
+        "docker_resident_exec_to_first": {
+            "n": 10,
+            "p50_ms": 181.85,
+            "p95_ms": 201.17,
+            "samples_ms": [
+                199.66,
+                183.28,
+                189.79,
+                172.24,
+                201.17,
+                180.41,
+                188.18,
+                168.68,
+                177.71,
+                167.73
+            ]
+        },
+        "docker_remove_ack": {
+            "n": 10,
+            "p50_ms": 25.59,
+            "p95_ms": 49.94,
+            "samples_ms": [
+                28.52,
+                26.49,
+                24.54,
+                24.1,
+                23.05,
+                33.09,
+                49.94,
+                24.01,
+                24.68,
+                27.49
+            ]
+        }
+    },
+    "cleanup": {
+        "bind_artifact_remains_after_container_remove": true,
+        "fixture_root_exists_after_cleanup": false
+    }
+}

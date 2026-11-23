@@ -267,11 +267,11 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 | 编号 | 可独立成文的题目 | 写清的机制与验证 |
 | --- | --- | --- |
-| SBX-01 | 沙箱分类与威胁建模 | 比较 WASM、进程策略、容器、gVisor、MicroVM 与通用 VM 的信任边界。按宿主访问、网络、兼容性、启动和清理确定需求。 |
-| SBX-02 | 本地沙箱如何限制 Coding Agent | 在本机分别看宿主进程权限策略与本地容器或 VM。用合成项目验证工作区读写、子进程、网络拒绝与资源回收，记录系统和策略版本。 |
-| SBX-03 | 远程沙箱的生命周期与执行接口 | 追踪 create → exec → artifact → destroy，讲模板、文件与产物、网络、租约、多租户隔离、配额和故障恢复。 |
-| SBX-04 | E2B、CubeSandbox、OpenSandbox 对比与源码路径 | 对照 SDK、控制面、执行面、网络和存储。E2B 先读托管 SDK 与开源仓库；OpenSandbox 先看 Docker 与 Kubernetes 运行时；CubeSandbox 跟 CubeAPI 到 Cubelet、KVM MicroVM。 |
-| SBX-05 | 沙箱选型、启动基准与事件响应 | 用相同任务和依赖测申请到首命令、P95、清理和会话状态；用合成资源验证边界拒绝。将配置错误与疑似隔离失效分别纳入防御处置。 |
+| SBX-01 | [沙箱分类与威胁建模](https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html)（已发布，[源稿](sbx-01-taxonomy-threat-model.md)） | 比较 WASM、进程策略、容器、gVisor、MicroVM 与通用 VM 的信任边界。按宿主访问、网络、兼容性、启动和清理确定需求。 |
+| SBX-02 | [本地沙箱如何限制 Coding Agent](https://blog.lacknb.cn/articles/2026/11/23/1795416674280.html)（已发布，[源稿](sbx-02-local-isolation.md)） | 在本机分别看宿主进程权限策略与本地容器或 VM。用合成项目验证工作区读写、子进程、网络拒绝与资源回收，记录系统和策略版本。 |
+| SBX-03 | [远程沙箱的生命周期与执行接口](https://blog.lacknb.cn/articles/2026/11/23/1795416676067.html)（已发布，[源稿](sbx-03-remote-lifecycle.md)） | 追踪 create → exec → artifact → destroy，讲模板、文件与产物、网络、租约、多租户隔离、配额和故障恢复。 |
+| SBX-04 | [E2B、CubeSandbox、OpenSandbox 对比与源码路径](https://blog.lacknb.cn/articles/2026/11/23/1795416677850.html)（已发布，[源稿](sbx-04-projects-source-tour.md)） | 对照 SDK、控制面、执行面、网络和存储。E2B 先读托管 SDK 与开源仓库；OpenSandbox 先看 Docker 与 Kubernetes 运行时；CubeSandbox 跟 CubeAPI 到 Cubelet、KVM MicroVM。 |
+| SBX-05 | [沙箱选型、启动基准与事件响应](https://blog.lacknb.cn/articles/2026/11/23/1795416679623.html)（已发布，[源稿](sbx-05-benchmark-response.md)） | 用相同任务和依赖测申请到首命令、P95、清理和会话状态；用合成资源验证边界拒绝。将配置错误与疑似隔离失效分别纳入防御处置。 |
 
 建议实验顺序为本地最小策略 → OpenSandbox 本地 Docker 生命周期 → E2B 托管 API 形态 → CubeSandbox 在具备 KVM 条件的主机上读源码并验证。可用 **gVisor / Firecracker** 辅助理解隔离层，用 **Kata Containers** 补充容器接口与 VM 的结合。各项目的许可证与托管条款、后端和平台要求按选定版本确认；仓库中的性能数字先看测试口径。 [E2B 文档](https://docs.e2b.dev/) · [E2B 源码](https://github.com/e2b-dev/E2B) · [OpenSandbox](https://github.com/opensandbox-group/OpenSandbox) · [CubeSandbox 架构](https://github.com/TencentCloud/CubeSandbox/blob/master/docs/architecture/overview.md) · [gVisor](https://gvisor.dev/docs/architecture_guide/security/) · [Firecracker](https://github.com/firecracker-microvm/firecracker) · [Kata Containers](https://github.com/kata-containers/kata-containers)
 
