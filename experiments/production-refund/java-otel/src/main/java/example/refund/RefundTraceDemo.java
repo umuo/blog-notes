@@ -58,6 +58,7 @@ public final class RefundTraceDemo {
     public static void main(String[] args) throws Exception {
         boolean dropTrace = Arrays.asList(args).contains("--drop-traceparent");
         boolean failTool = Arrays.asList(args).contains("--fail-tool");
+        boolean showTimestamps = Arrays.asList(args).contains("--timestamps");
         InMemorySpanExporter exporter = InMemorySpanExporter.create();
         SdkTracerProvider provider = SdkTracerProvider.builder()
                 .setResource(Resource.getDefault().merge(Resource.create(
@@ -81,7 +82,7 @@ public final class RefundTraceDemo {
             }
             exporter.getFinishedSpanItems().stream()
                     .sorted(Comparator.comparingLong(SpanData::getStartEpochNanos))
-                    .forEach(RefundTraceDemo::printSpan);
+                    .forEach(span -> printSpan(span, showTimestamps));
         }
     }
 
@@ -178,11 +179,15 @@ public final class RefundTraceDemo {
         }
     }
 
-    private static void printSpan(SpanData span) {
+    private static void printSpan(SpanData span, boolean showTimestamps) {
         long durationMs = TimeUnit.NANOSECONDS.toMillis(span.getEndEpochNanos() - span.getStartEpochNanos());
         System.out.printf("%s trace=%s span=%s parent=%s duration_ms=%d status=%s%n",
                 span.getName(), span.getTraceId(), span.getSpanId(), span.getParentSpanId(),
                 durationMs, span.getStatus().getStatusCode());
+        if (showTimestamps) {
+            System.out.printf("  start_unix_ns=%d end_unix_ns=%d%n",
+                    span.getStartEpochNanos(), span.getEndEpochNanos());
+        }
         Long waitMs = span.getAttributes().get(WAIT_MS);
         if (waitMs != null) {
             System.out.println("  queue_wait_ms=" + waitMs);
@@ -196,8 +201,13 @@ public final class RefundTraceDemo {
         if (errorType != null) {
             System.out.println("  error_type=" + errorType);
         }
-        span.getEvents().forEach(event -> System.out.printf("  event=%s offset_ms=%d%n", event.getName(),
-                TimeUnit.NANOSECONDS.toMillis(event.getEpochNanos() - span.getStartEpochNanos())));
+        span.getEvents().forEach(event -> {
+            long offsetMs = TimeUnit.NANOSECONDS.toMillis(event.getEpochNanos() - span.getStartEpochNanos());
+            System.out.printf("  event=%s offset_ms=%d%n", event.getName(), offsetMs);
+            if (showTimestamps) {
+                System.out.println("  event_unix_ns=" + event.getEpochNanos());
+            }
+        });
     }
 
     /**
