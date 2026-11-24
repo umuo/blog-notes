@@ -17,7 +17,7 @@ TASK = "refund-01"
 TENANT = "team-a"
 
 
-def stats(data):
+def stats(data, *, missing_value="NA"):
     reader = csv.DictReader(io.StringIO(data))
     if reader.fieldnames != ["refund"]:
         raise ValueError("expected refund column")
@@ -27,7 +27,7 @@ def stats(data):
         if None in row or row["refund"] is None:
             raise ValueError("malformed row")
         value = row["refund"].strip()
-        if value == "NA":
+        if value == missing_value:
             continue
         number = Decimal(value)
         if not number.is_finite():

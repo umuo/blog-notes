@@ -16,6 +16,10 @@ mvn -q -f experiments/production-refund/java-otel/pom.xml compile exec:java -Dex
 - `--timestamps` 额外打印 Span 和事件的 Unix 纪元纳秒时间戳。可用它们还原[入门文章的瀑布图](../../../articles/14-production/opentelemetry-tracing-primer.md)。
 - `--drop-traceparent` 模拟队列没把追踪字段交给消费者。报告照常生成，`refund.process` 另起一条 Trace，父 Span ID 为全零。
 - `--fail-tool` 模拟统计工具出错。命令、工具、消费和演示请求的 Span 标为 `ERROR`，没有生成产物，也不会输出报告。这个演练已处理故障，因此 Java 进程可以正常退出。
+- `--wrong-tool-value` 把缺失金额按 0 计入。工具和报告都输出 `rows=3 mean_cents=333`。
+- `--wrong-artifact-value` 在报告组装时把笔数加 1。工具仍输出 `rows=2 mean_cents=500`，报告输出 `rows=3 mean_cents=500`。
 - ID 会随运行改变，耗时会因本机调度浮动。内存导出器适合演练，生产接入方式和 OTLP 配置见 [OPS-06 源稿](../../../articles/14-production/ops-06-opentelemetry-trace.md)。
+
+两个结果错误参数会额外打印工具交接值，相关 Span 仍为 `UNSET`。业务值只出现在本地合成样例的标准输出。每次使用一个工具或产物故障参数。可跟着 [实战排障与回归](../../../articles/14-production/ops-06-opentelemetry-trace.md#实战排障与回归) 比较两个错误的来源，并检查原始输入下的回归结果。
 
 主要入口在 [RefundTraceDemo.java](src/main/java/example/refund/RefundTraceDemo.java)。依次读 `main` 的 SDK 装配、`run` 的入队、`consume` 的上下文恢复，以及 `inSpan` 如何在成功或失败时结束 Span。

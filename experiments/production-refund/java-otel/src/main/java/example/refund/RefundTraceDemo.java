@@ -57,8 +57,8 @@ public final class RefundTraceDemo {
 
     public static void main(String[] args) throws Exception {
         boolean dropTrace = Arrays.asList(args).contains("--drop-traceparent");
-        boolean failTool = Arrays.asList(args).contains("--fail-tool");
         boolean showTimestamps = Arrays.asList(args).contains("--timestamps");
+        Fault fault = faultFrom(args);
         InMemorySpanExporter exporter = InMemorySpanExporter.create();
         SdkTracerProvider provider = SdkTracerProvider.builder()
                 .setResource(Resource.getDefault().merge(Resource.create(
@@ -72,10 +72,10 @@ public final class RefundTraceDemo {
             Tracer tracer = sdk.getTracer("refund-demo");
             TextMapPropagator propagator = sdk.getPropagators().getTextMapPropagator();
             try {
-                Report report = run(tracer, propagator, dropTrace, failTool);
+                Report report = run(tracer, propagator, dropTrace, fault);
                 System.out.printf("report rows=%d mean_cents=%d%n", report.rows(), report.meanCents());
             } catch (ExecutionException error) {
-                if (!failTool || !(error.getCause() instanceof IllegalStateException)) {
+                if (fault != Fault.TOOL_ERROR || !(error.getCause() instanceof IllegalStateException)) {
                     throw error;
                 }
                 System.out.println("report unavailable because the tool failed");
@@ -86,8 +86,21 @@ public final class RefundTraceDemo {
         }
     }
 
-    private static Report run(Tracer tracer, TextMapPropagator propagator, boolean dropTrace,
-            boolean failTool) throws Exception {
+    private static Fault faultFrom(String[] args) {
+        Fault selected = Fault.NONE;
+        for (Fault fault : Fault.values()) {
+            if (fault != Fault.NONE && Arrays.asList(args).contains(fault.option)) {
+                if (selected != Fault.NONE) {
+                    throw new IllegalArgumentException("choose only one tool or artifact failure mode");
+                }
+                selected = fault;
+            }
+        }
+        return selected;
+    }
+
+    private static Report run(Tracer tracer, TextMapPropagator propagator, boolean dropTrace, Fault fault)
+            throws Exception {
         BlockingQueue<Job> queue = new ArrayBlockingQueue<>(1);
         ExecutorService worker = Executors.newSingleThreadExecutor();
         try {
@@ -105,15 +118,15 @@ public final class RefundTraceDemo {
                         });
                 // 故意让任务等待，使排队耗时能出现在实际采集结果中。
                 Thread.sleep(700);
-                return worker.submit(() -> consume(tracer, propagator, queue.take(), failTool)).get();
+                return worker.submit(() -> consume(tracer, propagator, queue.take(), fault)).get();
             });
         } finally {
             worker.shutdownNow();
         }
     }
 
-    private static Report consume(Tracer tracer, TextMapPropagator propagator, Job job,
-            boolean failTool) throws Exception {
+    private static Report consume(Tracer tracer, TextMapPropagator propagator, Job job, Fault fault)
+            throws Exception {
         long waitMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - job.enqueuedNanos());
         Context parent = propagator.extract(Context.root(), job.headers(), HEADER_GETTER);
         Span processing = tracer.spanBuilder("refund.process")
@@ -138,14 +151,23 @@ public final class RefundTraceDemo {
                 delay(tracer, "sandbox.lease", 450);
                 return inSpan(tracer.spanBuilder("sandbox.command").startSpan(), command -> {
                     Thread.sleep(100);
-                    if (failTool) {
+                    if (fault == Fault.TOOL_ERROR) {
                         throw new IllegalStateException("simulated statistics failure");
                     }
-                    return summarize(job.csv());
+                    return summarize(job.csv(), fault == Fault.TOOL_VALUE);
                 });
             });
-            delay(tracer, "refund.artifact", 85);
-            return report;
+            if (fault == Fault.TOOL_VALUE || fault == Fault.ARTIFACT_VALUE) {
+                // 只打印合成样本的阶段结果，不把业务金额写入 Span。
+                System.out.printf("tool rows=%d mean_cents=%d%n", report.rows(), report.meanCents());
+            }
+            return inSpan(tracer.spanBuilder("refund.artifact").startSpan(), artifact -> {
+                Thread.sleep(85);
+                if (fault == Fault.ARTIFACT_VALUE) {
+                    return new Report(report.rows() + 1, report.meanCents());
+                }
+                return report;
+            });
         });
     }
 
@@ -156,9 +178,10 @@ public final class RefundTraceDemo {
         });
     }
 
-    private static Report summarize(String csv) {
-        var amounts = csv.lines().skip(1).filter(value -> !value.equals("NA"))
-                .map(BigDecimal::new)
+    private static Report summarize(String csv, boolean wrongToolValue) {
+        var amounts = csv.lines().skip(1)
+                .filter(value -> wrongToolValue || !value.equals("NA"))
+                .map(value -> value.equals("NA") ? BigDecimal.ZERO : new BigDecimal(value))
                 .toList();
         BigDecimal total = amounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         int cents = total.movePointRight(2)
@@ -211,13 +234,29 @@ public final class RefundTraceDemo {
     }
 
     /**
+     * 每次运行最多注入一种工具或产物故障，方便比较第一个异常阶段。
+     */
+    private enum Fault {
+        NONE(null),
+        TOOL_ERROR("--fail-tool"),
+        TOOL_VALUE("--wrong-tool-value"),
+        ARTIFACT_VALUE("--wrong-artifact-value");
+
+        private final String option;
+
+        Fault(String option) {
+            this.option = option;
+        }
+    }
+
+    /**
      * 模拟队列消息，只在消息元数据中保存可传播的追踪字段。
      */
     private record Job(Map<String, String> headers, long enqueuedNanos, String csv) {
     }
 
     /**
-     * 两条有效记录的聚合结果，平均金额以整数分表示。
+     * 某个阶段交出的聚合结果，平均金额以整数分表示。
      */
     private record Report(int rows, int meanCents) {
     }

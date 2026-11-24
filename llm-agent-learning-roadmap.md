@@ -8,7 +8,7 @@
 | 2 | LLM API 与流式协议（API） | F-01～F-04、HTTP/JSON | 用原始 HTTP 跑通文本、SSE 和工具调用 |
 | 3 | 评测入门与 LLM 效果评测（LE） | 读懂模型请求和输出 | 手写评分器，做可复现的模型或 Prompt 对照 |
 | 4 | 模型预训练与后训练（TRN） | Tokenizer、因果语言模型、训练损失与 LE 的评测口径 | 跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本 |
-| 5 | 推理引擎与模型部署（SERV） | Prefill、KV Cache、Chat Completions 与 SSE | 在 vLLM 与 SGLang 部署同一模型并按服务目标对照 |
+| 5 | 推理引擎与模型部署（SERV） | Prefill、KV Cache、Chat Completions 与 SSE | 用同一份请求和记录对照 vLLM 与 SGLang 的服务行为 |
 | 6 | Agent、Context 与 Loop Engineering（AGT） | 文本和工具协议、上下文预算 | 写一个可终止、可恢复的 Agent |
 | 7 | Agent 效果评测（AE） | Agent Loop、工具执行、LE | 从验证一次任务终态，进阶到故障归因和发布回归 |
 | 8 | RAG 与 LLM Wiki（KB） | 上下文组装、LE 与 AE 的基本口径 | 对同一批资料交付可溯源问答与知识页 |
@@ -21,27 +21,29 @@
 
 本路线用 **TTFT**（Time to First Token）称呼首 Token 延迟。**GRPO**（Group Relative Policy Optimization）归入后训练。F-11 解释组内相对奖励，TRN-08 再把 GRPO 放进强化学习的采样、奖励与更新链路，GQA 和 GPTQ 分别留在注意力结构与量化。 [DeepSeekMath / GRPO 原论文](https://arxiv.org/abs/2402.03300) · [GQA 论文](https://arxiv.org/abs/2305.13245) · [GPTQ 论文](https://arxiv.org/abs/2210.17323)
 
+每篇最后一列给出一个可检查的学习目标。遇到手算题先算出预期值，遇到操作题带着目标去找正文里的命令和结果。涉及真实模型或特定硬件的实验，也可以先用文中归档的数据完成判读。
+
 ## 1. LLM 基础与推理
 
 建议先跑 Tokenizer，再钻进 Transformer。读到注意力时，已经知道输入序列和张量的含义。以 decoder-only 文本模型为主，图像、语音和后训练放到基础推理之后。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| F-01 | [Tokenizer 与 Chat Template](https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html)（已发布，[源稿](articles/01-llm-foundations/f-01-tokenizer-chat-template.md)） | Token、ID、词表、子词与特殊 Token。打印中文、英文、代码的编码，再把一组角色消息套进模型模板，比较序列与 Token 数。 |
-| F-02 | [Transformer 如何从 Token 算出 logits](https://blog.lacknb.cn/articles/2026/11/20/1795135053358.html)（已发布，[源稿](articles/01-llm-foundations/f-02-transformer-logits.md)） | Token Embedding、位置编码、因果遮罩、Q/K/V、FFN、残差与输出头。画出几个 Token 经过一层时的张量形状。 |
-| F-15 | [Encoder-only、Decoder-only 与 Encoder-Decoder](https://blog.lacknb.cn/articles/2026/11/20/1795135557100.html)（已发布，[源稿](articles/01-llm-foundations/f-15-transformer-architectures.md)） | 用同一段文本对照双向注意力、因果注意力和编码器与解码器之间的交叉注意力。以代表性模型区分训练目标和输出形式，说明向量表示、重排打分与生成怎样接到 KB-02、KB-04 和 KB-05。 |
-| F-03 | [MHA、MQA、GQA 与 RoPE](https://blog.lacknb.cn/articles/2026/11/20/1795154536776.html)（已发布，[源稿](articles/01-llm-foundations/f-03-attention-heads-rope.md)） | 拆开位置表示和注意力头设计。以相同 Query 头数画三种 K/V 共享关系，算 GQA 对 KV 容量的影响。 |
-| F-13 | [MoE 如何选择专家与分配计算](https://blog.lacknb.cn/articles/2026/11/20/1795161347233.html)（已发布，[源稿](articles/01-llm-foundations/f-13-moe-routing.md)） | 在稠密 FFN 基础上看 Router、Top-k、专家 FFN 与结果聚合，区分总参数和每 Token 激活的参数。用小例子统计各专家的 Token 数与负载倾斜，给 SERV-10 的专家并行预备背景。 |
-| F-04 | [自回归生成与采样](https://blog.lacknb.cn/articles/2026/11/20/1795161419910.html)（已发布，[源稿](articles/01-llm-foundations/f-04-autoregressive-sampling.md)） | logits、Softmax、Greedy、Temperature、Top-k、Top-p、EOS、停止条件与最大输出。用小词表推演两步输出。 |
-| F-05 | [Prefill 与 Decode](https://blog.lacknb.cn/articles/2026/11/20/1795161425780.html)（已发布，[源稿](articles/01-llm-foundations/f-05-prefill-and-decode.md)） | 输入序列前向计算出首步 logits，生成阶段逐步追加 Token。画时间线，并跟踪第一步生成与后续步。 |
-| F-06 | [KV Cache 如何加速 Decode](https://blog.lacknb.cn/articles/2026/11/20/1795161430009.html)（已发布，[源稿](articles/01-llm-foundations/f-06-kv-cache.md)） | 展示各层 K/V 随序列增长的形状、显存公式及读取成本。区分单序列增量缓存、跨请求前缀复用和应用结果缓存。 |
-| F-14 | [FlashAttention 如何减少注意力的显存读写](https://blog.lacknb.cn/articles/2026/11/20/1795161433683.html)（已发布，[源稿](articles/01-llm-foundations/f-14-flashattention.md)） | 从 HBM 与片上存储、分块、在线 Softmax 理解精确注意力的 I/O 优化。对照朴素实现，固定输入测输出误差、峰值显存与耗时，再与 SERV-04 的 KV 块管理对照处理对象。 |
-| F-07 | [TTFT、TPOT、ITL、吞吐与端到端延迟](https://blog.lacknb.cn/articles/2026/11/20/1795161437100.html)（已发布，[源稿](articles/01-llm-foundations/f-07-inference-latency-metrics.md)） | 分清引擎首 Token、服务首事件、浏览器首段可见文本。固定输入和输出长度做实验，标出排队、Prefill、Decode 和传输，使曲线可解释。 |
-| F-08 | [模型精度与量化](https://blog.lacknb.cn/articles/2026/11/20/1795161440718.html)（已发布，[源稿](articles/01-llm-foundations/f-08-model-precision-and-quantization.md)） | FP16、BF16、INT8、INT4，权重量化与 KV 量化的对象不同。以 GPTQ/AWQ 为例讨论加载、硬件、内存与质量。 |
-| F-09 | [多模态请求如何进入模型](https://blog.lacknb.cn/articles/2026/11/20/1795161444330.html)（已发布，[源稿](articles/01-llm-foundations/f-09-multimodal-input.md)） | 从图片编码、视觉表示与文本融合，到 API 内容块。用文本和图文请求对照输入预算与输出，音频和实时双向流作为后续分篇。 |
-| F-10 | [模型从训练到可用的过程](https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html)（已发布，[源稿](articles/01-llm-foundations/f-10-model-training-stages.md)） | 预训练、SFT、偏好优化和强化学习后训练，分清 LoRA 和训练目标的关系。基础服务实验可先于本篇。 |
-| F-11 | [GRPO 如何用于推理模型后训练](https://blog.lacknb.cn/articles/2026/11/20/1795161454784.html)（已发布，[源稿](articles/01-llm-foundations/f-11-grpo.md)） | 先理解奖励与策略更新，再用一组候选答案解释组内相对优势。讨论奖励设计、评测污染和训练后能力回归。可在 LE-02 之后回读。 |
-| F-12 | [推理时计算与 Reasoning 模型](https://blog.lacknb.cn/articles/2026/11/20/1795161460545.html)（已发布，[源稿](articles/01-llm-foundations/f-12-inference-time-reasoning.md)） | 区分一般自回归解码、供应商暴露的推理预算、采样后验证三层。用同一组有正确解的题比较可配置推理强度，报告正确率、计费 Token、延迟与超预算率。 |
+| F-01 | [Tokenizer 与 Chat Template](https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html)（已发布，[源稿](articles/01-llm-foundations/f-01-tokenizer-chat-template.md)） | 对同一句话打印普通分词、应用聊天模板、加生成起始标记这三份 Token ID，找到序列第一次不同的位置。 |
+| F-02 | [Transformer 如何从 Token 算出 logits](https://blog.lacknb.cn/articles/2026/11/20/1795135053358.html)（已发布，[源稿](articles/01-llm-foundations/f-02-transformer-logits.md)） | 画出一个 Token 经过 Embedding、注意力和输出层的张量形状，再只替换末尾 Token，验证因果遮罩是否保护前面的位置。 |
+| F-15 | [Encoder-only、Decoder-only 与 Encoder-Decoder](https://blog.lacknb.cn/articles/2026/11/20/1795135557100.html)（已发布，[源稿](articles/01-llm-foundations/f-15-transformer-architectures.md)） | 对同一句话画出三种 Transformer 的可见关系，再给检索、重排与生成分别选择可验收的输出。延伸到 KB-02、KB-04、KB-05。 |
+| F-03 | [MHA、MQA、GQA 与 RoPE](https://blog.lacknb.cn/articles/2026/11/20/1795154536776.html)（已发布，[源稿](articles/01-llm-foundations/f-03-attention-heads-rope.md)） | 给定 Q 头、KV 头和每头维数，画出三种共享关系并计算 KV 缓存大小，解释同一组的 Q 头为何仍有不同结果。 |
+| F-13 | [MoE 如何选择专家与分配计算](https://blog.lacknb.cn/articles/2026/11/20/1795161347233.html)（已发布，[源稿](articles/01-llm-foundations/f-13-moe-routing.md)） | 从 Router 分数选 Top-k 专家并算出合并结果，再逐专家统计分派次数。专家并行接 SERV-10。 |
+| F-04 | [自回归生成与采样](https://blog.lacknb.cn/articles/2026/11/20/1795161419910.html)（已发布，[源稿](articles/01-llm-foundations/f-04-autoregressive-sampling.md)） | 从一组 logits 手算温度和截断后的候选概率，并用同一个小词表复现 EOS、停止词和输出上限。 |
+| F-05 | [Prefill 与 Decode](https://blog.lacknb.cn/articles/2026/11/20/1795161425780.html)（已发布，[源稿](articles/01-llm-foundations/f-05-prefill-and-decode.md)） | 给定 21 个输入 Token，标出首个输出何时被选中，以及缓存长度何时从 21 增为 22。 |
+| F-06 | [KV Cache 如何加速 Decode](https://blog.lacknb.cn/articles/2026/11/20/1795161430009.html)（已发布，[源稿](articles/01-llm-foundations/f-06-kv-cache.md)） | 按层和 KV 头数计算增量缓存字节数，并判断改动一个输入 Token 后哪些前缀位置还能复用。 |
+| F-14 | [FlashAttention 如何减少注意力的显存读写](https://blog.lacknb.cn/articles/2026/11/20/1795161433683.html)（已发布，[源稿](articles/01-llm-foundations/f-14-flashattention.md)） | 当新块提高最大分数时手算旧分母的重缩放，和整表 Softmax 比对；区分这个分块和 SERV-04 的 KV 缓存块。 |
+| F-07 | [TTFT、TPOT、ITL、吞吐与端到端延迟](https://blog.lacknb.cn/articles/2026/11/20/1795161437100.html)（已发布，[源稿](articles/01-llm-foundations/f-07-inference-latency-metrics.md)） | 在同一条请求上标出引擎首 Token、服务首事件、浏览器首字三个时间点，判断慢发生在生成、传输还是展示。 |
+| F-08 | [模型精度与量化](https://blog.lacknb.cn/articles/2026/11/20/1795161440718.html)（已发布，[源稿](articles/01-llm-foundations/f-08-model-precision-and-quantization.md)） | 把一组权重压成 4 位编码并算出误差，分别估算权重和 KV 缓存占用；用同一题检查质量影响。 |
+| F-09 | [多模态请求如何进入模型](https://blog.lacknb.cn/articles/2026/11/20/1795161444330.html)（已发布，[源稿](articles/01-llm-foundations/f-09-multimodal-input.md)） | 从图片网格数出视觉占位，比较纯文本和图文的入模长度，并检查两张图片的占位是否按顺序对应。 |
+| F-10 | [模型从训练到可用的过程](https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html)（已发布，[源稿](articles/01-llm-foundations/f-10-model-training-stages.md)） | 把同一退款任务改写为预训练原文、监督示范、偏好数据或强化学习奖励，标出损失使用哪段数据。 |
+| F-11 | [GRPO 如何用于推理模型后训练](https://blog.lacknb.cn/articles/2026/11/20/1795161454784.html)（已发布，[源稿](articles/01-llm-foundations/f-11-grpo.md)） | 用四份答案的奖励手算组内相对优势，解释全对或全错的组为何没有组内排序信号。可接着看 LE-02。 |
+| F-12 | [推理时计算与 Reasoning 模型](https://blog.lacknb.cn/articles/2026/11/20/1795161460545.html)（已发布，[源稿](articles/01-llm-foundations/f-12-inference-time-reasoning.md)） | 比较两档推理预算，把正确率、计费 Token、延迟和未完成请求放进同一张表。 |
 
 基础阅读：[Transformer 论文](https://arxiv.org/abs/1706.03762) · [Transformers Encoder-Decoder 文档](https://huggingface.co/docs/transformers/model_doc/encoder-decoder) · [Hugging Face Chat Templates](https://huggingface.co/docs/transformers/chat_templating) · [KV Cache 机制](https://huggingface.co/docs/transformers/cache_explanation) · [OpenAI Reasoning 模型指南](https://developers.openai.com/api/docs/guides/reasoning) · [Switch Transformers](https://arxiv.org/abs/2101.03961) · [FlashAttention](https://arxiv.org/abs/2205.14135)
 
@@ -49,18 +51,18 @@
 
 全章用同一条普通消息和同一个无副作用函数走通协议。先抓原始 HTTP 请求和事件，再用 SDK 复现。真实在线 API 的字段与模型能力按文章写作时的官方文档复核。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| API-01 | [从原始 HTTP 请求认识 LLM API](https://blog.lacknb.cn/articles/2026/11/21/1795268752670.html)（已发布，[源稿](articles/02-llm-api/api-01-raw-http-request.md)） | 请求头、JSON 体、认证、模型 ID、HTTP 错误、限流和用量。用最小请求记录输入、输出、用量及失败响应。 |
-| API-02 | [OpenAI Chat Completions 的消息协议](https://blog.lacknb.cn/articles/2026/11/21/1795268752027.html)（已发布，[源稿](articles/02-llm-api/api-02-chat-completions-messages.md)） | `POST /v1/chat/completions`、`messages`、`choices`、终止原因。追踪两轮问答，说明应用如何保存与回传历史。 |
-| API-10 | [Prompt Engineering 的可复现对照实验](https://blog.lacknb.cn/articles/2026/11/21/1795268751247.html)（已发布，[源稿](articles/02-llm-api/api-10-prompt-comparison.md)） | 对同一个 CSV 报告任务比较朴素提示、明确统计口径、加入少量示例三个版本。固定模型、采样与留出集，一次只改变一项，记录格式通过率、业务正确率和输入 Token，保存失败样例供 LE-04 回归。 |
-| API-03 | [从 Chat Completions、Assistants 到 Responses](https://blog.lacknb.cn/articles/2026/11/21/1795268750432.html)（已发布，[源稿](articles/02-llm-api/api-03-openai-api-evolution.md)） | 以 Chat Completions 的 Messages、Assistants 的 Thread/Run、Responses 的 typed Items 为轴；用两轮文本和一次工具调用做字段迁移对照。 |
-| API-04 | [Function Calling 与 Structured Outputs](https://blog.lacknb.cn/articles/2026/11/21/1795268749640.html)（已发布，[源稿](articles/02-llm-api/api-04-function-calling-structured-outputs.md)） | 工具定义、JSON Schema、调用 ID、参数校验、调用结果回填。区分用于回答的结构化输出与触发应用动作的工具调用，验证坏参数和多工具返回。 |
-| API-09 | [约束解码如何生成符合 Schema 的结构化输出](https://blog.lacknb.cn/articles/2026/11/21/1795268748887.html)（已发布，[源稿](articles/02-llm-api/api-09-constrained-decoding.md)） | 用一个小 JSON Schema 追踪约束状态和可选 Token，比较自由生成、JSON 模式、Schema 约束及应用侧校验。覆盖合法结构中的错误业务值、输出截断和拒答，按引擎版本验证支持范围。 |
-| API-05 | [SSE 和流式工具调用](https://blog.lacknb.cn/articles/2026/11/21/1795268748102.html)（已发布，[源稿](articles/02-llm-api/api-05-sse-streaming-tools.md)） | 区分 TCP/HTTP 数据块、SSE 帧、模型增量事件及 UI 文本。对比 Chat Completions 的 `delta` 与 Responses 的类型化事件，处理参数分片、UTF-8 跨块、结束、断线和取消。 |
-| API-06 | [Anthropic Messages API 的内容块与事件](https://blog.lacknb.cn/articles/2026/11/21/1795268747439.html)（已发布，[源稿](articles/02-llm-api/api-06-anthropic-messages.md)） | 从 `POST /v1/messages` 开始，拆解顶层 system、内容块、`tool_use` 与 `tool_result`。对照流式块索引与事件，通过一个示例和 OpenAI 请求往返映射。 |
-| API-07 | [模型协议适配与能力矩阵](https://blog.lacknb.cn/articles/2026/11/21/1795268746690.html)（已发布，[源稿](articles/02-llm-api/api-07-provider-adapters.md)） | 建立消息、文本事件、工具事件、错误和用量的内部类型。保留供应商特有能力，逐条验证多模态、工具、结构化输出、流式及状态管理。 |
-| API-08 | [实时语音 Agent 的双向流](https://blog.lacknb.cn/articles/2026/11/21/1795268619097.html)（已发布，[源稿](articles/02-llm-api/api-08-realtime-voice-agent.md)） | 基于 F-09 和 API-05，画出浏览器采集、双向媒体、语音活动检测、打断和播放队列。对照 WebRTC 与 WebSocket 的连接边界，用一次打断测停止播放时间。 |
+| API-01 | [从原始 HTTP 请求认识 LLM API](https://blog.lacknb.cn/articles/2026/11/21/1795268752670.html)（已发布，[源稿](articles/02-llm-api/api-01-raw-http-request.md)） | 组装一次原始 HTTP 请求，从响应读出答案、完成状态、用量；按 401、429 和输出不完整选择检查项。 |
+| API-02 | [OpenAI Chat Completions 的消息协议](https://blog.lacknb.cn/articles/2026/11/21/1795268752027.html)（已发布，[源稿](articles/02-llm-api/api-02-chat-completions-messages.md)） | 手写两轮 Chat Completions 的 messages，删掉第一轮的一条规则重放，找出追问丢了哪段上下文。 |
+| API-10 | [Prompt Engineering 的可复现对照实验](https://blog.lacknb.cn/articles/2026/11/21/1795268751247.html)（已发布，[源稿](articles/02-llm-api/api-10-prompt-comparison.md)） | 用相同样本比较三版提示，分别记录格式、数值和输入 Token，把一条反例交给 LE-04 的发布回归。 |
+| API-03 | [从 Chat Completions、Assistants 到 Responses](https://blog.lacknb.cn/articles/2026/11/21/1795268750432.html)（已发布，[源稿](articles/02-llm-api/api-03-openai-api-evolution.md)） | 在三种接口的请求与回包里找到会话载体和工具调用标识，迁移一次工具回填，再用缺 ID 的样本检查。 |
+| API-04 | [Function Calling 与 Structured Outputs](https://blog.lacknb.cn/articles/2026/11/21/1795268749640.html)（已发布，[源稿](articles/02-llm-api/api-04-function-calling-structured-outputs.md)） | 完成一次工具定义、参数校验与结果回填，再让报告漏字段或数值错误，确认结构化输出与业务断言分别拦截。 |
+| API-09 | [约束解码如何生成符合 Schema 的结构化输出](https://blog.lacknb.cn/articles/2026/11/21/1795268748887.html)（已发布，[源稿](articles/02-llm-api/api-09-constrained-decoding.md)） | 用一个小 Schema 手算每步允许的 Token，再让格式正确但数字错误的报告通过结构检查并被业务测试拒绝。 |
+| API-05 | [SSE 和流式工具调用](https://blog.lacknb.cn/articles/2026/11/21/1795268748102.html)（已发布，[源稿](articles/02-llm-api/api-05-sse-streaming-tools.md)） | 把同一份流按字节切碎后重组，按调用 ID 还原工具参数，区分收到完整调用和断流时的半成品。 |
+| API-06 | [Anthropic Messages API 的内容块与事件](https://blog.lacknb.cn/articles/2026/11/21/1795268747439.html)（已发布，[源稿](articles/02-llm-api/api-06-anthropic-messages.md)） | 从一段 Anthropic 流按块索引还原工具输入，再用 tool_use_id 关联工具结果，并与 OpenAI 报文对照。 |
+| API-07 | [模型协议适配与能力矩阵](https://blog.lacknb.cn/articles/2026/11/21/1795268746690.html)（已发布，[源稿](articles/02-llm-api/api-07-provider-adapters.md)） | 用同一份请求测试适配器的能力声明、错误与用量映射，对缺少结构化输出能力的组合给出可见处理。 |
+| API-08 | [实时语音 Agent 的双向流](https://blog.lacknb.cn/articles/2026/11/21/1795268619097.html)（已发布，[源稿](articles/02-llm-api/api-08-realtime-voice-agent.md)） | 用已生成、已接收和已播放的时间画出一次语音打断，验证旧音频及时停止及迟到数据不会再播。可接着看 F-09、API-05。 |
 
 演进锚点为 **2023-03 Chat Completions → 2023-06 Function Calling → Assistants 的 Thread/Run 模型 → 2025-03 Responses**。重点追踪 API 的输入输出、状态归属与自定义工具由谁执行。 [ChatGPT API 发布](https://openai.com/index/introducing-chatgpt-and-whisper-apis/) · [Function Calling 发布](https://openai.com/index/function-calling-and-other-api-updates/) · [Responses 发布](https://openai.com/index/new-tools-for-building-agents/) · [OpenAI 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses) · [Anthropic Messages 流式文档](https://platform.claude.com/docs/en/build-with-claude/streaming) · [OpenAI Realtime 会话](https://developers.openai.com/api/docs/guides/realtime-conversations) · [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) · [Prompt Engineering 指南](https://developers.openai.com/api/docs/guides/prompt-engineering)
 
@@ -72,18 +74,18 @@
 
 **学习顺序**　先手写一条用例（LE-07），再做数据集（LE-01）、程序评分器（LE-08）与人工校准的模型评分器（LE-03），最后学公平比较（LE-09）、持续回归和线上验证。掌握小实验后，可以用 LE-10 选公开数据集，用 LE-02 跑通基准，再扩展到 LE-06 的长上下文实验。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| LE-07 | [第一篇，什么是评测，如何跑通第一条用例](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html)（已发布，[源稿](articles/03-llm-eval/le-07-first-eval.md)） | 先分清任务、样本、试次、通过条件、评分器、指标和基线。用三行 CSV 手写一个最小运行器，输出单条结果、失败原因和汇总。分别构造格式错误、格式正确但数值错误的输出，验证评分器能区分。 |
-| LE-01 | [从业务目标到数据集、基线和评分](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html)（已发布，[源稿](articles/03-llm-eval/le-01-dataset-baseline.md)） | 黄金样本、边界样本、失败样本、独立测试集。用准确率、结构校验或人工标准计分，记录数据版本、样本分层和失败类型。 |
-| LE-08 | [如何设计可测试的评分器与评分准则](https://blog.lacknb.cn/articles/2026/11/21/1795270269520.html)（已发布，[源稿](articles/03-llm-eval/le-08-testable-graders.md)） | 对 JSON Schema、数值误差、公差和业务规则做确定性断言，用人工准则评价开放式解释。比较逐项打分和成对比较，明确平局、拒答、工具故障与无法判定的处理。用已知对错样本独立测试评分器。 |
-| LE-10 | [常用 LLM 评测数据集测什么，应该怎么选](https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html)（已发布，[源稿](articles/03-llm-eval/le-10-public-datasets.md)） | 对照 MMLU、C-Eval、GSM8K、HumanEval 经典四榜的样本与批改差异，并补齐 MMLU-Pro、GPQA Diamond、HLE、ARC-AGI-2、MATH/AIME、LiveBench、LiveCodeBench、BigCodeBench、IFEval、SimpleQA、MMMU、RULER、LMArena 与 Artificial Analysis 等 2025–2026 主流进阶基准。 |
-| LE-02 | [公开基准实战，怎样复现并比较模型结果](https://blog.lacknb.cn/articles/2026/11/21/1795270267947.html)（已发布，[源稿](articles/03-llm-eval/le-02-reproduce-benchmark.md)） | 用同一评测工具跑一份固定小子集，记录数据版本与划分、提示模板、few-shot、解码和答案抽取规则。对照单次准确率和多次生成的 pass@k，讨论污染、样本量和跨运行可比性。 |
-| LE-03 | [LLM-as-a-Judge 与人工校准](https://blog.lacknb.cn/articles/2026/11/21/1795270267279.html)（已发布，[源稿](articles/03-llm-eval/le-03-llm-judge-calibration.md)） | 对开放文本定义评分准则，以人工标注集校准，检查位置偏差、长度偏差和评分稳定性。可确定的数值、Schema 和引用用硬断言。 |
-| LE-09 | [怎样判断两版效果差异是否可信](https://blog.lacknb.cn/articles/2026/11/21/1795270266572.html)（已发布，[源稿](articles/03-llm-eval/le-09-paired-comparison.md)） | 固定任务、模型或 Prompt 以外的配置，用相同样本成对对照，记录每题多次试验与失败分层。报告样本数、差值和不确定区间，用按题聚类的重采样处理同题多次运行，区分业务提升和测量噪声。 |
-| LE-04 | [把效果评测接入 Prompt 和模型回归](https://blog.lacknb.cn/articles/2026/11/21/1795270265847.html)（已发布，[源稿](articles/03-llm-eval/le-04-regression-gates.md)） | 固定数据版本和脆弱样本，输出分项指标与失败例，设发布阈值。比较准确性、成本和延迟变化。 |
-| LE-06 | [长上下文的有效性如何评测](https://blog.lacknb.cn/articles/2026/11/21/1795270265166.html)（已发布，[源稿](articles/03-llm-eval/le-06-long-context-eval.md)） | 把同一份 CSV 数据字典的关键证据分别放到输入头、中、尾，改变文档长度和干扰项，测正确率、引用、TTFT 与成本。学完 KB-05 后用同一数据对照全量上下文与 RAG，供 AGT-04～05 验证裁剪和压缩。 |
-| LE-05 | [模型改了，线上效果真的变好了吗](https://blog.lacknb.cn/articles/2026/11/21/1795270264488.html)（已发布，[源稿](articles/03-llm-eval/le-05-online-evaluation.md)） | 先用固定样本做成对比较和分层误差分析，再设计只读流量的影子评测或用户级灰度对照。记录随机分配、版本、人工接管率与回滚阈值，用区间说明样本不确定性。 |
+| LE-07 | [第一篇，什么是评测，如何跑通第一条用例](https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html)（已发布，[源稿](articles/03-llm-eval/le-07-first-eval.md)） | 给三行退款表写一个能区分 JSON 语法错误和业务算术错误的评分器，保存每条失败理由。 |
+| LE-01 | [从业务目标到数据集、基线和评分](https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html)（已发布，[源稿](articles/03-llm-eval/le-01-dataset-baseline.md)） | 建一份带数据版本和分层标签的黄金集，识别训练与留出间的同源样本，并按失败类别汇总。 |
+| LE-08 | [如何设计可测试的评分器与评分准则](https://blog.lacknb.cn/articles/2026/11/21/1795270269520.html)（已发布，[源稿](articles/03-llm-eval/le-08-testable-graders.md)） | 用已知对错的样本独立测试 Schema、公差和业务规则，再为开放解释写出人工判分标准。 |
+| LE-10 | [常用 LLM 评测数据集测什么，应该怎么选](https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html)（已发布，[源稿](articles/03-llm-eval/le-10-public-datasets.md)） | 为一个任务选择合适的公开基准类型，并说明应核对选项、最终数值、可运行测试还是其他交付证据。 |
+| LE-02 | [公开基准实战，怎样复现并比较模型结果](https://blog.lacknb.cn/articles/2026/11/21/1795270267947.html)（已发布，[源稿](articles/03-llm-eval/le-02-reproduce-benchmark.md)） | 在固定基准子集上重放同一份生成，比较两套答案抽取口径，再计算单次通过率和 pass@k。 |
+| LE-03 | [LLM-as-a-Judge 与人工校准](https://blog.lacknb.cn/articles/2026/11/21/1795270267279.html)（已发布，[源稿](articles/03-llm-eval/le-03-llm-judge-calibration.md)） | 给一对答案先做人工标注，再互换位置检查模型裁判，把原始位置和还原后的答案 ID 分开记。 |
+| LE-09 | [怎样判断两版效果差异是否可信](https://blog.lacknb.cn/articles/2026/11/21/1795270266572.html)（已发布，[源稿](articles/03-llm-eval/le-09-paired-comparison.md)） | 按同一道题计算候选与基线的差值，再整题取样比较区间，解释为何同题的多次运行不能拆成独立样本。 |
+| LE-04 | [把效果评测接入 Prompt 和模型回归](https://blog.lacknb.cn/articles/2026/11/21/1795270265847.html)（已发布，[源稿](articles/03-llm-eval/le-04-regression-gates.md)） | 把数据版本、正确率、成本、延迟及失败反例写入发布检查，分别跑出放行和阻止发布的结果。 |
+| LE-06 | [长上下文的有效性如何评测](https://blog.lacknb.cn/articles/2026/11/21/1795270265166.html)（已发布，[源稿](articles/03-llm-eval/le-06-long-context-eval.md)） | 把同一证据放进长上下文的开头、中间与末尾，分开统计引用与算术正确性、首字时间和用量。结合 KB-05 对照 RAG。可接着看 AGT-04。 |
+| LE-05 | [模型改了，线上效果真的变好了吗](https://blog.lacknb.cn/articles/2026/11/21/1795270264488.html)（已发布，[源稿](articles/03-llm-eval/le-05-online-evaluation.md)） | 设计只读影子实验和用户级灰度，先核对随机分流，再比较成功率、接管率和回滚条件。 |
 
 ### 常用模型数据集与打分方式
 
@@ -113,20 +115,20 @@
 
 先用极小的 decoder-only 模型理解「数据怎么变成权重」，再用已有 Qwen 模型做适配。教学预训练用小语料和小模型演示原理，微调实验需固定可用显卡、框架版本和模型 revision。需要先做 Agent 或 vLLM 的读者可以用已有权重进入 SERV，再回到本节。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| TRN-01 | [预训练语料与 Token 数据管线](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)（已发布，[源稿](articles/04-model-training/trn-01-pretraining-data-pipeline.md)） | 记录数据来源与许可，做清洗、去重、分词、样本打包和文档级切分。检查训练语料与验证题重叠，展示一个训练 batch 的输入和移位标签。 |
-| TRN-02 | [从随机权重预训练一个微型语言模型](https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html)（已发布，[源稿](articles/04-model-training/trn-02-tiny-language-model.md)） | 跟一批 Token 通过前向、下一 Token 交叉熵、反传、梯度累积、优化器和 Checkpoint，观察训练与验证损失。读 nanoGPT 的训练循环做源码对照，验证保存后续训。 |
-| TRN-10 | [分布式训练的显存账本，FSDP 与 ZeRO](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html)（已发布，[源稿](articles/04-model-training/trn-10-distributed-memory.md)） | 先区分参数、梯度、优化器状态和激活的开销，再画 FSDP 与 ZeRO 的分片、通信和 Checkpoint。以单卡训练为基线，有多卡时固定全局 batch 比较峰值显存、训练吞吐和恢复行为。可在需要多卡时回读。 |
-| TRN-03 | [选继续预训练、SFT 还是偏好优化](https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html)（已发布，[源稿](articles/04-model-training/trn-03-training-objectives.md)） | 继续预训练使用领域原文，SFT 使用示范答案，偏好优化使用选优数据或奖励信号。将训练目标与参数更新范围分开讨论，比较全参数、部分层、Adapter 和软提示，记录质量、显存及数据门槛。 |
-| TRN-04 | [SFT 怎么把对话变成监督信号](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html)（已发布，[源稿](articles/04-model-training/trn-04-sft-supervision.md)） | 用同一 Chat Template 构造报告问答，明确哪些 Token 参与 loss。检查多轮标签遮罩、截断与 EOS，用留出集比较基座、提示词基线与微调模型。 |
-| TRN-05 | [LoRA 与参数高效微调](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)（已发布，[源稿](articles/04-model-training/trn-05-lora.md)） | 画出冻结权重和低秩增量，用目标层、rank 和可训练参数量解释成本。比较独立 Adapter 加载、合并权重和切换 Adapter，并核对基座版本。 |
-| TRN-06 | [QLoRA、训练量化和部署量化](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)（已发布，[源稿](articles/04-model-training/trn-06-qlora-quantization.md)） | 用低比特冻结基座训练 LoRA，解释权重存储精度、计算精度及 Adapter 的角色。回接 F-08，区分 QLoRA、推理 PTQ、训练感知量化 QAT 和 KV Cache 量化。记录显存、质量、格式、引擎与硬件兼容性。 |
-| TRN-07 | [偏好数据、奖励模型与 DPO](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)（已发布，[源稿](articles/04-model-training/trn-07-dpo-preference-data.md)） | 构造同一问题的 chosen/rejected，解释偏好标签、参考策略与数据偏差。比较 SFT 和 DPO 的留出集结果，注明 DPO 的离线偏好数据路径。 |
-| TRN-08 | [LLM 强化学习，从 PPO 到 GRPO](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)（已发布，[源稿](articles/04-model-training/trn-08-ppo-grpo.md)） | 讲在线采样、奖励、优势估计、策略更新与 KL 约束的作用，以 PPO 型 RLHF 和 GRPO 的组内相对奖励做对照。用可验证答案演示奖励和验证集，并检查奖励投机、输出长度和通用能力回归。 |
-| TRN-11 | [知识蒸馏与学生模型评测](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)（已发布，[源稿](articles/04-model-training/trn-11-knowledge-distillation.md)） | 区分教师软标签与教师生成的答案。固定学生基座、数据切分和训练预算，对照普通 SFT 与加入教师信号后的结果，报告任务收益、通用能力回归和数据成本。 |
-| TRN-12 | [合成训练数据与质量控制](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)（已发布，[源稿](articles/04-model-training/trn-12-synthetic-training-data.md)） | 围绕 CSV 报告任务生成候选指令与样本，用可执行的统计结果校验答案，再做去重、覆盖率检查和人工抽查。记录生成来源、过滤规则与数据版本，用隔离的人工留出集比较仅用原始数据与加入合成数据后的效果。 |
-| TRN-09 | [用 Unsloth 跑通一次微调、评测和导出](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)（已发布，[源稿](articles/04-model-training/trn-09-unsloth-finetune-export.md)） | 固定基座、数据、模板、硬件和依赖，用 Unsloth 做一次 LoRA 或 QLoRA SFT，与 Transformers、PEFT、TRL 的职责对照。保存 Adapter，按部署后端决定独立加载或合并，并用固定样本做导出前后回归。 |
+| TRN-01 | [预训练语料与 Token 数据管线](https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html)（已发布，[源稿](articles/04-model-training/trn-01-pretraining-data-pipeline.md)） | 对一组语料做文档级切分、去重、分词和打包，检查近似文档未跨集合，并解释一批移位标签。 |
+| TRN-02 | [从随机权重预训练一个微型语言模型](https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html)（已发布，[源稿](articles/04-model-training/trn-02-tiny-language-model.md)） | 从一批 Token 跟到下一词损失和参数更新，再核对中途恢复是否与连续训练产生相同结果。 |
+| TRN-10 | [分布式训练的显存账本，FSDP 与 ZeRO](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html)（已发布，[源稿](articles/04-model-training/trn-10-distributed-memory.md)） | 画出参数、梯度和优化器状态在不同分片阶段的归属，核对双进程恢复与连续训练的下一步结果。 |
+| TRN-03 | [选继续预训练、SFT 还是偏好优化](https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html)（已发布，[源稿](articles/04-model-training/trn-03-training-objectives.md)） | 为同一退款任务分别准备领域原文、示范回答和偏好对照，并根据留出失败样本选择训练目标。 |
+| TRN-04 | [SFT 怎么把对话变成监督信号](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html)（已发布，[源稿](articles/04-model-training/trn-04-sft-supervision.md)） | 给两轮对话标出进入损失的助手 Token，验证截断和填充前后的标签，再查独立生成能否通过业务条件。 |
+| TRN-05 | [LoRA 与参数高效微调](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)（已发布，[源稿](articles/04-model-training/trn-05-lora.md)） | 用目标层和秩算出 LoRA 的可训练参数量，再用同一输入确认独立加载、关闭与合并后的行为。 |
+| TRN-06 | [QLoRA、训练量化和部署量化](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)（已发布，[源稿](articles/04-model-training/trn-06-qlora-quantization.md)） | 拆开低位权重、运算精度和可训练 Adapter 三笔账，比较显存与同题输出，再区分 F-08 的推理量化。 |
+| TRN-07 | [偏好数据、奖励模型与 DPO](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)（已发布，[源稿](articles/04-model-training/trn-07-dpo-preference-data.md)） | 构造同题优劣答案，手算一条 DPO 偏好得分，并分别检查候选排序与自由生成的通过率。 |
+| TRN-08 | [LLM 强化学习，从 PPO 到 GRPO](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)（已发布，[源稿](articles/04-model-training/trn-08-ppo-grpo.md)） | 用同一组可验证奖励比较 PPO 与 GRPO 的优势，再用业务断言验证高奖励轨迹是否真的答对。 |
+| TRN-11 | [知识蒸馏与学生模型评测](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)（已发布，[源稿](articles/04-model-training/trn-11-knowledge-distillation.md)） | 给同一个学生对照硬标签与教师软分布，算出损失需要哪些输入，再检查分布差距变小时业务结果有无改善。 |
+| TRN-12 | [合成训练数据与质量控制](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)（已发布，[源稿](articles/04-model-training/trn-12-synthetic-training-data.md)） | 为退款任务补几条合成边界样本，重算标签、语义去重，再在隔离的人工留出集验证收益。 |
+| TRN-09 | [用 Unsloth 跑通一次微调、评测和导出](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)（已发布，[源稿](articles/04-model-training/trn-09-unsloth-finetune-export.md)） | 按固定模板和基座比较 LoRA 或 QLoRA 的导出产物，让同一份留出集分别跑依赖 Adapter 和合并后的配置。 |
 
 工具分工可用一条链路理解。Transformers 提供模型与 Tokenizer，PEFT 提供参数高效适配，TRL 提供 SFT、偏好与强化学习训练器，Unsloth 用于这一支线的训练实战、运行和导出。对照同一模型和任务时，先统一数据、模板和评测口径。 [nanoGPT](https://github.com/karpathy/nanoGPT) · [TRL 文档](https://huggingface.co/docs/trl/index) · [PEFT 量化指南](https://huggingface.co/docs/peft/main/developer_guides/quantization) · [Unsloth 文档](https://unsloth.ai/docs)
 
@@ -136,24 +138,24 @@
 
 教学模型选 `Qwen/Qwen2.5-0.5B-Instruct`。正式动手时记录模型 revision、vLLM tag、硬件与后端。Linux + NVIDIA CUDA 可作为主实验环境，CPU 或 Apple Silicon 的安装路径、支持的数据类型和性能需按选定版本实测。首个实验验证普通文本与流式文本，工具调用能力按模型、模板和解析器另测。 [Qwen 模型卡](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) · [vLLM Quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart/) · [vLLM CPU 安装说明](https://docs.vllm.ai/en/latest/getting_started/installation/cpu/)
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| SERV-01 | [用 Qwen 0.5B 搭一个极简 vLLM Server](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html)（已发布，[源稿](articles/05-inference-serving/serv-01-vllm-server.md)） | 固定环境后启动 `vllm serve Qwen/Qwen2.5-0.5B-Instruct`，验收模型列表、普通 Chat Completion、流式 Chat Completion，记下生成参数与实际 Token 用量。 |
-| SERV-02 | [一次请求从浏览器到引擎再回浏览器](https://blog.lacknb.cn/articles/2026/11/23/1795400442549.html)（已发布，[源稿](articles/05-inference-serving/serv-02-request-lifecycle.md)） | 浏览器 `fetch` POST → 应用后端按需代理 → vLLM HTTP 路由与输入处理 → 引擎调度 → 模型 Worker → Token 解码与 SSE → 客户端增量渲染。记录同一请求 ID 及各层时间。 |
-| SERV-03 | [读 vLLM V1 源码，从路由跟到模型前向](https://blog.lacknb.cn/articles/2026/11/23/1795400444175.html)（已发布，[源稿](articles/05-inference-serving/serv-03-vllm-v1-source.md)） | 在固定 tag 下记录实际文件和方法：入口与 Chat 路由、模板及 Tokenization、异步引擎客户端、Engine Core、Scheduler、Worker 和输出处理。用一条短请求标出进程、任务及数据结构的交接。 |
-| SERV-04 | [PagedAttention、Continuous Batching 和 Prefix Cache](https://blog.lacknb.cn/articles/2026/11/23/1795400445885.html)（已发布，[源稿](articles/05-inference-serving/serv-04-paged-attention-batching.md)） | 按请求画 KV 块分配及调度过程。比较同前缀、不同前缀与不同并发，测缓存利用率、排队、TTFT、ITL 和吞吐。 |
-| SERV-05 | [端到端流式调试和取消](https://blog.lacknb.cn/articles/2026/11/23/1795400447564.html)（已发布，[源稿](articles/05-inference-serving/serv-05-streaming-cancellation.md)） | 记录第一个 HTTP 字节、第一条 SSE、第一段可见文字和结束事件。定位代理缓冲、HTTP/SSE 分帧、慢消费者、客户端取消与服务端请求回收。 |
-| SERV-06 | [Chunked Prefill 与 Speculative Decoding](https://blog.lacknb.cn/articles/2026/11/23/1795400449358.html)（已发布，[源稿](articles/05-inference-serving/serv-06-prefill-speculative.md)） | 对比输入调度与输出生成的优化目标。固定模型、硬件和数据，分别做单因素实验，记录并发、TTFT、ITL、吞吐，启用投机解码时再记录草稿接受率。 |
-| SERV-07 | [SGLang 源码与 vLLM 对照](https://blog.lacknb.cn/articles/2026/11/23/1795400451069.html)（已发布，[源稿](articles/05-inference-serving/serv-07-sglang-source.md)） | 让同一个 Qwen 模型跑通 OpenAI 兼容请求，固定版本跟 Scheduler 与 RadixAttention 前缀复用。与 SERV-03～SERV-04 对照缓存、批处理和流式输出；工具及结构化能力按版本实测。 |
-| SERV-12 | [模型注册、产物血缘与版本发布](https://blog.lacknb.cn/articles/2026/11/23/1795400452835.html)（已发布，[源稿](articles/05-inference-serving/serv-12-model-registry.md)） | 用 MLflow 建立从实验、数据和评测到发布模型的关联，固定基座、Tokenizer、模板、Adapter 与量化配置。用一条请求的发布 ID 查回完整产物，并演示恢复到上一组通过验证的版本。 |
-| SERV-08 | [从训练产物部署成单机推理服务](https://blog.lacknb.cn/articles/2026/11/23/1795400454476.html)（已发布，[源稿](articles/05-inference-serving/serv-08-single-node-deployment.md)） | 从基座、Tokenizer、模板、Adapter 或合并权重和量化产物生成部署清单。比较适配器挂载与合并两种路径的兼容性，验证容器、健康检查、模型预热、限流、流式断开和旧版本回滚。 |
-| SERV-13 | [本地推理与模型格式，llama.cpp 和 MLX-LM](https://blog.lacknb.cn/articles/2026/11/23/1795400456136.html)（已发布，[源稿](articles/05-inference-serving/serv-13-llamacpp-mlx.md)） | 在 Apple Silicon 上从同一个 Qwen 基座准备 GGUF 与 MLX 权重，核对 Tokenizer、Chat Template、量化方法和实际硬件后端。对照加载时间、峰值内存、TTFT、输出速率和样本质量。 |
-| SERV-09 | [部署优化，从显存预算到延迟与吞吐](https://blog.lacknb.cn/articles/2026/11/23/1795400457884.html)（已发布，[源稿](articles/05-inference-serving/serv-09-inference-optimization.md)） | 先算权重、KV Cache 与工作区显存，再用输入长度、输出长度、到达速率和并发构造负载。依次测试批处理、缓存、量化和预热，标注 OOM、队列、TTFT、ITL、P95 和满足延迟目标的吞吐。 |
-| SERV-14 | [GPU 性能剖析，从请求时间线到内核](https://blog.lacknb.cn/articles/2026/11/23/1795400459614.html)（已发布，[源稿](articles/05-inference-serving/serv-14-gpu-profiling.md)） | 在固定输入、输出和并发下，用 Nsight Systems 对齐 Prefill、Decode、CPU 调度、数据搬运与 CUDA 内核。先定位等待或计算热点，再验证一次配置变更对延迟和吞吐的影响。 |
-| SERV-10 | [多 GPU 与分离式推理部署](https://blog.lacknb.cn/articles/2026/11/23/1795400461248.html)（已发布，[源稿](articles/05-inference-serving/serv-10-distributed-inference.md)） | 学数据并行、张量并行、流水线并行，MoE 再看专家并行。解释显存、通信和节点拓扑；Prefill/Decode 分离作为进阶，测 KV 传输开销与跨节点尾延迟。 |
-| SERV-11 | [两种引擎的生产基准与选型报告](https://blog.lacknb.cn/articles/2026/11/23/1795400462988.html)（已发布，[源稿](articles/05-inference-serving/serv-11-engine-benchmark.md)） | 使用相同模型权重、量化和采样配置、请求流和硬件，区分冷暖缓存。先验证结果、协议和取消语义，再对照延迟、吞吐、每成功请求成本和操作复杂度。 |
-| SERV-15 | [推理服务容量规划与弹性伸缩](https://blog.lacknb.cn/articles/2026/11/23/1795400464747.html)（已发布，[源稿](articles/05-inference-serving/serv-15-serving-capacity.md)） | 从目标 P95 和请求长度分布推导单副本容量。用稳态和突发流量比较队列长度、在途请求与 GPU 利用率作为扩缩容信号，观测新副本就绪、预热、缩容抖动、达标吞吐和成本。 |
-| SERV-16 | [离线批量推理与异步作业](https://blog.lacknb.cn/articles/2026/11/23/1795400466528.html)（已发布，[源稿](articles/05-inference-serving/serv-16-offline-batch.md)） | 用同一批文档做字段抽取，比较在线并发请求与提交离线批次。给任务和输入行分配稳定 ID，验证乱序结果关联、部分失败后按失败项重跑及重复结果去重，衡量整批完成时间和单位成本。说明异步提交与 SERV-04 的引擎内部批处理如何处在不同层。 |
+| SERV-01 | [用 Qwen 0.5B 搭一个极简 vLLM Server](https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html)（已发布，[源稿](articles/05-inference-serving/serv-01-vllm-server.md)） | 拿同一个探针检查模型列表、整包响应和流式结束，分别记录引擎启动进展和业务 JSON 是否合格。 |
+| SERV-02 | [一次请求从浏览器到引擎再回浏览器](https://blog.lacknb.cn/articles/2026/11/23/1795400442549.html)（已发布，[源稿](articles/05-inference-serving/serv-02-request-lifecycle.md)） | 按请求标识对齐服务和浏览器的时间戳，定位首字晚出现发生在调度、代理缓冲还是客户端渲染。 |
+| SERV-03 | [读 vLLM V1 源码，从路由跟到模型前向](https://blog.lacknb.cn/articles/2026/11/23/1795400444175.html)（已发布，[源稿](articles/05-inference-serving/serv-03-vllm-v1-source.md)） | 沿固定版本的 HTTP 路由、模板处理、调度和 Worker 画出一次进程间交接，并标注哪些环节有运行证据。 |
+| SERV-04 | [PagedAttention、Continuous Batching 和 Prefix Cache](https://blog.lacknb.cn/articles/2026/11/23/1795400445885.html)（已发布，[源稿](articles/05-inference-serving/serv-04-paged-attention-batching.md)） | 手画两次请求的 KV 块表，预测改动前缀后哪些块要重填，再看并发下缓存命中与排队是否同时变化。 |
+| SERV-05 | [端到端流式调试和取消](https://blog.lacknb.cn/articles/2026/11/23/1795400447564.html)（已发布，[源稿](articles/05-inference-serving/serv-05-streaming-cancellation.md)） | 用一次客户端取消核对代理是否断开上游、引擎是否释放请求，按时间点分辨真正流式和缓冲后的伪流式。 |
+| SERV-06 | [Chunked Prefill 与 Speculative Decoding](https://blog.lacknb.cn/articles/2026/11/23/1795400449358.html)（已发布，[源稿](articles/05-inference-serving/serv-06-prefill-speculative.md)） | 分别画出分块预填充与投机解码的执行步骤，算草稿接受率，并设计能测量并发收益的单变量对照。 |
+| SERV-07 | [SGLang 源码与 vLLM 对照](https://blog.lacknb.cn/articles/2026/11/23/1795400451069.html)（已发布，[源稿](articles/05-inference-serving/serv-07-sglang-source.md)） | 沿固定版 SGLang 的 HTTP 入口跟到 Scheduler，用同前缀和改前缀请求检查复用，再与 SERV-03、SERV-04 对照。 |
+| SERV-12 | [模型注册、产物血缘与版本发布](https://blog.lacknb.cn/articles/2026/11/23/1795400452835.html)（已发布，[源稿](articles/05-inference-serving/serv-12-model-registry.md)） | 用一次历史请求的发布号查回基座、分词器和适配器清单，再用别名切换核对升级与回滚的目标。 |
+| SERV-08 | [从训练产物部署成单机推理服务](https://blog.lacknb.cn/articles/2026/11/23/1795400454476.html)（已发布，[源稿](articles/05-inference-serving/serv-08-single-node-deployment.md)） | 写一份含模型、模板和 Adapter 的部署清单，用切换前、切换后和回滚后三个请求核对发布号与连接排空。 |
+| SERV-13 | [本地推理与模型格式，llama.cpp 和 MLX-LM](https://blog.lacknb.cn/articles/2026/11/23/1795400456136.html)（已发布，[源稿](articles/05-inference-serving/serv-13-llamacpp-mlx.md)） | 用同一基座对照 GGUF 与 MLX，检查输入 Token ID、加载内存、首字时间和第一处输出差异。 |
+| SERV-09 | [部署优化，从显存预算到延迟与吞吐](https://blog.lacknb.cn/articles/2026/11/23/1795400457884.html)（已发布，[源稿](articles/05-inference-serving/serv-09-inference-optimization.md)） | 先手算显存，再用包含业务正确性与延迟目标的达标吞吐比较两组负载或配置。 |
+| SERV-14 | [GPU 性能剖析，从请求时间线到内核](https://blog.lacknb.cn/articles/2026/11/23/1795400459614.html)（已发布，[源稿](articles/05-inference-serving/serv-14-gpu-profiling.md)） | 从一条 CPU、拷贝和 CUDA 内核时间线算出内核区间并集，判断耗时集中在计算还是等待。 |
+| SERV-10 | [多 GPU 与分离式推理部署](https://blog.lacknb.cn/articles/2026/11/23/1795400461248.html)（已发布，[源稿](articles/05-inference-serving/serv-10-distributed-inference.md)） | 为给定拓扑比较数据、张量、流水线和专家并行，再按传输量和带宽算 Prefill/Decode 分离的最低传输耗时。 |
+| SERV-11 | [两种引擎的生产基准与选型报告](https://blog.lacknb.cn/articles/2026/11/23/1795400462988.html)（已发布，[源稿](articles/05-inference-serving/serv-11-engine-benchmark.md)） | 为引擎对比冻结权重、输入和采样，先测协议与取消，再用可比较样本报告延迟、吞吐和每次成功成本。 |
+| SERV-15 | [推理服务容量规划与弹性伸缩](https://blog.lacknb.cn/articles/2026/11/23/1795400464747.html)（已发布，[源稿](articles/05-inference-serving/serv-15-serving-capacity.md)） | 根据延迟目标和流量估算容量，用突发时间线说明何时触发扩容、新副本何时就绪、积压何时下降。 |
+| SERV-16 | [离线批量推理与异步作业](https://blog.lacknb.cn/articles/2026/11/23/1795400466528.html)（已发布，[源稿](articles/05-inference-serving/serv-16-offline-batch.md)） | 按批次与条目 ID 归并乱序结果，从失败点重跑单个条目并确认无重复写入；对照 SERV-04 的引擎批处理。 |
 
 源码文章以 **一条请求的跟踪记录** 为验收。至少展示实际请求体、模板结果或 Token IDs、调度与输出事件、浏览器可见结果。对客户端取消，实测引擎是否回收同一请求。OpenAI 兼容接口按实际覆盖范围写，示范用 Chat Completions，Responses 和 Anthropic 形态另做兼容性对照。 [vLLM V1 架构](https://docs.vllm.ai/en/stable/design/arch_overview/) · [vLLM Prefix Cache](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/) · [PagedAttention 论文](https://arxiv.org/abs/2309.06180) · [vLLM 调度与调优](https://docs.vllm.ai/en/stable/configuration/optimization/) · [vLLM 投机解码实验](https://docs.vllm.ai/projects/speculators/en/stable/user_guide/tutorials/throughput_interactivity/) · [vLLM Benchmark CLI](https://docs.vllm.ai/en/latest/benchmarking/cli/) · [SGLang 文档](https://docs.sglang.io/) · [MLflow Model Registry](https://mlflow.org/docs/latest/ml/model-registry/) · [llama.cpp](https://github.com/ggml-org/llama.cpp) · [MLX-LM](https://github.com/ml-explore/mlx-lm) · [Nsight Systems](https://docs.nvidia.com/nsight-systems/UserGuide/index.html) · [vLLM 指标](https://docs.vllm.ai/en/latest/design/metrics/) · [OpenAI Batch API](https://developers.openai.com/api/docs/guides/batch)
 
@@ -161,33 +163,33 @@
 
 用「上传 CSV → 查询数据 → 生成报告 → 确认后归档」贯穿。**Context Engineering** 设计每轮模型看见什么，**Loop Engineering** 在本路线中是反馈闭环的工程设计，关注任务如何推进、失败如何修复及怎样判定完成。**Harness** 把两者接到模型、工具、状态、权限和运行环境中。按表格顺序学习，新增专题沿用新编号。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| AGT-01 | [从工具调用到 Agent Loop](https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html)（已发布，[源稿](articles/06-agent-runtime/agt-01-agent-loop.md)） | 模型提出动作 → 运行时校验并执行 → Observation 回填 → 下一轮。实现最终答案、澄清、失败、取消、步数与预算终止。 |
-| AGT-17 | [Context Engineering 总览](https://blog.lacknb.cn/articles/2026/11/23/1795402335217.html)（已发布，[源稿](articles/06-agent-runtime/agt-17-context-engineering.md)） | 画上下文数据流，定义权威状态、可检索资料、工具观察和历史的作用域。按任务阶段决定选择、组装、压缩和回读，并用上下文快照回归。 |
-| AGT-02 | [上下文组装与 Prompt 层级](https://blog.lacknb.cn/articles/2026/11/23/1795402336863.html)（已发布，[源稿](articles/06-agent-runtime/agt-02-prompt-assembly.md)） | 组装系统约束、任务状态、相关历史、工具定义、检索证据。打印一轮实际 Prompt，说明外部工具输出的信任边界。 |
-| AGT-03 | [超长工具输出怎么处理](https://blog.lacknb.cn/articles/2026/11/23/1795402338418.html)（已发布，[源稿](articles/06-agent-runtime/agt-03-large-tool-outputs.md)） | 执行器限额、服务端聚合、按样本和区间取证、产物外置、引用回读。用几万行日志验证错误在中间仍能定位。 |
-| AGT-04 | [上下文裁剪](https://blog.lacknb.cn/articles/2026/11/23/1795402340040.html)（已发布，[源稿](articles/06-agent-runtime/agt-04-context-trimming.md)） | 计算可用 Token 预算，裁掉冗余或过时内容，维护工具调用配对，保留早期关键约束。用固定回放验证裁剪前后同一任务。 |
-| AGT-05 | [上下文压缩](https://blog.lacknb.cn/articles/2026/11/23/1795402341623.html)（已发布，[源稿](articles/06-agent-runtime/agt-05-context-compaction.md)） | 把旧阶段整理为结构化摘要，保留来源、决策、产物和待办。注入摘要与执行状态冲突，验证状态恢复不重复提交。 |
-| AGT-06 | [短期记忆与 Checkpoint](https://blog.lacknb.cn/articles/2026/11/23/1795402343288.html)（已发布，[源稿](articles/06-agent-runtime/agt-06-short-term-checkpoints.md)） | 区分本次模型输入、任务状态和会话历史。模拟执行中断与恢复，验证同一会话能继续。 |
-| AGT-07 | [长期记忆的写入、检索与治理](https://blog.lacknb.cn/articles/2026/11/23/1795402344957.html)（已发布，[源稿](articles/06-agent-runtime/agt-07-long-term-memory.md)） | 以跨会话偏好为例，记录命名空间、来源、版本和删除规则。测试显式偏好更新、误记、串租户和索引残留。 |
-| AGT-08 | [工具超时、取消、重试与幂等](https://blog.lacknb.cn/articles/2026/11/23/1795402346585.html)（已发布，[源稿](articles/06-agent-runtime/agt-08-tool-retries.md)） | 区分网络故障、参数错误、超时未知结果和可安全重试动作。验证已成功但未收到回执的恢复路径。 |
-| AGT-09 | [工具并发与依赖调度](https://blog.lacknb.cn/articles/2026/11/23/1795402348200.html)（已发布，[源稿](articles/06-agent-runtime/agt-09-tool-scheduling.md)） | 用依赖图区分可并行读、冲突写和顺序约束。处理并发配额、部分失败、结果乱序和取消传播。 |
-| AGT-10 | [工具太多时如何做工具治理](https://blog.lacknb.cn/articles/2026/11/23/1795402349728.html)（已发布，[源稿](articles/06-agent-runtime/agt-10-tool-governance.md)） | 权限过滤、按域分组、候选召回、Schema 精简、按需加载。测正确工具召回率与选中率，区分召回和选择错误。 |
-| AGT-11 | [MCP、Tools 和 Skills 的职责](https://blog.lacknb.cn/articles/2026/11/23/1795402351437.html)（已发布，[源稿](articles/06-agent-runtime/agt-11-mcp-tools-skills.md)） | 画出一轮工具执行。Tool 是可调用能力，MCP 连接宿主与能力服务，Skill 封装一套可复用的任务说明和配套材料。标明真正做授权与执行的层。 |
-| AGT-19 | [MCP Server 原理与协议生命周期](https://blog.lacknb.cn/articles/2026/11/23/1795402353046.html)（已发布，[源稿](articles/06-agent-runtime/agt-19-mcp-lifecycle.md)） | 画清 Host、Client、Server，以及 Tools、Resources、Prompts。固定协议版本，对照初始化和能力协商、发现和调用，拆解 stdio 与 Streamable HTTP 的交互。 |
-| AGT-20 | [从零实现一个最小 MCP Server](https://blog.lacknb.cn/articles/2026/11/23/1795402354859.html)（已发布，[源稿](articles/06-agent-runtime/agt-20-mcp-csv-server.md)） | 用官方 SDK 暴露只读的 CSV 列统计工具和数据字典资源。先用客户端观察原始协议，再接入 Agent，验证 Schema、错误、超时和输出预算，讨论本地与远程授权边界。 |
-| AGT-21 | [Agent Skills 的设计、加载与测试](https://blog.lacknb.cn/articles/2026/11/23/1795402356468.html)（已发布，[源稿](articles/06-agent-runtime/agt-21-agent-skills.md)） | 用 SKILL.md 的元数据做发现，命中后读取任务说明，需要时再读脚本或参考资料。把报告口径写成 Skill 并在两个可用宿主验证触发、版本与权限。 |
-| AGT-18 | [Loop Engineering 与反馈闭环](https://blog.lacknb.cn/articles/2026/11/23/1795402358094.html)（已发布，[源稿](articles/06-agent-runtime/agt-18-feedback-loop.md)） | 练习规划 → 执行 → 核验 → 修复，设计明确验收、无进展检测、重试预算与停止条件。对比单轮工具循环、外层反馈循环和跨会话接力，验证失败时能够退出或交给人工。 |
-| AGT-12 | [Agent Harness 源码阅读](https://blog.lacknb.cn/articles/2026/11/23/1795402359765.html)（已发布，[源稿](articles/06-agent-runtime/agt-12-agent-harness-source.md)） | 先用自己的最小 Loop 对照，再选 Pi 或 OpenHands，固定 tag 追踪一条消息从会话状态、Loop、工具执行与事件发布到结果。标出模型适配、文件及环境接入、生命周期和权限边界。 |
-| AGT-13 | [Workflow、Agent 与混合编排](https://blog.lacknb.cn/articles/2026/11/23/1795402361827.html)（已发布，[源稿](articles/06-agent-runtime/agt-13-workflow-orchestration.md)） | 对照顺序链、路由、并行汇聚、评估再改写和自主循环。用同一任务演示确定性步骤、开放决策与人工审批如何组合。 |
-| AGT-14 | [多 Agent 协作的几种模式](https://blog.lacknb.cn/articles/2026/11/23/1795402363518.html)（已发布，[源稿](articles/06-agent-runtime/agt-14-multi-agent-patterns.md)） | 编排者与 Worker、按域 Handoff、生成者与评审者、共享任务队列。比较任务依赖、上下文隔离、合并与冲突、共享写入权限和成本。 |
-| AGT-22 | [A2A 协议与跨 Agent 委派](https://blog.lacknb.cn/articles/2026/11/23/1795402365108.html)（已发布，[源稿](articles/06-agent-runtime/agt-22-a2a-protocol.md)） | 固定协议版本，读 Agent Card、Message、Task 和 Artifact。对照本进程内的 Handoff 与跨服务委派，明确能力发现、身份和任务所有者。 |
-| AGT-15 | [Agent 的长任务与人机协作](https://blog.lacknb.cn/articles/2026/11/23/1795402366758.html)（已发布，[源稿](articles/06-agent-runtime/agt-15-long-running-tasks.md)） | 持久化状态机、等待审批、断点续跑、事件重放、重复投递。复现 Worker 中断和用户重连。 |
-| AGT-24 | [持久化工作流的事件重放与状态恢复](https://blog.lacknb.cn/articles/2026/11/23/1795402368648.html)（已发布，[源稿](articles/06-agent-runtime/agt-24-temporal-replay.md)） | 用 Temporal 对照手写 Checkpoint，把模型和外部写操作放进 Activity，说明确定性重放与 Activity 重试的关系。暂停 Worker 后恢复，验证已记录结果继续使用，未知副作用按业务动作 ID 核对。 |
-| AGT-23 | [A2A 实战，两个 Agent 如何交接长任务](https://blog.lacknb.cn/articles/2026/11/23/1795402370736.html)（已发布，[源稿](articles/06-agent-runtime/agt-23-a2a-long-task.md)） | 让报告 Agent 委派只读校验，并获取状态或产物。演示同步结果和流式状态，按所选协议版本验证取消、失败与断线后的状态查询。用应用层关联 ID 避免误提交，明确产物访问授权。 |
-| AGT-16 | [Agent 运行轨迹与调试](https://blog.lacknb.cn/articles/2026/11/23/1795402373955.html)（已发布，[源稿](articles/06-agent-runtime/agt-16-agent-tracing.md)） | 为模型、工具、状态和产物加关联 ID，跟踪一次任务为什么失败。保留脱敏轨迹供下一章做批量评测。 |
-| AGT-25 | [Agent 前端事件协议与生成式 UI](https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html)（已发布，[源稿](articles/06-agent-runtime/agt-25-ag-ui-a2ui.md)） | 用 AG-UI 展示运行状态、工具进度与一次审批，用 A2UI 的声明式组件描述呈现报告卡片。复用 API-05 的流式传输知识，区分事件协议与 UI 描述，验证断线后的状态恢复、审批绑定和取消。 |
+| AGT-01 | [从工具调用到 Agent Loop](https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html)（已发布，[源稿](articles/06-agent-runtime/agt-01-agent-loop.md)） | 把一个工具调用跑过动作校验、结果回填和终止条件，验证用户取消或预算耗尽后循环能停。 |
+| AGT-17 | [Context Engineering 总览](https://blog.lacknb.cn/articles/2026/11/23/1795402335217.html)（已发布，[源稿](articles/06-agent-runtime/agt-17-context-engineering.md)） | 画出模型输入的数据流，保存阶段快照，比较上下文压缩前后是否保留了任务事实和关键限制。 |
+| AGT-02 | [上下文组装与 Prompt 层级](https://blog.lacknb.cn/articles/2026/11/23/1795402336863.html)（已发布，[源稿](articles/06-agent-runtime/agt-02-prompt-assembly.md)） | 打印一轮包含规则、历史和工具观察的真实请求，按调用 ID 对照结果，并标出哪些文本由外部提供。 |
+| AGT-03 | [超长工具输出怎么处理](https://blog.lacknb.cn/articles/2026/11/23/1795402338418.html)（已发布，[源稿](articles/06-agent-runtime/agt-03-large-tool-outputs.md)） | 从大日志只返回概要和证据引用，再按权限和原文位置读回位于中间的错误。 |
+| AGT-04 | [上下文裁剪](https://blog.lacknb.cn/articles/2026/11/23/1795402340040.html)（已发布，[源稿](articles/06-agent-runtime/agt-04-context-trimming.md)） | 给出窗口、输出预留和工具项开销，手算可用预算，并裁剪历史而保留关键约束和调用配对。 |
+| AGT-05 | [上下文压缩](https://blog.lacknb.cn/articles/2026/11/23/1795402341623.html)（已发布，[源稿](articles/06-agent-runtime/agt-05-context-compaction.md)） | 保存含来源、决定和待办的摘要，再注入摘要与持久状态冲突，验证恢复不会重复写入。 |
+| AGT-06 | [短期记忆与 Checkpoint](https://blog.lacknb.cn/articles/2026/11/23/1795402343288.html)（已发布，[源稿](articles/06-agent-runtime/agt-06-short-term-checkpoints.md)） | 区分历史、模型输入与持久状态，模拟中断后恢复到同一任务进度，并拒绝旧快照提交。 |
+| AGT-07 | [长期记忆的写入、检索与治理](https://blog.lacknb.cn/articles/2026/11/23/1795402344957.html)（已发布，[源稿](articles/06-agent-runtime/agt-07-long-term-memory.md)） | 为跨会话偏好记录租户、来源和版本，验证过期、删除或跨租户的索引命中无法进入答复。 |
+| AGT-08 | [工具超时、取消、重试与幂等](https://blog.lacknb.cn/articles/2026/11/23/1795402346585.html)（已发布，[源稿](articles/06-agent-runtime/agt-08-tool-retries.md)） | 给参数错误、超时和丢回执分别选处理方式，用同一动作 ID 查证已提交的写入。 |
+| AGT-09 | [工具并发与依赖调度](https://blog.lacknb.cn/articles/2026/11/23/1795402348200.html)（已发布，[源稿](articles/06-agent-runtime/agt-09-tool-scheduling.md)） | 画并行和串行两种依赖图，按调用 ID 归并乱序回包，并复跑字典失败时统计节点是否会启动。 |
+| AGT-10 | [工具太多时如何做工具治理](https://blog.lacknb.cn/articles/2026/11/23/1795402349728.html)（已发布，[源稿](articles/06-agent-runtime/agt-10-tool-governance.md)） | 对一组工具请求分别测正确工具进候选的比例和最终选中率，判断错误在搜索还是选择。 |
+| AGT-11 | [MCP、Tools 和 Skills 的职责](https://blog.lacknb.cn/articles/2026/11/23/1795402351437.html)（已发布，[源稿](articles/06-agent-runtime/agt-11-mcp-tools-skills.md)） | 画一轮退款工具调用，标出 Tool、MCP 和 Skill 分别在哪层生效，以及哪一层决定是否授权。 |
+| AGT-19 | [MCP Server 原理与协议生命周期](https://blog.lacknb.cn/articles/2026/11/23/1795402353046.html)（已发布，[源稿](articles/06-agent-runtime/agt-19-mcp-lifecycle.md)） | 读一次 MCP 初始化到调用的报文，区分 Host、Client、Server，并核对对应协议版本和传输。 |
+| AGT-20 | [从零实现一个最小 MCP Server](https://blog.lacknb.cn/articles/2026/11/23/1795402354859.html)（已发布，[源稿](articles/06-agent-runtime/agt-20-mcp-csv-server.md)） | 通过客户端调用只读 CSV MCP 工具，验证非法列名、超时和结构化结果的三个行为。 |
+| AGT-21 | [Agent Skills 的设计、加载与测试](https://blog.lacknb.cn/articles/2026/11/23/1795402356468.html)（已发布，[源稿](articles/06-agent-runtime/agt-21-agent-skills.md)） | 将退款规则写成 Skill，检查宿主能否发现，并为应触发和不应触发的请求各写一条验收。 |
+| AGT-18 | [Loop Engineering 与反馈闭环](https://blog.lacknb.cn/articles/2026/11/23/1795402358094.html)（已发布，[源稿](articles/06-agent-runtime/agt-18-feedback-loop.md)） | 让同一任务经历错误草稿、修复和再次验收，再验证连续无进展或用完预算时会退出。 |
+| AGT-12 | [Agent Harness 源码阅读](https://blog.lacknb.cn/articles/2026/11/23/1795402359765.html)（已发布，[源稿](articles/06-agent-runtime/agt-12-agent-harness-source.md)） | 从固定版本的 Agent 源码追一条消息，标出会话、工具、事件和权限各在哪个边界交接。 |
+| AGT-13 | [Workflow、Agent 与混合编排](https://blog.lacknb.cn/articles/2026/11/23/1795402361827.html)（已发布，[源稿](articles/06-agent-runtime/agt-13-workflow-orchestration.md)） | 把退款处理拆成确定性计算、模型决策和人工审批，比较顺序、路由与并行的适用阶段。 |
+| AGT-14 | [多 Agent 协作的几种模式](https://blog.lacknb.cn/articles/2026/11/23/1795402363518.html)（已发布，[源稿](articles/06-agent-runtime/agt-14-multi-agent-patterns.md)） | 给生成者和评审者划分上下文和写权限，拿两份互相冲突的统计结果设计合并规则。 |
+| AGT-22 | [A2A 协议与跨 Agent 委派](https://blog.lacknb.cn/articles/2026/11/23/1795402365108.html)（已发布，[源稿](articles/06-agent-runtime/agt-22-a2a-protocol.md)） | 从 Agent Card 找到服务能力，发出一条 A2A 委派，并用任务和产物 ID 明确责任归属。 |
+| AGT-15 | [Agent 的长任务与人机协作](https://blog.lacknb.cn/articles/2026/11/23/1795402366758.html)（已发布，[源稿](articles/06-agent-runtime/agt-15-long-running-tasks.md)） | 在等待审批时关闭运行时，重开后恢复到正确任务状态，拒绝旧审批并确保只写一份回执。 |
+| AGT-24 | [持久化工作流的事件重放与状态恢复](https://blog.lacknb.cn/articles/2026/11/23/1795402368648.html)（已发布，[源稿](articles/06-agent-runtime/agt-24-temporal-replay.md)） | 重放一次 Temporal 工作流中断，数出哪些 Activity 复用历史、哪些实际重试、收据最终有几条。 |
+| AGT-23 | [A2A 实战，两个 Agent 如何交接长任务](https://blog.lacknb.cn/articles/2026/11/23/1795402370736.html)（已发布，[源稿](articles/06-agent-runtime/agt-23-a2a-long-task.md)） | 跟踪只读校验的同步与流式状态，断线后凭任务 ID 查回结果，并验证取消和失败状态。 |
+| AGT-16 | [Agent 运行轨迹与调试](https://blog.lacknb.cn/articles/2026/11/23/1795402373955.html)（已发布，[源稿](articles/06-agent-runtime/agt-16-agent-tracing.md)） | 用任务、Span、调用和动作标识串起脱敏轨迹，说明哪一步失败以及该查的下一条记录。 |
+| AGT-25 | [Agent 前端事件协议与生成式 UI](https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html)（已发布，[源稿](articles/06-agent-runtime/agt-25-ag-ui-a2ui.md)） | 用 API-05 的流式知识驱动报告卡片，断线重连后恢复状态，并检查确认绑定的是当前报告版本。 |
 
 延伸阅读：[Anthropic Agent 架构模式](https://www.anthropic.com/research/building-effective-agents) · [Anthropic 上下文工程](https://www.anthropic.com/research/effective-context-engineering-for-ai-agents) · [Anthropic 多智能体实录](https://www.anthropic.com/research/multi-agent-research-system) · [LangChain Memory](https://docs.langchain.com/oss/python/concepts/memory) · [Anthropic 长任务 Harness](https://www.anthropic.com/research/effective-harnesses-for-long-running-agents)
 
@@ -201,16 +203,16 @@
 
 **学习顺序**　AE-06 跑通第一条端到端用例 → AE-01～02 建任务集和评分标准 → AE-03 用开源框架实现 → AE-07 做故障归因 → AE-04 看公开基准 → AE-08 做发布回归。多轮强化学习（AE-05）放在能稳定评测任务之后。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| AE-06 | [第一篇，如何验证 Agent 真的完成了任务](https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html)（已发布，[源稿](articles/07-agent-eval/ae-06-first-agent-eval.md)） | 复用 LE-07 的三行 CSV，要求生成报告并等待归档确认。从工作区独立读取产物，断言均值和有效记录数，确认前的归档次数须为零。确认后核对只归档一次。再看工具调用和环境状态，比较 Agent 回复与实际结果。 |
-| AE-01 | [设计 Agent 任务集与环境夹具](https://blog.lacknb.cn/articles/2026/11/23/1795403178111.html)（已发布，[源稿](articles/07-agent-eval/ae-01-task-fixtures.md)） | 每题定义用户目标、初始状态、允许工具、验收产物和业务约束。每次试验重置环境，支持固定工具返回和真实集成两种模式。 |
-| AE-02 | [结果评测、轨迹评测和随机性](https://blog.lacknb.cn/articles/2026/11/23/1795403179638.html)（已发布，[源稿](articles/07-agent-eval/ae-02-outcomes-traces.md)） | 先断言最终状态、产物正确和写入次数，再检查选择错误、冗余步骤、超时与越权。对允许多个解法的任务评约束与结果，重复运行并报告成功率、波动、耗时和成本。 |
-| AE-03 | [使用开源框架评测自己的 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html)（已发布，[源稿](articles/07-agent-eval/ae-03-inspect-ai.md)） | 用 Inspect AI 把 CSV 报告任务组织成样本、Agent 与评分器，接上模拟工具和可信状态断言。将线上脱敏失败轨迹用于离线回归。 |
-| AE-07 | [Agent 失败如何归因，模型、工具还是 Harness](https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html)（已发布，[源稿](articles/07-agent-eval/ae-07-failure-attribution.md)） | 建立按故障环节分类的失败样本。替换成可信工具结果、固定检索证据，或回放同一调用轨迹，每次只换一层。分别复现工具选错、参数错误、工具故障、状态未恢复与错误汇总，记录首个失败阶段和修复后影响。 |
-| AE-04 | [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)（已发布，[源稿](articles/07-agent-eval/ae-04-public-benchmarks.md)） | 建立四级 Agent 评测视角：BFCL（工具选型与传参）、τ²-Bench 与 GAIA（业务终态与多步检索）、SWE-bench Verified/Pro 与 Terminal-Bench（存量仓库与容器排障），以及社区 0-to-1 全应用交付榜 KingBench 4 和电脑/网页操控榜 OSWorld、WebArena；同时说明 Harness、预算与反虚报口径。 |
-| AE-08 | [从离线 Agent 回归到线上灰度](https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html)（已发布，[源稿](articles/07-agent-eval/ae-08-regression-rollout.md)） | 将能完成新任务的能力评测、已支持行为的回归评测和权限限制分别设门槛。用模拟环境先做故障注入和终态校验，灰度时按任务或用户群看成功率、接管率、P95 和单次成功成本。影子请求隔离写入，用脱敏失败轨迹补回归集并验证回滚。 |
-| AE-05 | [进阶实验，Agent 的多轮强化学习](https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html)（已发布，[源稿](articles/07-agent-eval/ae-05-multi-turn-rl.md)） | 先读 TRN-08 和 AGT-01，使用已有 Agent 评测作基线。在可重置的模拟报表环境中收集多轮工具交互轨迹，比较终态奖励与加入步骤奖励后的成功率、无效动作、步数和奖励投机。用未见任务复测，并与 EVO-01 中的运行时经验更新对照。 |
+| AE-06 | [第一篇，如何验证 Agent 真的完成了任务](https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html)（已发布，[源稿](articles/07-agent-eval/ae-06-first-agent-eval.md)） | 沿 LE-07 的退款样本读回报告文件和归档表，独立核对两条、均值 5、批准前零条和批准后唯一写入。 |
+| AE-01 | [设计 Agent 任务集与环境夹具](https://blog.lacknb.cn/articles/2026/11/23/1795403178111.html)（已发布，[源稿](articles/07-agent-eval/ae-01-task-fixtures.md)） | 写一条含初始状态、允许工具和预期产物的用例，每次重置环境，分别用固定回包和真实工具执行。 |
+| AE-02 | [结果评测、轨迹评测和随机性](https://blog.lacknb.cn/articles/2026/11/23/1795403179638.html)（已发布，[源稿](articles/07-agent-eval/ae-02-outcomes-traces.md)） | 同看两段执行轨迹，区分真正的终态失败、冗余工具调用和越权，并给出独立的指标。 |
+| AE-03 | [使用开源框架评测自己的 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html)（已发布，[源稿](articles/07-agent-eval/ae-03-inspect-ai.md)） | 用 Inspect AI 组织退款样本、Agent 和评分器，验证只说「已归档」的回复会被实际证据拦住。 |
+| AE-07 | [Agent 失败如何归因，模型、工具还是 Harness](https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html)（已发布，[源稿](articles/07-agent-eval/ae-07-failure-attribution.md)） | 对两个都写成 3 条的报告逐段核对，用一次只替换一层的回放定位 `tool_output` 或 `artifact`。 |
+| AE-04 | [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)（已发布，[源稿](articles/07-agent-eval/ae-04-public-benchmarks.md)） | 选一个适合自己目标的 Agent 基准，说明它验收的是工具参数、业务终态、仓库补丁还是可用成品。 |
+| AE-08 | [从离线 Agent 回归到线上灰度](https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html)（已发布，[源稿](articles/07-agent-eval/ae-08-regression-rollout.md)） | 为新能力、旧行为和权限各设一道回归门槛，再用灰度数据判断保持、放量或回退。 |
+| AE-05 | [进阶实验，Agent 的多轮强化学习](https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html)（已发布，[源稿](articles/07-agent-eval/ae-05-multi-turn-rl.md)） | 用同一多轮任务比较终态奖励和步骤奖励，找出有奖励却没完成的轨迹，并用未见任务复测。延伸到 TRN-08、EVO-01。可接着看 AGT-01。 |
 
 ### 常用 Agent 基准与打分方式
 
@@ -230,21 +232,21 @@
 
 用同一小批原始文档做三次迭代：先做可引用的基础 RAG，再加排序与评测，最后编译成可维护的 Wiki，并以原始资料补证。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| KB-11 | [复杂文档解析，OCR、版面、表格与引用](https://blog.lacknb.cn/articles/2026/11/23/1795409706230.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-11-document-layout.md)） | 用扫描 PDF 和跨页表格比较纯文本抽取与保留版面的解析，检查 OCR、阅读顺序、表头归属、单元格和页码引用。记录失败样例，完成 KB-05 后用同一问题集测解析误差如何传到召回与答案。 |
-| KB-01 | [文档解析、切块与索引](https://blog.lacknb.cn/articles/2026/11/23/1795409707913.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-01-chunk-index.md)） | 保留标题层级、原文位置、版本和访问权限，对比固定窗口与结构切块。修改原文后验证相关索引能更新。 |
-| KB-02 | [Embedding 与向量相似度](https://blog.lacknb.cn/articles/2026/11/23/1795409709612.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-02-embedding-similarity.md)） | Query/Document 表示、余弦与内积、归一化与模型迁移。用同义句、专有名词和编号测向量召回。 |
-| KB-03 | [BM25、向量检索与混合召回](https://blog.lacknb.cn/articles/2026/11/23/1795409711351.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-03-hybrid-retrieval.md)） | 用同一文档集比较倒排与向量结果，讨论 ANN 的速度与召回权衡，展示候选融合与权限过滤。 |
-| KB-04 | [Rerank 怎样改善证据排序](https://blog.lacknb.cn/articles/2026/11/23/1795409713044.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-04-reranking.md)） | 区分初召回与二阶段重排，用 Cross-Encoder 为候选重新打分。比较 Recall@K、MRR 或 nDCG、延迟和成本。 |
-| KB-05 | [从候选证据到可引用的 RAG 回答](https://blog.lacknb.cn/articles/2026/11/23/1795409714758.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-05-cited-rag.md)） | 检索 → 重排 → 证据选择和组装 → 生成带引用答案。测引用正确性、证据不足时的拒答、跨文档冲突和索引过期。 |
-| KB-12 | [RAG 评测入门，先标问题和依据](https://blog.lacknb.cn/articles/2026/11/23/1795409716558.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-12-rag-gold-evidence.md)） | 从 CSV 数据字典挑三类问题：有明确依据、需跨段组合、材料无法回答。为每题保留参考答案或期望拒答，以及证据位置。先测已知证据是否进入候选，再将人工选好的证据直接给生成模型做对照，暴露检索与生成的不同问题。 |
-| KB-08 | [RAG 的端到端质量评测](https://blog.lacknb.cn/articles/2026/11/23/1795409718320.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-08-rag-evaluation.md)） | 分开检查召回覆盖、证据相关性、答案忠实度和引用正确性。用人工标注校准自动指标，再按失败位置定位到文档、检索、重排或生成。 |
-| KB-13 | [用 BEIR 和 HotpotQA 练习检索与证据问答评测](https://blog.lacknb.cn/articles/2026/11/23/1795409720070.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-13-beir-hotpotqa.md)） | 选 BEIR 子集，用查询、语料和相关性标注比较召回与排序。用 HotpotQA 检查答案匹配和支持事实。分别报告检索、答案与证据指标，再迁移到自己的 CSV 文档问答。 |
-| KB-09 | [多租户 RAG 的索引权限与删除传播](https://blog.lacknb.cn/articles/2026/11/23/1795409721751.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-09-tenant-retrieval.md)） | 追踪文档授权和版本如何传到切块、召回过滤、重排和引用接口。撤权或删除后检查旧索引、缓存与引用访问，并验证更新期间的拒绝与恢复行为。 |
-| KB-10 | [结构化数据 Agent，Text-to-SQL 与指标口径](https://blog.lacknb.cn/articles/2026/11/23/1795409723408.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-10-text-to-sql.md)） | 将 CSV 导入测试数据库，比较固定参数查询与生成 SQL。用数据字典和已知结果核对连接、去重、空值、时间范围与聚合口径，同时验证只读身份、查询预算、拒绝路径和结果引用。 |
-| KB-06 | [Agentic RAG 与多跳检索](https://blog.lacknb.cn/articles/2026/11/23/1795409725088.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-06-agentic-rag.md)） | 把检索作为有预算的工具，演示查询重写、补充检索、条件停止。用单轮 RAG 做基线，验证重复检索和成本。 |
-| KB-07 | [LLM Wiki 的资料编译、查询与维护](https://blog.lacknb.cn/articles/2026/11/23/1795409726827.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-07-wiki-maintenance.md)） | 原始资料层、Wiki 页面层、Schema 与维护规则。用同一小批资料走 ingest → query → lint，验证来源链接、重复主题、冲突、增量更新与失效。Wiki 用于累积综合知识，查询可结合检索回查原文。 |
+| KB-11 | [复杂文档解析，OCR、版面、表格与引用](https://blog.lacknb.cn/articles/2026/11/23/1795409706230.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-11-document-layout.md)） | 从一份跨页扫描表还原阅读顺序、表头和单元格，沿页码验证答复引用的原始证据。可接着看 KB-05。 |
+| KB-01 | [文档解析、切块与索引](https://blog.lacknb.cn/articles/2026/11/23/1795409707913.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-01-chunk-index.md)） | 为退款条款做两种切块，检验单位和规则号是否保留在同一块；更新文档后核对引用版本。 |
+| KB-02 | [Embedding 与向量相似度](https://blog.lacknb.cn/articles/2026/11/23/1795409709612.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-02-embedding-similarity.md)） | 手算两条向量的余弦相似度，再用同义词、字段名和规则编号检查召回。 |
+| KB-03 | [BM25、向量检索与混合召回](https://blog.lacknb.cn/articles/2026/11/23/1795409711351.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-03-hybrid-retrieval.md)） | 对同一查询生成词法和向量排名，手算融合顺序，再检查范围外的文档是否在召回前已被筛掉。 |
+| KB-04 | [Rerank 怎样改善证据排序](https://blog.lacknb.cn/articles/2026/11/23/1795409713044.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-04-reranking.md)） | 对一组候选重排，用正确证据有没有进入候选，判断应该改初召回还是重排分数。 |
+| KB-05 | [从候选证据到可引用的 RAG 回答](https://blog.lacknb.cn/articles/2026/11/23/1795409714758.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-05-cited-rag.md)） | 把检索结果组装成可点验的证据包，验证每条引用支持原句，遇到材料不足或冲突能显式反馈。 |
+| KB-12 | [RAG 评测入门，先标问题和依据](https://blog.lacknb.cn/articles/2026/11/23/1795409716558.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-12-rag-gold-evidence.md)） | 标注单段、跨段和无依据三类题，手算召回从 1/2 到 2/2，判断失败来自材料不足还是回答阶段。 |
+| KB-08 | [RAG 的端到端质量评测](https://blog.lacknb.cn/articles/2026/11/23/1795409718320.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-08-rag-evaluation.md)） | 对同一份 30 天政策分别注入错误数字和错误引用，从答案一致、忠实度和引用三项判出问题所在。 |
+| KB-13 | [用 BEIR 和 HotpotQA 练习检索与证据问答评测](https://blog.lacknb.cn/articles/2026/11/23/1795409720070.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-13-beir-hotpotqa.md)） | 分别对 BEIR 检索和 HotpotQA 答案与支持句算分，再为自己的退款问答保留同样的证据指标。 |
+| KB-09 | [多租户 RAG 的索引权限与删除传播](https://blog.lacknb.cn/articles/2026/11/23/1795409721751.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-09-tenant-retrieval.md)） | 用旧引用测试撤权时的缓存和索引，记录拒绝何时生效，以及重新授权后能打开哪个版本。 |
+| KB-10 | [结构化数据 Agent，Text-to-SQL 与指标口径](https://blog.lacknb.cn/articles/2026/11/23/1795409723408.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-10-text-to-sql.md)） | 手算退款统计后用 SQLite 对照去重、空值和时间区间的 SQL，再独立检查只读权限与预算。 |
+| KB-06 | [Agentic RAG 与多跳检索](https://blog.lacknb.cn/articles/2026/11/23/1795409725088.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-06-agentic-rag.md)） | 根据第一跳返回的部门名写第二次查询，并从调用次数检查证据齐全、重复搜索和预算耗尽三种停止方式。 |
+| KB-07 | [LLM Wiki 的资料编译、查询与维护](https://blog.lacknb.cn/articles/2026/11/23/1795409726827.html)（已发布，[源稿](articles/08-rag-and-wiki/kb-07-wiki-maintenance.md)） | 把原件编成带出处的 Wiki 页，撤回或更新原件后，核对旧数字、重复页和失效链接如何被处理。 |
 
 ### 常用检索与问答基准
 
@@ -260,14 +262,14 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 先画数据流和信任边界，明确模型、应用、工具代理以及隔离环境各自负责的控制。用合成数据与受控工具验证允许、拒绝、审计与恢复。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| SEC-01 | [OWASP 是什么，Top 10 怎样用](https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html)（已发布，[源稿](articles/09-security-guardrails/sec-01-owasp-risk-matrix.md)） | 介绍 OWASP Foundation、GenAI Security Project 及风险清单的用途。为自己的系统建资产、威胁、控制、负责人和验证矩阵。 |
-| SEC-02 | [OWASP Top 10 for LLM Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411163039.html)（已发布，[源稿](articles/09-security-guardrails/sec-02-llm-top-ten.md)） | 以 2026 版官方材料为主，逐项映射到模型输入、检索、输出处理、发布与运行环境。每类明确影响、缓解措施和防御验收。 |
-| SEC-03 | [OWASP Top 10 for Agentic Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411164811.html)（已发布，[源稿](articles/09-security-guardrails/sec-03-agentic-top-ten.md)） | 以 2026 版为主，结合 Agent 工具调用、身份与权限、记忆、跨 Agent 信任和供应链梳理风险。在同一个案例中对照两份清单的关注点。 |
-| SEC-04 | [LLM 应用的输入、输出和数据护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411166416.html)（已发布，[源稿](articles/09-security-guardrails/sec-04-input-output-rails.md)） | 设计内容规则、敏感信息处理、输出 Schema、输出展示与下游执行约束。用合成正反样本观察误拦、漏判、延迟与失败处理。 |
-| SEC-05 | [Agent 工具调用、审批与运行时护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411168053.html)（已发布，[源稿](articles/09-security-guardrails/sec-05-tool-approval.md)） | 把租户授权、审批参数绑定、预算、日志和网络或文件策略落到执行边界。验证外部内容可以被读取，但其文字不能改变工具权限或审批要求。 |
-| SEC-06 | [第三方模型、MCP Server、Skill 与 A2A 的信任链](https://blog.lacknb.cn/articles/2026/11/23/1795411169711.html)（已发布，[源稿](articles/09-security-guardrails/sec-06-third-party-trust.md)） | 记录服务身份、授权委派、版本来源、依赖与审批边界。用合成夹具验证第三方描述更新、授权撤回、权限范围收窄与执行审计。 |
+| SEC-01 | [OWASP 是什么，Top 10 怎样用](https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html)（已发布，[源稿](articles/09-security-guardrails/sec-01-owasp-risk-matrix.md)） | 画一张应用资产与信任边界图，将每项风险连到负责的组件、控制和可查验的证据。 |
+| SEC-02 | [OWASP Top 10 for LLM Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411163039.html)（已发布，[源稿](articles/09-security-guardrails/sec-02-llm-top-ten.md)） | 将 LLM 风险映射到退款助手的输入、检索和输出，对选出的控制写出合成验收样本及预期结果。 |
+| SEC-03 | [OWASP Top 10 for Agentic Applications](https://blog.lacknb.cn/articles/2026/11/23/1795411164811.html)（已发布，[源稿](articles/09-security-guardrails/sec-03-agentic-top-ten.md)） | 沿 Agent 的工具、身份、记忆和委派链路检查风险，将同一故障对应到合适的控制负责层。 |
+| SEC-04 | [LLM 应用的输入、输出和数据护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411166416.html)（已发布，[源稿](articles/09-security-guardrails/sec-04-input-output-rails.md)） | 用合成的合法和异常报告检查误拦、漏判和失败处理，确保输出结构和引用范围能分别验收。 |
+| SEC-05 | [Agent 工具调用、审批与运行时护栏](https://blog.lacknb.cn/articles/2026/11/23/1795411168053.html)（已发布，[源稿](articles/09-security-guardrails/sec-05-tool-approval.md)） | 替换报告版本、租户或批准内容后重新检查执行结果，确认正确批准前没有写入，重投后只有一条。 |
+| SEC-06 | [第三方模型、MCP Server、Skill 与 A2A 的信任链](https://blog.lacknb.cn/articles/2026/11/23/1795411169711.html)（已发布，[源稿](articles/09-security-guardrails/sec-06-third-party-trust.md)） | 用一组第三方组件登记信息验证版本变更、委派收窄和撤权分别怎样影响执行决定。 |
 
 护栏原型可读 **NeMo Guardrails**，用一个内容规则和一个工具审批流程对照应用层、工具代理和 Sandbox 的职责；涉及用户授权的决策由可信执行边界再次检查。 [OWASP Foundation](https://owasp.org/about/) · [LLM Applications Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) · [Agentic Applications Top 10 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) · [NeMo Guardrails](https://github.com/NVIDIA-NeMo/Guardrails) · [MCP 授权规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
@@ -275,13 +277,13 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 从两个维度分类。**部署位置**可分本机、远程自建和托管云。**隔离机制**可分语言运行时、宿主进程策略、共享内核容器、用户态内核以及 VM/MicroVM。浏览器、代码解释器和完整工作区属于使用场景。同一个产品在不同部署配置下可以对应不同隔离机制。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| SBX-01 | [沙箱分类与威胁建模](https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-01-taxonomy-threat-model.md)） | 比较 WASM、进程策略、容器、gVisor、MicroVM 与通用 VM 的信任边界。按宿主访问、网络、兼容性、启动和清理确定需求。 |
-| SBX-02 | [本地沙箱如何限制 Coding Agent](https://blog.lacknb.cn/articles/2026/11/23/1795416674280.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-02-local-isolation.md)） | 在本机分别看宿主进程权限策略与本地容器或 VM。用合成项目验证工作区读写、子进程、网络拒绝与资源回收，记录系统和策略版本。 |
-| SBX-03 | [远程沙箱的生命周期与执行接口](https://blog.lacknb.cn/articles/2026/11/23/1795416676067.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-03-remote-lifecycle.md)） | 追踪 create → exec → artifact → destroy，讲模板、文件与产物、网络、租约、多租户隔离、配额和故障恢复。 |
-| SBX-04 | [E2B、CubeSandbox、OpenSandbox 对比与源码路径](https://blog.lacknb.cn/articles/2026/11/23/1795416677850.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-04-projects-source-tour.md)） | 对照 SDK、控制面、执行面、网络和存储。E2B 先读托管 SDK 与开源仓库；OpenSandbox 先看 Docker 与 Kubernetes 运行时；CubeSandbox 跟 CubeAPI 到 Cubelet、KVM MicroVM。 |
-| SBX-05 | [沙箱选型、启动基准与事件响应](https://blog.lacknb.cn/articles/2026/11/23/1795416679623.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-05-benchmark-response.md)） | 用相同任务和依赖测申请到首命令、P95、清理和会话状态；用合成资源验证边界拒绝。将配置错误与疑似隔离失效分别纳入防御处置。 |
+| SBX-01 | [沙箱分类与威胁建模](https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-01-taxonomy-threat-model.md)） | 为退款任务列出文件、网络、进程与清理需求，选一种隔离方式，并把边界转成行为验收。 |
+| SBX-02 | [本地沙箱如何限制 Coding Agent](https://blog.lacknb.cn/articles/2026/11/23/1795416674280.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-02-local-isolation.md)） | 在受控夹具中对照普通进程、宿主策略和容器，检查工作区、子进程、出站和清理能否按预期受限。 |
+| SBX-03 | [远程沙箱的生命周期与执行接口](https://blog.lacknb.cn/articles/2026/11/23/1795416676067.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-03-remote-lifecycle.md)） | 跟一条任务走完创建、就绪、执行、取产物和销毁，并检查销毁后访问与重复销毁的结果。 |
+| SBX-04 | [E2B、CubeSandbox、OpenSandbox 对比与源码路径](https://blog.lacknb.cn/articles/2026/11/23/1795416677850.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-04-projects-source-tour.md)） | 沿三套沙箱实现寻找创建返回、就绪确认和产物拉取，标出 SDK、控制面和执行面各自的证据。 |
+| SBX-05 | [沙箱选型、启动基准与事件响应](https://blog.lacknb.cn/articles/2026/11/23/1795416679623.html)（已发布，[源稿](articles/10-sandbox-runtime/sbx-05-benchmark-response.md)） | 从样本复算首输出与删除确认的延迟，比较复用的收益，再核对旧工作区或任务状态是否被清掉。 |
 
 建议实验顺序为本地最小策略 → OpenSandbox 本地 Docker 生命周期 → E2B 托管 API 形态 → CubeSandbox 在具备 KVM 条件的主机上读源码并验证。可用 **gVisor / Firecracker** 辅助理解隔离层，用 **Kata Containers** 补充容器接口与 VM 的结合。各项目的许可证与托管条款、后端和平台要求按选定版本确认；仓库中的性能数字先看测试口径。 [E2B 文档](https://docs.e2b.dev/) · [E2B 源码](https://github.com/e2b-dev/E2B) · [OpenSandbox](https://github.com/opensandbox-group/OpenSandbox) · [CubeSandbox 架构](https://github.com/TencentCloud/CubeSandbox/blob/master/docs/architecture/overview.md) · [gVisor](https://gvisor.dev/docs/architecture_guide/security/) · [Firecracker](https://github.com/firecracker-microvm/firecracker) · [Kata Containers](https://github.com/kata-containers/kata-containers)
 
@@ -289,13 +291,13 @@ RAG 评测先用 KB-12 标注参考证据，再用 KB-08 分析召回、重排�
 
 先分清本轮纠错、跨会话经验沉淀、框架配置迭代与模型权重更新。报告 Agent 在任务中重试属于执行反馈。把反复验证的处理方法保存成 Skill，可以改变未来行为。修改提示或路由策略属于应用配置变更，GRPO 则属于 F-11 的模型后训练。**递归自我改进（Recursive Self-Improvement, RSI）**关注改进如何反馈到下一轮，例如新模型参与生成或筛选下一轮训练样本，或新版 Agent 参与发现下一个改进点。实验应明确每一轮改变的是权重、训练流程，还是应用版本，并验证改进是否能延续到新任务。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| EVO-01 | [Agent 自进化有哪些模式](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html)（已发布，[源稿](articles/11-agent-evolution/evo-01-agent-improvement-modes.md)） | 对照轨迹反思、事实记忆、过程知识或 Skills 沉淀，以及基于回归集调整 Prompt 与路由。用同一个用户纠正示例展示写入什么、何时召回、如何判断收益。 |
-| EVO-02 | [从任务反馈到可审计的经验发布](https://blog.lacknb.cn/articles/2026/11/23/1795417259258.html)（已发布，[源稿](articles/11-agent-evolution/evo-02-auditable-experience.md)） | 选择有来源的有效经验 → 草拟候选记忆或 Skill → 用隔离回放和留出样本评测 → 审阅、版本化激活与回滚。验证任务收益、误记污染、作用域和权限边界。 |
-| EVO-03 | [模型如何参与训练下一版模型](https://blog.lacknb.cn/articles/2026/11/23/1795417260943.html)（已发布，[源稿](articles/11-agent-evolution/evo-03-model-feedback-training.md)） | 以 STaR 和 Self-Rewarding Language Models 为例，跟踪候选数据生成、验证或奖励、训练、独立评测与下一轮。对照一次训练与多轮迭代，用留出集观察正确率、反馈偏差与能力回归。先学 TRN-08、TRN-12 与 LE-03。 |
-| EVO-04 | [Google DeepMind 实例，SIMA 2 与 AlphaEvolve](https://blog.lacknb.cn/articles/2026/11/23/1795417262667.html)（已发布，[源稿](articles/11-agent-evolution/evo-04-sima-alphaevolve.md)） | 分别追踪 SIMA 2 怎样将自生成经验用于训练下一代 Agent，以及 AlphaEvolve 怎么用自动评分筛选算法候选、优化 Gemini 训练中的计算内核。写清更新对象、评估信号和公开证据的适用范围。 |
-| EVO-05 | [给 Agent 或普通程序加一个反馈改进 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795417264333.html)（已发布，[源稿](articles/11-agent-evolution/evo-05-feedback-improvement-loop.md)） | 应用继续处理业务，独立观察 Agent 只读分析脱敏日志、Trace 和指标。把重复失败变成可复现样本，提出一项候选变更，隔离回放并用固定留出集对照。通过预设的质量、权限和成本检查后提交审阅，再灰度发布。线上指标退化时回滚，把本轮结论作为下一轮输入。 |
+| EVO-01 | [Agent 自进化有哪些模式](https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html)（已发布，[源稿](articles/11-agent-evolution/evo-01-agent-improvement-modes.md)） | 用同一次用户纠正区分当场修复、长期记忆、流程知识和路由更新，再检查换会话是否仍有效。 |
+| EVO-02 | [从任务反馈到可审计的经验发布](https://blog.lacknb.cn/articles/2026/11/23/1795417259258.html)（已发布，[源稿](articles/11-agent-evolution/evo-02-auditable-experience.md)） | 为一条带来源的经验设计发布门槛，分别核对留出收益、适用范围、权限和可回退版本。 |
+| EVO-03 | [模型如何参与训练下一版模型](https://blog.lacknb.cn/articles/2026/11/23/1795417260943.html)（已发布，[源稿](articles/11-agent-evolution/evo-03-model-feedback-training.md)） | 拆出 STaR 和自奖励中的样本生成、验证和更新步骤，用独立留出题识别循环是否真的带来收益。延伸到 TRN-08、TRN-12、LE-03。 |
+| EVO-04 | [Google DeepMind 实例，SIMA 2 与 AlphaEvolve](https://blog.lacknb.cn/articles/2026/11/23/1795417262667.html)（已发布，[源稿](articles/11-agent-evolution/evo-04-sima-alphaevolve.md)） | 对照 SIMA 2 和 AlphaEvolve，说清哪个对象被更新、评分信号从哪里来，再据此设计自己的小型候选筛选实验。 |
+| EVO-05 | [给 Agent 或普通程序加一个反馈改进 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795417264333.html)（已发布，[源稿](articles/11-agent-evolution/evo-05-feedback-improvement-loop.md)） | 把运行失败做成脱敏回放，按质量、权限和资源门槛评审候选，再查灰度回滚与在途任务状态。 |
 
 实战以「前次报告把空值当成零，用户纠正了口径」为例，分别回放旧版和新版，区分当次数据规则与可跨任务复用的流程。候选经验只能调整已授权范围内的任务步骤，权限仍由可信运行时检查。 [Hermes Skills 与经验沉淀](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) · [Hermes Memory 与写入审批](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)
 
@@ -309,37 +311,52 @@ Google DeepMind 的公开资料分别记录了 **SIMA 2 利用自生成经验训
 
 两篇都固定源码 tag，从一条本地测试会话入手，记录入口、路由、模型调用、工具策略、会话持久化和结果返回。再挑同一处用户纠正，观察两个实现分别写入什么、在哪一轮加载以及如何撤销。
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| CASE-01 | [OpenClaw 设计思想与运行链路](https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html)（已发布，[源稿](articles/12-framework-cases/case-01-openclaw-runtime.md)） | 从 Gateway 与 Channel 接入出发，追踪会话路由、workspace、上下文与 Skills 快照、Agent Loop、工具和事件回流。区分同一会话的执行顺序与不同会话的隔离范围。 |
-| CASE-02 | [Hermes Agent 的设计思想与自改进链路](https://blog.lacknb.cn/articles/2026/11/23/1795418064577.html)（已发布，[源稿](articles/12-framework-cases/case-02-hermes-runtime-memory.md)） | 追踪一次 CLI 或 Gateway 会话，从 Agent Loop 到会话记录，再跟后台回顾、持久记忆和可复用 Skill 的写入路径。对照选定版本验证审批、编辑和下一会话的加载。 |
-| CASE-03 | [同一个任务对照 OpenClaw 与 Hermes Agent](https://blog.lacknb.cn/articles/2026/11/23/1795418066265.html)（已发布，[源稿](articles/12-framework-cases/case-03-openclaw-hermes-comparison.md)） | 比较接入方式、会话与工作区边界、指令加载、记忆与 Skill 生命周期、写入审批和可观测性。用同一份 CSV、同一模型和相同权限回放，按源码和观察记录作结。 |
+| CASE-01 | [OpenClaw 设计思想与运行链路](https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html)（已发布，[源稿](articles/12-framework-cases/case-01-openclaw-runtime.md)） | 沿选定的 OpenClaw 版本跟踪一条退款消息，区分会话路由、工作区资料装载和真实工具结果。 |
+| CASE-02 | [Hermes Agent 的设计思想与自改进链路](https://blog.lacknb.cn/articles/2026/11/23/1795418064577.html)（已发布，[源稿](articles/12-framework-cases/case-02-hermes-runtime-memory.md)） | 在 Hermes 工作区跟一条经验从候选到批准、加载和撤回，再对照下一会话的输出。 |
+| CASE-03 | [同一个任务对照 OpenClaw 与 Hermes Agent](https://blog.lacknb.cn/articles/2026/11/23/1795418066265.html)（已发布，[源稿](articles/12-framework-cases/case-03-openclaw-hermes-comparison.md)） | 用同一份 CSV 对照 OpenClaw 和 Hermes，区分同会话历史记住纠正与跨会话资料已发布。 |
 
 阅读入口：[OpenClaw Gateway 架构](https://docs.openclaw.ai/concepts/architecture) · [OpenClaw Agent Loop](https://docs.openclaw.ai/concepts/agent-loop) · [Hermes Agent 源码](https://github.com/NousResearch/hermes-agent) · [Hermes Skills](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills)
 
 ## 13. Vibe Coding 与工程化交付
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| DEV-01 | [Vibe Coding 的工作方式与原型实验](https://blog.lacknb.cn/articles/2026/11/23/1795418815589.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-01-vibe-coding-prototype.md)） | 通过自然语言和界面反馈快速迭代一个报告页，记录迭代时间、人工干预和剩余缺陷。以可丢弃分支承载实验。 |
-| DEV-02 | [从 Vibe Coding 原型走向 Agentic Engineering](https://blog.lacknb.cn/articles/2026/11/23/1795418817314.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-02-agentic-engineering.md)） | 同一任务增加可验证规格、仓库约束、测试、版本隔离、权限和代码复核。对比测试覆盖、错误恢复、修改范围和可维护性。 |
-| DEV-03 | [Computer Use 与浏览器 Agent 的工程实践](https://blog.lacknb.cn/articles/2026/11/23/1795418819068.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-03-computer-use.md)） | 用同一份本地示例报告比较 DOM/可访问性信息与截图操作的定位方式。验证点击后的页面状态、弹窗、误操作恢复、提交前审批和用户接管。 |
+| DEV-01 | [Vibe Coding 的工作方式与原型实验](https://blog.lacknb.cn/articles/2026/11/23/1795418815589.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-01-vibe-coding-prototype.md)） | 用两轮原型演示退款报告，拿正常、全缺失和归档状态三个任务记录改动效果。 |
+| DEV-02 | [从 Vibe Coding 原型走向 Agentic Engineering](https://blog.lacknb.cn/articles/2026/11/23/1795418817314.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-02-agentic-engineering.md)） | 把原型拆成可测试规则与页面，验证计算、输入变化、取消与审批，保留能复跑的交付证据。 |
+| DEV-03 | [Computer Use 与浏览器 Agent 的工程实践](https://blog.lacknb.cn/articles/2026/11/23/1795418819068.html)（已发布，[源稿](articles/13-vibe-coding-delivery/dev-03-computer-use.md)） | 对照截图坐标和可访问语义定位，在布局变化后验证报告结果，并在归档前交还确认。 |
 
 用长任务 Harness 的增量开发、产物接力和评估反馈作为工程化对照。 [Anthropic 长任务 Harness](https://www.anthropic.com/research/effective-harnesses-for-long-running-agents) · [生成与评估循环的工程案例](https://www.anthropic.com/research/harness-design-long-running-apps) · [Anthropic Computer Use 文档](https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool)
 
 ## 14. 生产化专题
 
-| 编号 | 可独立成文的题目 | 写清的机制与验证 |
+| 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
-| OPS-01 | [LLM Gateway 的限流、路由、缓存与降级](https://blog.lacknb.cn/articles/2026/11/23/1795419423601.html)（已发布，[源稿](articles/14-production/ops-01-gateway.md)） | 按 RPM、TPM、并发、预算治理，测试 429、超时、部分流式输出和供应商切换。 |
-| OPS-02 | [Agent 安全控制如何落到生产环境](https://blog.lacknb.cn/articles/2026/11/23/1795419425419.html)（已发布，[源稿](articles/14-production/ops-02-agent-security.md)） | 将 SEC 与 SBX 中的控制接入权限配置、网络策略、审计、变更审批与事件响应。用分环境回归确认策略实际生效。 |
-| OPS-03 | [Sandbox 冷启动和资源回收](https://blog.lacknb.cn/articles/2026/11/23/1795419427113.html)（已发布，[源稿](articles/14-production/ops-03-sandbox-lifecycle.md)） | 拆分排队、镜像、运行时、首命令，比较镜像缓存、预热和洁净快照，追踪 P95、闲置成本、隔离与回收。 |
-| OPS-04 | [Agent 服务拆分与可靠迁移](https://blog.lacknb.cn/articles/2026/11/23/1795419428781.html)（已发布，[源稿](articles/14-production/ops-04-reliable-migration.md)） | 从模块化单体拆异步执行池，覆盖队列、Outbox、幂等、独立扩缩容、灰度和回滚。 |
-| OPS-05 | [端到端可观测与持续发布](https://blog.lacknb.cn/articles/2026/11/23/1795419430432.html)（已发布，[源稿](articles/14-production/ops-05-progressive-delivery.md)） | 统一请求、模型、工具和产物的追踪，制作失败样本、上线门槛、灰度与回滚报告。 |
-| OPS-07 | [Prompt、工具契约和在途任务的版本兼容](https://blog.lacknb.cn/articles/2026/11/23/1795419432161.html)（已发布，[源稿](articles/14-production/ops-07-runtime-versioning.md)） | 记录每次运行所用的 Prompt、工具输入与输出 Schema 以及模型发布版本。用统计工具的参数变更与结果变更演示兼容层和轨迹回放，验证旧任务恢复、灰度和回滚期间的结果一致性与副作用处理。 |
-| OPS-06 | [用 OpenTelemetry 定位一条 Agent 慢请求](https://blog.lacknb.cn/articles/2026/11/23/1795419433902.html)（已发布，[源稿](articles/14-production/ops-06-opentelemetry-trace.md)） | 固定语义约定版本，用 Trace 关联模型、检索、工具和 Sandbox，把耗时拆成排队与执行。记录 Token、错误与步骤次序，用脱敏与采样保护输入输出。 |
+| OPS-01 | [LLM Gateway 的限流、路由、缓存与降级](https://blog.lacknb.cn/articles/2026/11/23/1795419423601.html)（已发布，[源稿](articles/14-production/ops-01-gateway.md)） | 按请求数、Token、并发与预算设计限额，用流式首段前后的故障判断能否切换供应商。 |
+| OPS-02 | [Agent 安全控制如何落到生产环境](https://blog.lacknb.cn/articles/2026/11/23/1795419425419.html)（已发布，[源稿](articles/14-production/ops-02-agent-security.md)） | 在预发布分别变更归档身份、审批对象和目标，观察代理是否记录了对应拒绝理由。 |
+| OPS-03 | [Sandbox 冷启动和资源回收](https://blog.lacknb.cn/articles/2026/11/23/1795419427113.html)（已发布，[源稿](articles/14-production/ops-03-sandbox-lifecycle.md)） | 从一次运行分出排队、镜像、运行时和首命令耗时，按相同口径比较冷启动、预热和回收。 |
+| OPS-04 | [Agent 服务拆分与可靠迁移](https://blog.lacknb.cn/articles/2026/11/23/1795419428781.html)（已发布，[源稿](articles/14-production/ops-04-reliable-migration.md)） | 沿任务、发件箱、队列、收据四张状态表重放事务回滚和重复交付，解释为何只保留一张收据。 |
+| OPS-05 | [端到端可观测与持续发布](https://blog.lacknb.cn/articles/2026/11/23/1795419430432.html)（已发布，[源稿](articles/14-production/ops-05-progressive-delivery.md)） | 从一个故障样本写出离线回归与灰度门槛，用正确率、P95 和重复写入决定回切，并检查在途任务。 |
+| OPS-07 | [Prompt、工具契约和在途任务的版本兼容](https://blog.lacknb.cn/articles/2026/11/23/1795419432161.html)（已发布，[源稿](articles/14-production/ops-07-runtime-versioning.md)） | 拿一条旧任务和一份旧版工具回包核对恢复，确认金额的元分换算正确、未知版本被挂起、重试不重复写入。 |
+| OPS-06 | [用 OpenTelemetry 定位一条 Agent 慢请求](https://blog.lacknb.cn/articles/2026/11/23/1795419433902.html)（已发布，[源稿](articles/14-production/ops-06-opentelemetry-trace.md)） | 用 Spring Boot、Collector 和 Jaeger 核对四层 Span，区分业务错数、消息断链和导出失败。 |
 
 生产链路观测参考：[OpenTelemetry 的 GenAI Trace 示例](https://opentelemetry.io/blog/2026/genai-observability/)
+
+## 退款报告排障路线
+
+从「退款报告等得久，还把 2 笔写成了 3 笔」的工单开始。路线里的追踪和评测命令可在仓库根目录跑通，用的是合成数据和模拟等待。
+
+| 顺序 | 阅读入口 | 读完可以做什么 |
+| --- | --- | --- |
+| 1 | [OpenTelemetry 入门](articles/14-production/opentelemetry-tracing-primer.md) | 对齐入队端与消费端的 Trace ID 和父 Span ID，读出队列等待的位置。 |
+| 2 | [OPS-06 实战排障与回归](articles/14-production/ops-06-opentelemetry-trace.md#实战排障与回归) | 用 Java 重放慢请求与两种错数，找到统计值第一次偏离的位置。 |
+| 3 | [AE-07 失败归因](articles/07-agent-eval/ae-07-failure-attribution.md) | 用固定正确回包做一次对照，核对首个失败阶段、报告文件和归档记录。 |
+| 4 | [AE-08 离线回归与灰度](articles/07-agent-eval/ae-08-regression-rollout.md) · [OPS-05 发布门槛](articles/14-production/ops-05-progressive-delivery.md) | 把故障样本纳入回归，分别核对报告正确性、尾延迟和重复收据。 |
+
+如果耗时集中在等工具结果，可回到 [AGT-09 工具并发](articles/06-agent-runtime/agt-09-tool-scheduling.md) 检查调度依赖。如果耗时集中在沙箱租约，可用 [OPS-03 沙箱生命周期](articles/14-production/ops-03-sandbox-lifecycle.md) 的分段计时继续定位。
+
+想接入自己的 Java 服务，可以从 [Spring Boot 接入实战](articles/14-production/ops-06-opentelemetry-trace.md#spring-boot-接入实战) 走一遍应用、Collector 和 Jaeger，再用两次故障复跑区分上下文断开与遥测导出失败。
 
 ## 首轮写作主线
 

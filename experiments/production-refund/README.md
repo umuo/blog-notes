@@ -22,3 +22,5 @@ diff -u experiments/production-refund/results.json /tmp/refund-production-result
 这些结果记录的是规则的重放。真实集群需要额外验证网络策略、资源清理、重复交付和版本迁移。虚拟耗时只用来检查计算，单位是毫秒。
 
 OPS-06 另提供[可运行的 Java OpenTelemetry 项目](java-otel/README.md)，可检查真实 SDK 导出的父子关系、队列等待、断链和工具出错。
+
+[Spring Boot 追踪演练](spring-otel/README.md)用 Java Agent、Collector 和 Jaeger 跑通网络导出与后端查询，另可复现消息头丢失和应用导出路径错误。

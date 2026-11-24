@@ -77,6 +77,32 @@ async def scheduling():
                 timed_out_task_cancelled=cancelled.is_set())
 
 
+async def scheduling_exercise(case):
+    history = []
+    missing = "MISSING" if case == "different-marker" else "NA"
+    csv = CSV.replace("\nNA\n", f"\n{missing}\n")
+
+    async def read_dictionary():
+        history.append("start:dictionary")
+        await asyncio.sleep(0)
+        if case == "dictionary-unavailable":
+            raise LookupError("missing value rule is unavailable")
+        history.append("finish:dictionary")
+        return {"missing": missing}
+
+    try:
+        dictionary = await read_dictionary()
+    except LookupError as error:
+        history.append("fail:dictionary")
+        return {"events": history, "status": "blocked", "report": None, "reason": str(error)}
+
+    history.append("start:statistics")
+    report = stats(csv, missing_value=dictionary["missing"])
+    history.append("finish:statistics")
+    history.append("assemble")
+    return {"events": history, "status": "awaiting_approval", "report": {**report, **dictionary}}
+
+
 def recall():
     # Per-tenant grants determine visibility before the lexical scorer runs.
     catalog = {
@@ -130,5 +156,10 @@ async def main(out):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--schedule-exercise", choices=("dictionary-first", "dictionary-unavailable", "different-marker"))
     args = parser.parse_args()
-    asyncio.run(main(args.out))
+    if args.schedule_exercise:
+        result = asyncio.run(scheduling_exercise(args.schedule_exercise))
+        args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    else:
+        asyncio.run(main(args.out))
