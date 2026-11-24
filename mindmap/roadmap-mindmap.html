@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LLM 与 Agent 知识图谱脑图</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --grid: #e2e8f0;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #2563eb;
+    --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    --pub-bg: #dcfce7;
+    --pub-fg: #166534;
+    --plan-bg: #fef3c7;
+    --plan-fg: #92400e;
+  }
+  html[data-theme="dark"] {
+    --bg: #0b1120;
+    --grid: #1e293b;
+    --surface: #111827;
+    --surface-2: #1e293b;
+    --border: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #60a5fa;
+    --shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+    --pub-bg: #14532d;
+    --pub-fg: #bbf7d0;
+    --plan-bg: #78350f;
+    --plan-fg: #fde68a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 20;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .stat-pill {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-wrap input {
+    width: 196px;
+    padding: 5px 44px 5px 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 12px;
+    outline: none;
+  }
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .search-meta {
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .icon-clear {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    display: none;
+  }
+  .btn-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--surface-2);
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+  }
+  .btn:hover {
+    color: var(--text);
+    background: rgba(148, 163, 184, 0.16);
+  }
+  .btn.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+  .spacer { flex: 1; }
+  .stage-area {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    cursor: grab;
+    user-select: none;
+  }
+  .stage-area.dragging { cursor: grabbing; }
+  svg#mindmap {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .node-g { cursor: pointer; }
+  .node-rect { transition: stroke-width 0.15s, filter 0.15s, opacity 0.15s; }
+  .node-g:hover .node-rect { filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.14)); }
+  .link-path {
+    fill: none;
+    stroke-linecap: round;
+    transition: opacity 0.18s;
+  }
+  .dimmed { opacity: 0.16; }
+  .hint-bar {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    color: var(--muted);
+    box-shadow: var(--shadow);
+    pointer-events: none;
+  }
+  .drawer {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 340px;
+    max-height: calc(100% - 28px);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    z-index: 15;
+    display: none;
+  }
+  .drawer.open { display: block; }
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .drawer-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .pill-pub { background: var(--pub-bg); color: var(--pub-fg); }
+  .pill-plan { background: var(--plan-bg); color: var(--plan-fg); }
+  .drawer-close {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .drawer-title {
+    margin: 4px 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  .drawer-sec {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .drawer-sec strong { color: var(--text); }
+  .ref-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .ref-chip {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ref-chip:hover { border-color: var(--accent); }
+  .drawer-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+  }
+  .file-code {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <span>LLM &amp; Agent 知识图谱脑图</span>
+      <span class="stat-pill" id="stats-pill">14 阶段 · 138 已发布 / 0 规划</span>
+    </div>
+
+    <div class="search-wrap">
+      <input id="search-input" type="text" placeholder="搜编号/关键词（如 KingBench）" />
+      <span class="search-meta">
+        <span id="search-count"></span>
+        <button class="icon-clear" id="search-clear" title="清空搜索">×</button>
+      </span>
+    </div>
+
+    <div class="btn-group" aria-label="展开层级">
+      <button class="btn" data-level="1">4 板块</button>
+      <button class="btn active" data-level="2">14 阶段</button>
+      <button class="btn" data-level="3">全部 138 篇</button>
+    </div>
+
+    <div class="btn-group" aria-label="学习主线">
+      <button class="btn active" data-track="all">全部</button>
+      <button class="btn" data-track="request">请求主线</button>
+      <button class="btn" data-track="eval">评测闭环</button>
+      <button class="btn" data-track="train-serve">训练→部署</button>
+      <button class="btn" data-track="sec-prod">安全与生产</button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="btn-group" aria-label="画布控制">
+      <button class="btn" id="zoom-out" title="缩小">－</button>
+      <button class="btn" id="zoom-fit" title="适应屏幕">适应</button>
+      <button class="btn" id="zoom-in" title="放大">＋</button>
+      <button class="btn" id="theme-toggle" title="切换浅色/深色">深色</button>
+    </div>
+  </div>
+
+  <div class="stage-area" id="stage-area">
+    <svg id="mindmap"></svg>
+    <div class="hint-bar">
+      提示：点击板块或阶段可展开/收起；点击文章查看机制、先修与关联跳转；双击已发布文章直达博客；滚轮缩放 / 拖拽平移
+    </div>
+    <div class="drawer" id="drawer"></div>
+  </div>
+</div>
+
+<script>
+const TREE_DATA = {"stats": {"stages": 14, "totalArticles": 138, "publishedArticles": 138, "plannedArticles": 0}, "tracks": {"all": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "request": [1, 2, 6, 8], "eval": [3, 7], "train-serve": [1, 4, 5], "sec-prod": [9, 10, 11, 12, 13, 14]}, "root": {"id": "root", "kind": "root", "label": "LLM 与 Agent 知识脑图", "badge": "138/138 已发布", "color": "#0f172a", "summary": "请求主线：文本 → Token → 推理 → HTTP/SSE → Agent 工具循环 → RAG 检索 → 安全隔离 → 生产化", "children": [{"id": "pillar-core", "kind": "pillar", "label": "一、大模型本体与服务", "title": "一、大模型本体与服务", "badge": "63/63", "color": "#2563eb", "summary": "从原理、协议、评测到训练与推理部署", "children": [{"id": "stage-1", "kind": "stage", "stageOrder": 1, "label": "1. LLM 基础与推理", "title": "LLM 基础与推理", "seriesLabel": "LLM 基础与推理（F）", "badge": "15/15", "publishedCount": 15, "totalCount": 15, "color": "#2563eb", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出", "summary": "建议先跑 Tokenizer，再钻进 Transformer。读到注意力时，已经知道输入序列和张量的含义。以 decoder-only 文本模型为主，图像、语音和后训练放到基础推理之后。", "children": [{"id": "art-F-01", "kind": "article", "code": "F-01", "label": "F-01 · Tokenizer 与 Chat Template", "title": "Tokenizer 与 Chat Template", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html", "localFile": "articles/01-llm-foundations/f-01-tokenizer-chat-template.md", "summary": "Token、ID、词表、子词与特殊 Token。打印中文、英文、代码的编码，再把一组角色消息套进模型模板，比较序列与 Token 数。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-02", "kind": "article", "code": "F-02", "label": "F-02 · Transformer 如何从 Token 算出 logits", "title": "Transformer 如何从 Token 算出 logits", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795135053358.html", "localFile": "articles/01-llm-foundations/f-02-transformer-logits.md", "summary": "Token Embedding、位置编码、因果遮罩、Q/K/V、FFN、残差与输出头。画出几个 Token 经过一层时的张量形状。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-15", "kind": "article", "code": "F-15", "label": "F-15 · Encoder-only、Decoder-only 与 Encoder-Decoder", "title": "Encoder-only、Decoder-only 与 Encoder-Decoder", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795135557100.html", "localFile": "articles/01-llm-foundations/f-15-transformer-architectures.md", "summary": "用同一段文本对照双向注意力、因果注意力和编码器与解码器之间的交叉注意力。以代表性模型区分训练目标和输出形式，说明向量表示、重排打分与生成怎样接到 KB-02、KB-04 和 KB-05。", "refs": ["KB-02", "KB-04", "KB-05"], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-03", "kind": "article", "code": "F-03", "label": "F-03 · MHA、MQA、GQA 与 RoPE", "title": "MHA、MQA、GQA 与 RoPE", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795154536776.html", "localFile": "articles/01-llm-foundations/f-03-attention-heads-rope.md", "summary": "拆开位置表示和注意力头设计。以相同 Query 头数画三种 K/V 共享关系，算 GQA 对 KV 容量的影响。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-13", "kind": "article", "code": "F-13", "label": "F-13 · MoE 如何选择专家与分配计算", "title": "MoE 如何选择专家与分配计算", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161347233.html", "localFile": "articles/01-llm-foundations/f-13-moe-routing.md", "summary": "在稠密 FFN 基础上看 Router、Top-k、专家 FFN 与结果聚合，区分总参数和每 Token 激活的参数。用小例子统计各专家的 Token 数与负载倾斜，给 SERV-10 的专家并行预备背景。", "refs": ["SERV-10"], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-04", "kind": "article", "code": "F-04", "label": "F-04 · 自回归生成与采样", "title": "自回归生成与采样", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161419910.html", "localFile": "articles/01-llm-foundations/f-04-autoregressive-sampling.md", "summary": "logits、Softmax、Greedy、Temperature、Top-k、Top-p、EOS、停止条件与最大输出。用小词表推演两步输出。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-05", "kind": "article", "code": "F-05", "label": "F-05 · Prefill 与 Decode", "title": "Prefill 与 Decode", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161425780.html", "localFile": "articles/01-llm-foundations/f-05-prefill-and-decode.md", "summary": "输入序列前向计算出首步 logits，生成阶段逐步追加 Token。画时间线，并跟踪第一步生成与后续步。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-06", "kind": "article", "code": "F-06", "label": "F-06 · KV Cache 如何加速 Decode", "title": "KV Cache 如何加速 Decode", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161430009.html", "localFile": "articles/01-llm-foundations/f-06-kv-cache.md", "summary": "展示各层 K/V 随序列增长的形状、显存公式及读取成本。区分单序列增量缓存、跨请求前缀复用和应用结果缓存。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-14", "kind": "article", "code": "F-14", "label": "F-14 · FlashAttention 如何减少注意力的显存读写", "title": "FlashAttention 如何减少注意力的显存读写", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161433683.html", "localFile": "articles/01-llm-foundations/f-14-flashattention.md", "summary": "从 HBM 与片上存储、分块、在线 Softmax 理解精确注意力的 I/O 优化。对照朴素实现，固定输入测输出误差、峰值显存与耗时，再与 SERV-04 的 KV 块管理对照处理对象。", "refs": ["SERV-04"], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-07", "kind": "article", "code": "F-07", "label": "F-07 · TTFT、TPOT、ITL、吞吐与端到端延迟", "title": "TTFT、TPOT、ITL、吞吐与端到端延迟", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161437100.html", "localFile": "articles/01-llm-foundations/f-07-inference-latency-metrics.md", "summary": "分清引擎首 Token、服务首事件、浏览器首段可见文本。固定输入和输出长度做实验，标出排队、Prefill、Decode 和传输，使曲线可解释。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-08", "kind": "article", "code": "F-08", "label": "F-08 · 模型精度与量化", "title": "模型精度与量化", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161440718.html", "localFile": "articles/01-llm-foundations/f-08-model-precision-and-quantization.md", "summary": "FP16、BF16、INT8、INT4，权重量化与 KV 量化的对象不同。以 GPTQ/AWQ 为例讨论加载、硬件、内存与质量。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-09", "kind": "article", "code": "F-09", "label": "F-09 · 多模态请求如何进入模型", "title": "多模态请求如何进入模型", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161444330.html", "localFile": "articles/01-llm-foundations/f-09-multimodal-input.md", "summary": "从图片编码、视觉表示与文本融合，到 API 内容块。用文本和图文请求对照输入预算与输出，音频和实时双向流作为后续分篇。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-10", "kind": "article", "code": "F-10", "label": "F-10 · 模型从训练到可用的过程", "title": "模型从训练到可用的过程", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161450059.html", "localFile": "articles/01-llm-foundations/f-10-model-training-stages.md", "summary": "预训练、SFT、偏好优化和强化学习后训练，分清 LoRA 和训练目标的关系。基础服务实验可先于本篇。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-11", "kind": "article", "code": "F-11", "label": "F-11 · GRPO 如何用于推理模型后训练", "title": "GRPO 如何用于推理模型后训练", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161454784.html", "localFile": "articles/01-llm-foundations/f-11-grpo.md", "summary": "先理解奖励与策略更新，再用一组候选答案解释组内相对优势。讨论奖励设计、评测污染和训练后能力回归。可在 LE-02 之后回读。", "refs": ["LE-02"], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}, {"id": "art-F-12", "kind": "article", "code": "F-12", "label": "F-12 · 推理时计算与 Reasoning 模型", "title": "推理时计算与 Reasoning 模型", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/20/1795161460545.html", "localFile": "articles/01-llm-foundations/f-12-inference-time-reasoning.md", "summary": "区分一般自回归解码、供应商暴露的推理预算、采样后验证三层。用同一组有正确解的题比较可配置推理强度，报告正确率、计费 Token、延迟与超预算率。", "refs": [], "stageOrder": 1, "stageTitle": "LLM 基础与推理", "prereq": "Python、矩阵和概率直觉", "deliverable": "解释一条提示从 Token 到首个输出"}]}, {"id": "stage-2", "kind": "stage", "stageOrder": 2, "label": "2. LLM API 与流式协议", "title": "LLM API 与流式协议", "seriesLabel": "LLM API 与流式协议（API）", "badge": "10/10", "publishedCount": 10, "totalCount": 10, "color": "#2563eb", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用", "summary": "全章用同一条普通消息和同一个无副作用函数走通协议。先抓原始 HTTP 请求和事件，再用 SDK 复现。真实在线 API 的字段与模型能力按文章写作时的官方文档复核。", "children": [{"id": "art-API-01", "kind": "article", "code": "API-01", "label": "API-01 · 从原始 HTTP 请求认识 LLM API", "title": "从原始 HTTP 请求认识 LLM API", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268752670.html", "localFile": "articles/02-llm-api/api-01-raw-http-request.md", "summary": "请求头、JSON 体、认证、模型 ID、HTTP 错误、限流和用量。用最小请求记录输入、输出、用量及失败响应。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-02", "kind": "article", "code": "API-02", "label": "API-02 · OpenAI Chat Completions 的消息协议", "title": "OpenAI Chat Completions 的消息协议", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268752027.html", "localFile": "articles/02-llm-api/api-02-chat-completions-messages.md", "summary": "`POST /v1/chat/completions`、`messages`、`choices`、终止原因。追踪两轮问答，说明应用如何保存与回传历史。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-10", "kind": "article", "code": "API-10", "label": "API-10 · Prompt Engineering 的可复现对照实验", "title": "Prompt Engineering 的可复现对照实验", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268751247.html", "localFile": "articles/02-llm-api/api-10-prompt-comparison.md", "summary": "对同一个 CSV 报告任务比较朴素提示、明确统计口径、加入少量示例三个版本。固定模型、采样与留出集，一次只改变一项，记录格式通过率、业务正确率和输入 Token，保存失败样例供 LE-04 回归。", "refs": ["LE-04"], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-03", "kind": "article", "code": "API-03", "label": "API-03 · 从 Chat Completions、Assistants 到 Responses", "title": "从 Chat Completions、Assistants 到 Responses", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268750432.html", "localFile": "articles/02-llm-api/api-03-openai-api-evolution.md", "summary": "以 Chat Completions 的 Messages、Assistants 的 Thread/Run、Responses 的 typed Items 为轴；用两轮文本和一次工具调用做字段迁移对照。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-04", "kind": "article", "code": "API-04", "label": "API-04 · Function Calling 与 Structured Outputs", "title": "Function Calling 与 Structured Outputs", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268749640.html", "localFile": "articles/02-llm-api/api-04-function-calling-structured-outputs.md", "summary": "工具定义、JSON Schema、调用 ID、参数校验、调用结果回填。区分用于回答的结构化输出与触发应用动作的工具调用，验证坏参数和多工具返回。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-09", "kind": "article", "code": "API-09", "label": "API-09 · 约束解码如何生成符合 Schema 的结构化输出", "title": "约束解码如何生成符合 Schema 的结构化输出", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268748887.html", "localFile": "articles/02-llm-api/api-09-constrained-decoding.md", "summary": "用一个小 JSON Schema 追踪约束状态和可选 Token，比较自由生成、JSON 模式、Schema 约束及应用侧校验。覆盖合法结构中的错误业务值、输出截断和拒答，按引擎版本验证支持范围。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-05", "kind": "article", "code": "API-05", "label": "API-05 · SSE 和流式工具调用", "title": "SSE 和流式工具调用", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268748102.html", "localFile": "articles/02-llm-api/api-05-sse-streaming-tools.md", "summary": "区分 TCP/HTTP 数据块、SSE 帧、模型增量事件及 UI 文本。对比 Chat Completions 的 `delta` 与 Responses 的类型化事件，处理参数分片、UTF-8 跨块、结束、断线和取消。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-06", "kind": "article", "code": "API-06", "label": "API-06 · Anthropic Messages API 的内容块与事件", "title": "Anthropic Messages API 的内容块与事件", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268747439.html", "localFile": "articles/02-llm-api/api-06-anthropic-messages.md", "summary": "从 `POST /v1/messages` 开始，拆解顶层 system、内容块、`tool_use` 与 `tool_result`。对照流式块索引与事件，通过一个示例和 OpenAI 请求往返映射。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-07", "kind": "article", "code": "API-07", "label": "API-07 · 模型协议适配与能力矩阵", "title": "模型协议适配与能力矩阵", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268746690.html", "localFile": "articles/02-llm-api/api-07-provider-adapters.md", "summary": "建立消息、文本事件、工具事件、错误和用量的内部类型。保留供应商特有能力，逐条验证多模态、工具、结构化输出、流式及状态管理。", "refs": [], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}, {"id": "art-API-08", "kind": "article", "code": "API-08", "label": "API-08 · 实时语音 Agent 的双向流", "title": "实时语音 Agent 的双向流", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795268619097.html", "localFile": "articles/02-llm-api/api-08-realtime-voice-agent.md", "summary": "基于 F-09 和 API-05，画出浏览器采集、双向媒体、语音活动检测、打断和播放队列。对照 WebRTC 与 WebSocket 的连接边界，用一次打断测停止播放时间。", "refs": ["F-09", "API-05"], "stageOrder": 2, "stageTitle": "LLM API 与流式协议", "prereq": "F-01～F-04、HTTP/JSON", "deliverable": "用原始 HTTP 跑通文本、SSE 和工具调用"}]}, {"id": "stage-3", "kind": "stage", "stageOrder": 3, "label": "3. 评测入门与 LLM 效果评测", "title": "评测入门与 LLM 效果评测", "seriesLabel": "评测入门与 LLM 效果评测（LE）", "badge": "10/10", "publishedCount": 10, "totalCount": 10, "color": "#2563eb", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照", "summary": "**评测（Eval）**把「效果更好」变成可重复验证的问题。先定义任务和通过条件，再运行候选版本，用评分器对结果打分，最后汇总失败样本和各项指标。一条测试用例可运行多次，每次都是一次试次（trial）。评测运行器负责调度、记录和汇总，评分器负责判断某一项是否达标。 从三行 CSV 开始。数值列是 10、空值和 0，要求忽略空值并保留真实的 0。期望记录数为 2，均值为 5。模型输出后分别检查 JSON 能否解析、分母是否正确、均值是否正确。用同一个评分器跑两个 Prompt，保留失败发生在哪个断言。只判断输出格式会", "children": [{"id": "art-LE-07", "kind": "article", "code": "LE-07", "label": "LE-07 · 第一篇，什么是评测，如何跑通第一条用例", "title": "第一篇，什么是评测，如何跑通第一条用例", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270270931.html", "localFile": "articles/03-llm-eval/le-07-first-eval.md", "summary": "先分清任务、样本、试次、通过条件、评分器、指标和基线。用三行 CSV 手写一个最小运行器，输出单条结果、失败原因和汇总。分别构造格式错误、格式正确但数值错误的输出，验证评分器能区分。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-01", "kind": "article", "code": "LE-01", "label": "LE-01 · 从业务目标到数据集、基线和评分", "title": "从业务目标到数据集、基线和评分", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270270258.html", "localFile": "articles/03-llm-eval/le-01-dataset-baseline.md", "summary": "黄金样本、边界样本、失败样本、独立测试集。用准确率、结构校验或人工标准计分，记录数据版本、样本分层和失败类型。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-08", "kind": "article", "code": "LE-08", "label": "LE-08 · 如何设计可测试的评分器与评分准则", "title": "如何设计可测试的评分器与评分准则", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270269520.html", "localFile": "articles/03-llm-eval/le-08-testable-graders.md", "summary": "对 JSON Schema、数值误差、公差和业务规则做确定性断言，用人工准则评价开放式解释。比较逐项打分和成对比较，明确平局、拒答、工具故障与无法判定的处理。用已知对错样本独立测试评分器。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-10", "kind": "article", "code": "LE-10", "label": "LE-10 · 常用 LLM 评测数据集测什么，应该怎么选", "title": "常用 LLM 评测数据集测什么，应该怎么选", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270268728.html", "localFile": "articles/03-llm-eval/le-10-public-datasets.md", "summary": "对照 MMLU、C-Eval、GSM8K、HumanEval 经典四榜的样本与批改差异，并补齐 MMLU-Pro、GPQA Diamond、HLE、ARC-AGI-2、MATH/AIME、LiveBench、LiveCodeBench、BigCodeBench、IFEval、SimpleQA、MMMU、RULER、LMArena 与 Artificial Analysis 等 2025–2026 主流进阶基准。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-02", "kind": "article", "code": "LE-02", "label": "LE-02 · 公开基准实战，怎样复现并比较模型结果", "title": "公开基准实战，怎样复现并比较模型结果", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270267947.html", "localFile": "articles/03-llm-eval/le-02-reproduce-benchmark.md", "summary": "用同一评测工具跑一份固定小子集，记录数据版本与划分、提示模板、few-shot、解码和答案抽取规则。对照单次准确率和多次生成的 pass@k，讨论污染、样本量和跨运行可比性。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-03", "kind": "article", "code": "LE-03", "label": "LE-03 · LLM-as-a-Judge 与人工校准", "title": "LLM-as-a-Judge 与人工校准", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270267279.html", "localFile": "articles/03-llm-eval/le-03-llm-judge-calibration.md", "summary": "对开放文本定义评分准则，以人工标注集校准，检查位置偏差、长度偏差和评分稳定性。可确定的数值、Schema 和引用用硬断言。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-09", "kind": "article", "code": "LE-09", "label": "LE-09 · 怎样判断两版效果差异是否可信", "title": "怎样判断两版效果差异是否可信", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270266572.html", "localFile": "articles/03-llm-eval/le-09-paired-comparison.md", "summary": "固定任务、模型或 Prompt 以外的配置，用相同样本成对对照，记录每题多次试验与失败分层。报告样本数、差值和不确定区间，用按题聚类的重采样处理同题多次运行，区分业务提升和测量噪声。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-04", "kind": "article", "code": "LE-04", "label": "LE-04 · 把效果评测接入 Prompt 和模型回归", "title": "把效果评测接入 Prompt 和模型回归", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270265847.html", "localFile": "articles/03-llm-eval/le-04-regression-gates.md", "summary": "固定数据版本和脆弱样本，输出分项指标与失败例，设发布阈值。比较准确性、成本和延迟变化。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-06", "kind": "article", "code": "LE-06", "label": "LE-06 · 长上下文的有效性如何评测", "title": "长上下文的有效性如何评测", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270265166.html", "localFile": "articles/03-llm-eval/le-06-long-context-eval.md", "summary": "把同一份 CSV 数据字典的关键证据分别放到输入头、中、尾，改变文档长度和干扰项，测正确率、引用、TTFT 与成本。学完 KB-05 后用同一数据对照全量上下文与 RAG，供 AGT-04～05 验证裁剪和压缩。", "refs": ["KB-05", "AGT-04"], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}, {"id": "art-LE-05", "kind": "article", "code": "LE-05", "label": "LE-05 · 模型改了，线上效果真的变好了吗", "title": "模型改了，线上效果真的变好了吗", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795270264488.html", "localFile": "articles/03-llm-eval/le-05-online-evaluation.md", "summary": "先用固定样本做成对比较和分层误差分析，再设计只读流量的影子评测或用户级灰度对照。记录随机分配、版本、人工接管率与回滚阈值，用区间说明样本不确定性。", "refs": [], "stageOrder": 3, "stageTitle": "评测入门与 LLM 效果评测", "prereq": "读懂模型请求和输出", "deliverable": "手写评分器，做可复现的模型或 Prompt 对照"}]}, {"id": "stage-4", "kind": "stage", "stageOrder": 4, "label": "4. 模型预训练与后训练", "title": "模型预训练与后训练", "seriesLabel": "模型预训练与后训练（TRN）", "badge": "12/12", "publishedCount": 12, "totalCount": 12, "color": "#2563eb", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本", "summary": "先用极小的 decoder-only 模型理解「数据怎么变成权重」，再用已有 Qwen 模型做适配。教学预训练用小语料和小模型演示原理，微调实验需固定可用显卡、框架版本和模型 revision。需要先做 Agent 或 vLLM 的读者可以用已有权重进入 SERV，再回到本节。", "children": [{"id": "art-TRN-01", "kind": "article", "code": "TRN-01", "label": "TRN-01 · 预训练语料与 Token 数据管线", "title": "预训练语料与 Token 数据管线", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/21/1795272443691.html", "localFile": "articles/04-model-training/trn-01-pretraining-data-pipeline.md", "summary": "记录数据来源与许可，做清洗、去重、分词、样本打包和文档级切分。检查训练语料与验证题重叠，展示一个训练 batch 的输入和移位标签。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-02", "kind": "article", "code": "TRN-02", "label": "TRN-02 · 从随机权重预训练一个微型语言模型", "title": "从随机权重预训练一个微型语言模型", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html", "localFile": "articles/04-model-training/trn-02-tiny-language-model.md", "summary": "跟一批 Token 通过前向、下一 Token 交叉熵、反传、梯度累积、优化器和 Checkpoint，观察训练与验证损失。读 nanoGPT 的训练循环做源码对照，验证保存后续训。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-10", "kind": "article", "code": "TRN-10", "label": "TRN-10 · 分布式训练的显存账本，FSDP 与 ZeRO", "title": "分布式训练的显存账本，FSDP 与 ZeRO", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html", "localFile": "articles/04-model-training/trn-10-distributed-memory.md", "summary": "先区分参数、梯度、优化器状态和激活的开销，再画 FSDP 与 ZeRO 的分片、通信和 Checkpoint。以单卡训练为基线，有多卡时固定全局 batch 比较峰值显存、训练吞吐和恢复行为。可在需要多卡时回读。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-03", "kind": "article", "code": "TRN-03", "label": "TRN-03 · 选继续预训练、SFT 还是偏好优化", "title": "选继续预训练、SFT 还是偏好优化", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/22/1795327133650.html", "localFile": "articles/04-model-training/trn-03-training-objectives.md", "summary": "继续预训练使用领域原文，SFT 使用示范答案，偏好优化使用选优数据或奖励信号。将训练目标与参数更新范围分开讨论，比较全参数、部分层、Adapter 和软提示，记录质量、显存及数据门槛。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-04", "kind": "article", "code": "TRN-04", "label": "TRN-04 · SFT 怎么把对话变成监督信号", "title": "SFT 怎么把对话变成监督信号", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html", "localFile": "articles/04-model-training/trn-04-sft-supervision.md", "summary": "用同一 Chat Template 构造报告问答，明确哪些 Token 参与 loss。检查多轮标签遮罩、截断与 EOS，用留出集比较基座、提示词基线与微调模型。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-05", "kind": "article", "code": "TRN-05", "label": "TRN-05 · LoRA 与参数高效微调", "title": "LoRA 与参数高效微调", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html", "localFile": "articles/04-model-training/trn-05-lora.md", "summary": "画出冻结权重和低秩增量，用目标层、rank 和可训练参数量解释成本。比较独立 Adapter 加载、合并权重和切换 Adapter，并核对基座版本。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-06", "kind": "article", "code": "TRN-06", "label": "TRN-06 · QLoRA、训练量化和部署量化", "title": "QLoRA、训练量化和部署量化", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html", "localFile": "articles/04-model-training/trn-06-qlora-quantization.md", "summary": "用低比特冻结基座训练 LoRA，解释权重存储精度、计算精度及 Adapter 的角色。回接 F-08，区分 QLoRA、推理 PTQ、训练感知量化 QAT 和 KV Cache 量化。记录显存、质量、格式、引擎与硬件兼容性。", "refs": ["F-08"], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-07", "kind": "article", "code": "TRN-07", "label": "TRN-07 · 偏好数据、奖励模型与 DPO", "title": "偏好数据、奖励模型与 DPO", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html", "localFile": "articles/04-model-training/trn-07-dpo-preference-data.md", "summary": "构造同一问题的 chosen/rejected，解释偏好标签、参考策略与数据偏差。比较 SFT 和 DPO 的留出集结果，注明 DPO 的离线偏好数据路径。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-08", "kind": "article", "code": "TRN-08", "label": "TRN-08 · LLM 强化学习，从 PPO 到 GRPO", "title": "LLM 强化学习，从 PPO 到 GRPO", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html", "localFile": "articles/04-model-training/trn-08-ppo-grpo.md", "summary": "讲在线采样、奖励、优势估计、策略更新与 KL 约束的作用，以 PPO 型 RLHF 和 GRPO 的组内相对奖励做对照。用可验证答案演示奖励和验证集，并检查奖励投机、输出长度和通用能力回归。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-11", "kind": "article", "code": "TRN-11", "label": "TRN-11 · 知识蒸馏与学生模型评测", "title": "知识蒸馏与学生模型评测", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html", "localFile": "articles/04-model-training/trn-11-knowledge-distillation.md", "summary": "区分教师软标签与教师生成的答案。固定学生基座、数据切分和训练预算，对照普通 SFT 与加入教师信号后的结果，报告任务收益、通用能力回归和数据成本。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-12", "kind": "article", "code": "TRN-12", "label": "TRN-12 · 合成训练数据与质量控制", "title": "合成训练数据与质量控制", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html", "localFile": "articles/04-model-training/trn-12-synthetic-training-data.md", "summary": "围绕 CSV 报告任务生成候选指令与样本，用可执行的统计结果校验答案，再做去重、覆盖率检查和人工抽查。记录生成来源、过滤规则与数据版本，用隔离的人工留出集比较仅用原始数据与加入合成数据后的效果。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}, {"id": "art-TRN-09", "kind": "article", "code": "TRN-09", "label": "TRN-09 · 用 Unsloth 跑通一次微调、评测和导出", "title": "用 Unsloth 跑通一次微调、评测和导出", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html", "localFile": "articles/04-model-training/trn-09-unsloth-finetune-export.md", "summary": "固定基座、数据、模板、硬件和依赖，用 Unsloth 做一次 LoRA 或 QLoRA SFT，与 Transformers、PEFT、TRL 的职责对照。保存 Adapter，按部署后端决定独立加载或合并，并用固定样本做导出前后回归。", "refs": [], "stageOrder": 4, "stageTitle": "模型预训练与后训练", "prereq": "Tokenizer、因果语言模型、训练损失与 LE 的评测口径", "deliverable": "跑通微型预训练和一次 Qwen 微调，产出可复现的模型版本"}]}, {"id": "stage-5", "kind": "stage", "stageOrder": 5, "label": "5. 推理引擎与模型部署，vLLM 和 SGLang", "title": "推理引擎与模型部署，vLLM 和 SGLang", "seriesLabel": "推理引擎与模型部署（SERV）", "badge": "16/16", "publishedCount": 16, "totalCount": 16, "color": "#2563eb", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照", "summary": "教学模型选 `Qwen/Qwen2.5-0.5B-Instruct`。正式动手时记录模型 revision、vLLM tag、硬件与后端。Linux + NVIDIA CUDA 可作为主实验环境，CPU 或 Apple Silicon 的安装路径、支持的数据类型和性能需按选定版本实测。首个实验验证普通文本与流式文本，工具调用能力按模型、模板和解析器另测。 Qwen 模型卡 · vLLM Quickstart · vLLM CPU 安装说明", "children": [{"id": "art-SERV-01", "kind": "article", "code": "SERV-01", "label": "SERV-01 · 用 Qwen 0.5B 搭一个极简 vLLM Server", "title": "用 Qwen 0.5B 搭一个极简 vLLM Server", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400440818.html", "localFile": "articles/05-inference-serving/serv-01-vllm-server.md", "summary": "固定环境后启动 `vllm serve Qwen/Qwen2.5-0.5B-Instruct`，验收模型列表、普通 Chat Completion、流式 Chat Completion，记下生成参数与实际 Token 用量。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-02", "kind": "article", "code": "SERV-02", "label": "SERV-02 · 一次请求从浏览器到引擎再回浏览器", "title": "一次请求从浏览器到引擎再回浏览器", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400442549.html", "localFile": "articles/05-inference-serving/serv-02-request-lifecycle.md", "summary": "浏览器 `fetch` POST → 应用后端按需代理 → vLLM HTTP 路由与输入处理 → 引擎调度 → 模型 Worker → Token 解码与 SSE → 客户端增量渲染。记录同一请求 ID 及各层时间。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-03", "kind": "article", "code": "SERV-03", "label": "SERV-03 · 读 vLLM V1 源码，从路由跟到模型前向", "title": "读 vLLM V1 源码，从路由跟到模型前向", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400444175.html", "localFile": "articles/05-inference-serving/serv-03-vllm-v1-source.md", "summary": "在固定 tag 下记录实际文件和方法：入口与 Chat 路由、模板及 Tokenization、异步引擎客户端、Engine Core、Scheduler、Worker 和输出处理。用一条短请求标出进程、任务及数据结构的交接。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-04", "kind": "article", "code": "SERV-04", "label": "SERV-04 · PagedAttention、Continuous Batching 和 Prefix Cache", "title": "PagedAttention、Continuous Batching 和 Prefix Cache", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400445885.html", "localFile": "articles/05-inference-serving/serv-04-paged-attention-batching.md", "summary": "按请求画 KV 块分配及调度过程。比较同前缀、不同前缀与不同并发，测缓存利用率、排队、TTFT、ITL 和吞吐。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-05", "kind": "article", "code": "SERV-05", "label": "SERV-05 · 端到端流式调试和取消", "title": "端到端流式调试和取消", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400447564.html", "localFile": "articles/05-inference-serving/serv-05-streaming-cancellation.md", "summary": "记录第一个 HTTP 字节、第一条 SSE、第一段可见文字和结束事件。定位代理缓冲、HTTP/SSE 分帧、慢消费者、客户端取消与服务端请求回收。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-06", "kind": "article", "code": "SERV-06", "label": "SERV-06 · Chunked Prefill 与 Speculative Decoding", "title": "Chunked Prefill 与 Speculative Decoding", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400449358.html", "localFile": "articles/05-inference-serving/serv-06-prefill-speculative.md", "summary": "对比输入调度与输出生成的优化目标。固定模型、硬件和数据，分别做单因素实验，记录并发、TTFT、ITL、吞吐，启用投机解码时再记录草稿接受率。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-07", "kind": "article", "code": "SERV-07", "label": "SERV-07 · SGLang 源码与 vLLM 对照", "title": "SGLang 源码与 vLLM 对照", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400451069.html", "localFile": "articles/05-inference-serving/serv-07-sglang-source.md", "summary": "让同一个 Qwen 模型跑通 OpenAI 兼容请求，固定版本跟 Scheduler 与 RadixAttention 前缀复用。与 SERV-03～SERV-04 对照缓存、批处理和流式输出；工具及结构化能力按版本实测。", "refs": ["SERV-03", "SERV-04"], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-12", "kind": "article", "code": "SERV-12", "label": "SERV-12 · 模型注册、产物血缘与版本发布", "title": "模型注册、产物血缘与版本发布", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400452835.html", "localFile": "articles/05-inference-serving/serv-12-model-registry.md", "summary": "用 MLflow 建立从实验、数据和评测到发布模型的关联，固定基座、Tokenizer、模板、Adapter 与量化配置。用一条请求的发布 ID 查回完整产物，并演示恢复到上一组通过验证的版本。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-08", "kind": "article", "code": "SERV-08", "label": "SERV-08 · 从训练产物部署成单机推理服务", "title": "从训练产物部署成单机推理服务", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400454476.html", "localFile": "articles/05-inference-serving/serv-08-single-node-deployment.md", "summary": "从基座、Tokenizer、模板、Adapter 或合并权重和量化产物生成部署清单。比较适配器挂载与合并两种路径的兼容性，验证容器、健康检查、模型预热、限流、流式断开和旧版本回滚。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-13", "kind": "article", "code": "SERV-13", "label": "SERV-13 · 本地推理与模型格式，llama.cpp 和 MLX-LM", "title": "本地推理与模型格式，llama.cpp 和 MLX-LM", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400456136.html", "localFile": "articles/05-inference-serving/serv-13-llamacpp-mlx.md", "summary": "在 Apple Silicon 上从同一个 Qwen 基座准备 GGUF 与 MLX 权重，核对 Tokenizer、Chat Template、量化方法和实际硬件后端。对照加载时间、峰值内存、TTFT、输出速率和样本质量。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-09", "kind": "article", "code": "SERV-09", "label": "SERV-09 · 部署优化，从显存预算到延迟与吞吐", "title": "部署优化，从显存预算到延迟与吞吐", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400457884.html", "localFile": "articles/05-inference-serving/serv-09-inference-optimization.md", "summary": "先算权重、KV Cache 与工作区显存，再用输入长度、输出长度、到达速率和并发构造负载。依次测试批处理、缓存、量化和预热，标注 OOM、队列、TTFT、ITL、P95 和满足延迟目标的吞吐。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-14", "kind": "article", "code": "SERV-14", "label": "SERV-14 · GPU 性能剖析，从请求时间线到内核", "title": "GPU 性能剖析，从请求时间线到内核", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400459614.html", "localFile": "articles/05-inference-serving/serv-14-gpu-profiling.md", "summary": "在固定输入、输出和并发下，用 Nsight Systems 对齐 Prefill、Decode、CPU 调度、数据搬运与 CUDA 内核。先定位等待或计算热点，再验证一次配置变更对延迟和吞吐的影响。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-10", "kind": "article", "code": "SERV-10", "label": "SERV-10 · 多 GPU 与分离式推理部署", "title": "多 GPU 与分离式推理部署", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400461248.html", "localFile": "articles/05-inference-serving/serv-10-distributed-inference.md", "summary": "学数据并行、张量并行、流水线并行，MoE 再看专家并行。解释显存、通信和节点拓扑；Prefill/Decode 分离作为进阶，测 KV 传输开销与跨节点尾延迟。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-11", "kind": "article", "code": "SERV-11", "label": "SERV-11 · 两种引擎的生产基准与选型报告", "title": "两种引擎的生产基准与选型报告", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400462988.html", "localFile": "articles/05-inference-serving/serv-11-engine-benchmark.md", "summary": "使用相同模型权重、量化和采样配置、请求流和硬件，区分冷暖缓存。先验证结果、协议和取消语义，再对照延迟、吞吐、每成功请求成本和操作复杂度。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-15", "kind": "article", "code": "SERV-15", "label": "SERV-15 · 推理服务容量规划与弹性伸缩", "title": "推理服务容量规划与弹性伸缩", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400464747.html", "localFile": "articles/05-inference-serving/serv-15-serving-capacity.md", "summary": "从目标 P95 和请求长度分布推导单副本容量。用稳态和突发流量比较队列长度、在途请求与 GPU 利用率作为扩缩容信号，观测新副本就绪、预热、缩容抖动、达标吞吐和成本。", "refs": [], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}, {"id": "art-SERV-16", "kind": "article", "code": "SERV-16", "label": "SERV-16 · 离线批量推理与异步作业", "title": "离线批量推理与异步作业", "color": "#2563eb", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795400466528.html", "localFile": "articles/05-inference-serving/serv-16-offline-batch.md", "summary": "用同一批文档做字段抽取，比较在线并发请求与提交离线批次。给任务和输入行分配稳定 ID，验证乱序结果关联、部分失败后按失败项重跑及重复结果去重，衡量整批完成时间和单位成本。说明异步提交与 SERV-04 的引擎内部批处理如何处在不同层。", "refs": ["SERV-04"], "stageOrder": 5, "stageTitle": "推理引擎与模型部署，vLLM 和 SGLang", "prereq": "Prefill、KV Cache、Chat Completions 与 SSE", "deliverable": "在 vLLM 与 SGLang 部署同一模型并按服务目标对照"}]}]}, {"id": "pillar-agent-rag", "kind": "pillar", "label": "二、Agent 核心与知识库", "title": "二、Agent 核心与知识库", "badge": "46/46", "color": "#059669", "summary": "Loop / 上下文工程、Agent 评测、RAG 与 Wiki", "children": [{"id": "stage-6", "kind": "stage", "stageOrder": 6, "label": "6. Agent、Context Engineering、Loop Engineering 与 Harness", "title": "Agent、Context Engineering、Loop Engineering 与 Harness", "seriesLabel": "Agent、Context 与 Loop Engineering（AGT）", "badge": "25/25", "publishedCount": 25, "totalCount": 25, "color": "#059669", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent", "summary": "用「上传 CSV → 查询数据 → 生成报告 → 确认后归档」贯穿。**Context Engineering** 设计每轮模型看见什么，**Loop Engineering** 在本路线中是反馈闭环的工程设计，关注任务如何推进、失败如何修复及怎样判定完成。**Harness** 把两者接到模型、工具、状态、权限和运行环境中。按表格顺序学习，新增专题沿用新编号。", "children": [{"id": "art-AGT-01", "kind": "article", "code": "AGT-01", "label": "AGT-01 · 从工具调用到 Agent Loop", "title": "从工具调用到 Agent Loop", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html", "localFile": "articles/06-agent-runtime/agt-01-agent-loop.md", "summary": "模型提出动作 → 运行时校验并执行 → Observation 回填 → 下一轮。实现最终答案、澄清、失败、取消、步数与预算终止。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-17", "kind": "article", "code": "AGT-17", "label": "AGT-17 · Context Engineering 总览", "title": "Context Engineering 总览", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402335217.html", "localFile": "articles/06-agent-runtime/agt-17-context-engineering.md", "summary": "画上下文数据流，定义权威状态、可检索资料、工具观察和历史的作用域。按任务阶段决定选择、组装、压缩和回读，并用上下文快照回归。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-02", "kind": "article", "code": "AGT-02", "label": "AGT-02 · 上下文组装与 Prompt 层级", "title": "上下文组装与 Prompt 层级", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402336863.html", "localFile": "articles/06-agent-runtime/agt-02-prompt-assembly.md", "summary": "组装系统约束、任务状态、相关历史、工具定义、检索证据。打印一轮实际 Prompt，说明外部工具输出的信任边界。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-03", "kind": "article", "code": "AGT-03", "label": "AGT-03 · 超长工具输出怎么处理", "title": "超长工具输出怎么处理", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402338418.html", "localFile": "articles/06-agent-runtime/agt-03-large-tool-outputs.md", "summary": "执行器限额、服务端聚合、按样本和区间取证、产物外置、引用回读。用几万行日志验证错误在中间仍能定位。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-04", "kind": "article", "code": "AGT-04", "label": "AGT-04 · 上下文裁剪", "title": "上下文裁剪", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402340040.html", "localFile": "articles/06-agent-runtime/agt-04-context-trimming.md", "summary": "计算可用 Token 预算，裁掉冗余或过时内容，维护工具调用配对，保留早期关键约束。用固定回放验证裁剪前后同一任务。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-05", "kind": "article", "code": "AGT-05", "label": "AGT-05 · 上下文压缩", "title": "上下文压缩", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402341623.html", "localFile": "articles/06-agent-runtime/agt-05-context-compaction.md", "summary": "把旧阶段整理为结构化摘要，保留来源、决策、产物和待办。注入摘要与执行状态冲突，验证状态恢复不重复提交。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-06", "kind": "article", "code": "AGT-06", "label": "AGT-06 · 短期记忆与 Checkpoint", "title": "短期记忆与 Checkpoint", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402343288.html", "localFile": "articles/06-agent-runtime/agt-06-short-term-checkpoints.md", "summary": "区分本次模型输入、任务状态和会话历史。模拟执行中断与恢复，验证同一会话能继续。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-07", "kind": "article", "code": "AGT-07", "label": "AGT-07 · 长期记忆的写入、检索与治理", "title": "长期记忆的写入、检索与治理", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402344957.html", "localFile": "articles/06-agent-runtime/agt-07-long-term-memory.md", "summary": "以跨会话偏好为例，记录命名空间、来源、版本和删除规则。测试显式偏好更新、误记、串租户和索引残留。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-08", "kind": "article", "code": "AGT-08", "label": "AGT-08 · 工具超时、取消、重试与幂等", "title": "工具超时、取消、重试与幂等", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402346585.html", "localFile": "articles/06-agent-runtime/agt-08-tool-retries.md", "summary": "区分网络故障、参数错误、超时未知结果和可安全重试动作。验证已成功但未收到回执的恢复路径。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-09", "kind": "article", "code": "AGT-09", "label": "AGT-09 · 工具并发与依赖调度", "title": "工具并发与依赖调度", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402348200.html", "localFile": "articles/06-agent-runtime/agt-09-tool-scheduling.md", "summary": "用依赖图区分可并行读、冲突写和顺序约束。处理并发配额、部分失败、结果乱序和取消传播。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-10", "kind": "article", "code": "AGT-10", "label": "AGT-10 · 工具太多时如何做工具治理", "title": "工具太多时如何做工具治理", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402349728.html", "localFile": "articles/06-agent-runtime/agt-10-tool-governance.md", "summary": "权限过滤、按域分组、候选召回、Schema 精简、按需加载。测正确工具召回率与选中率，区分召回和选择错误。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-11", "kind": "article", "code": "AGT-11", "label": "AGT-11 · MCP、Tools 和 Skills 的职责", "title": "MCP、Tools 和 Skills 的职责", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402351437.html", "localFile": "articles/06-agent-runtime/agt-11-mcp-tools-skills.md", "summary": "画出一轮工具执行。Tool 是可调用能力，MCP 连接宿主与能力服务，Skill 封装一套可复用的任务说明和配套材料。标明真正做授权与执行的层。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-19", "kind": "article", "code": "AGT-19", "label": "AGT-19 · MCP Server 原理与协议生命周期", "title": "MCP Server 原理与协议生命周期", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402353046.html", "localFile": "articles/06-agent-runtime/agt-19-mcp-lifecycle.md", "summary": "画清 Host、Client、Server，以及 Tools、Resources、Prompts。固定协议版本，对照初始化和能力协商、发现和调用，拆解 stdio 与 Streamable HTTP 的交互。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-20", "kind": "article", "code": "AGT-20", "label": "AGT-20 · 从零实现一个最小 MCP Server", "title": "从零实现一个最小 MCP Server", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402354859.html", "localFile": "articles/06-agent-runtime/agt-20-mcp-csv-server.md", "summary": "用官方 SDK 暴露只读的 CSV 列统计工具和数据字典资源。先用客户端观察原始协议，再接入 Agent，验证 Schema、错误、超时和输出预算，讨论本地与远程授权边界。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-21", "kind": "article", "code": "AGT-21", "label": "AGT-21 · Agent Skills 的设计、加载与测试", "title": "Agent Skills 的设计、加载与测试", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402356468.html", "localFile": "articles/06-agent-runtime/agt-21-agent-skills.md", "summary": "用 SKILL.md 的元数据做发现，命中后读取任务说明，需要时再读脚本或参考资料。把报告口径写成 Skill 并在两个可用宿主验证触发、版本与权限。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-18", "kind": "article", "code": "AGT-18", "label": "AGT-18 · Loop Engineering 与反馈闭环", "title": "Loop Engineering 与反馈闭环", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402358094.html", "localFile": "articles/06-agent-runtime/agt-18-feedback-loop.md", "summary": "练习规划 → 执行 → 核验 → 修复，设计明确验收、无进展检测、重试预算与停止条件。对比单轮工具循环、外层反馈循环和跨会话接力，验证失败时能够退出或交给人工。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-12", "kind": "article", "code": "AGT-12", "label": "AGT-12 · Agent Harness 源码阅读", "title": "Agent Harness 源码阅读", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402359765.html", "localFile": "articles/06-agent-runtime/agt-12-agent-harness-source.md", "summary": "先用自己的最小 Loop 对照，再选 Pi 或 OpenHands，固定 tag 追踪一条消息从会话状态、Loop、工具执行与事件发布到结果。标出模型适配、文件及环境接入、生命周期和权限边界。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-13", "kind": "article", "code": "AGT-13", "label": "AGT-13 · Workflow、Agent 与混合编排", "title": "Workflow、Agent 与混合编排", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402361827.html", "localFile": "articles/06-agent-runtime/agt-13-workflow-orchestration.md", "summary": "对照顺序链、路由、并行汇聚、评估再改写和自主循环。用同一任务演示确定性步骤、开放决策与人工审批如何组合。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-14", "kind": "article", "code": "AGT-14", "label": "AGT-14 · 多 Agent 协作的几种模式", "title": "多 Agent 协作的几种模式", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402363518.html", "localFile": "articles/06-agent-runtime/agt-14-multi-agent-patterns.md", "summary": "编排者与 Worker、按域 Handoff、生成者与评审者、共享任务队列。比较任务依赖、上下文隔离、合并与冲突、共享写入权限和成本。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-22", "kind": "article", "code": "AGT-22", "label": "AGT-22 · A2A 协议与跨 Agent 委派", "title": "A2A 协议与跨 Agent 委派", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402365108.html", "localFile": "articles/06-agent-runtime/agt-22-a2a-protocol.md", "summary": "固定协议版本，读 Agent Card、Message、Task 和 Artifact。对照本进程内的 Handoff 与跨服务委派，明确能力发现、身份和任务所有者。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-15", "kind": "article", "code": "AGT-15", "label": "AGT-15 · Agent 的长任务与人机协作", "title": "Agent 的长任务与人机协作", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402366758.html", "localFile": "articles/06-agent-runtime/agt-15-long-running-tasks.md", "summary": "持久化状态机、等待审批、断点续跑、事件重放、重复投递。复现 Worker 中断和用户重连。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-24", "kind": "article", "code": "AGT-24", "label": "AGT-24 · 持久化工作流的事件重放与状态恢复", "title": "持久化工作流的事件重放与状态恢复", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402368648.html", "localFile": "articles/06-agent-runtime/agt-24-temporal-replay.md", "summary": "用 Temporal 对照手写 Checkpoint，把模型和外部写操作放进 Activity，说明确定性重放与 Activity 重试的关系。暂停 Worker 后恢复，验证已记录结果继续使用，未知副作用按业务动作 ID 核对。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-23", "kind": "article", "code": "AGT-23", "label": "AGT-23 · A2A 实战，两个 Agent 如何交接长任务", "title": "A2A 实战，两个 Agent 如何交接长任务", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402370736.html", "localFile": "articles/06-agent-runtime/agt-23-a2a-long-task.md", "summary": "让报告 Agent 委派只读校验，并获取状态或产物。演示同步结果和流式状态，按所选协议版本验证取消、失败与断线后的状态查询。用应用层关联 ID 避免误提交，明确产物访问授权。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-16", "kind": "article", "code": "AGT-16", "label": "AGT-16 · Agent 运行轨迹与调试", "title": "Agent 运行轨迹与调试", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402373955.html", "localFile": "articles/06-agent-runtime/agt-16-agent-tracing.md", "summary": "为模型、工具、状态和产物加关联 ID，跟踪一次任务为什么失败。保留脱敏轨迹供下一章做批量评测。", "refs": [], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}, {"id": "art-AGT-25", "kind": "article", "code": "AGT-25", "label": "AGT-25 · Agent 前端事件协议与生成式 UI", "title": "Agent 前端事件协议与生成式 UI", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html", "localFile": "articles/06-agent-runtime/agt-25-ag-ui-a2ui.md", "summary": "用 AG-UI 展示运行状态、工具进度与一次审批，用 A2UI 的声明式组件描述呈现报告卡片。复用 API-05 的流式传输知识，区分事件协议与 UI 描述，验证断线后的状态恢复、审批绑定和取消。", "refs": ["API-05"], "stageOrder": 6, "stageTitle": "Agent、Context Engineering、Loop Engineering 与 Harness", "prereq": "文本和工具协议、上下文预算", "deliverable": "写一个可终止、可恢复的 Agent"}]}, {"id": "stage-7", "kind": "stage", "stageOrder": 7, "label": "7. Agent 效果评测", "title": "Agent 效果评测", "seriesLabel": "Agent 效果评测（AE）", "badge": "8/8", "publishedCount": 8, "totalCount": 8, "color": "#059669", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归", "summary": "从单轮输出的评分扩展到任务终态。先在可重置的工作区里让 Agent 完成一份报告，独立读取报告产物和归档状态，再看调用轨迹解释失败。随后固定数据、工具权限、初始环境和任务预算，对比单 Agent、编排策略或 Harness 改动。结论覆盖产物正确性、业务副作用和执行成本。 **学习顺序**　AE-06 跑通第一条端到端用例 → AE-01～02 建任务集和评分标准 → AE-03 用开源框架实现 → AE-07 做故障归因 → AE-04 看公开基准 → AE-08 做发布回归。多轮强化学习（AE-05）放在能稳定", "children": [{"id": "art-AE-06", "kind": "article", "code": "AE-06", "label": "AE-06 · 第一篇，如何验证 Agent 真的完成了任务", "title": "第一篇，如何验证 Agent 真的完成了任务", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html", "localFile": "articles/07-agent-eval/ae-06-first-agent-eval.md", "summary": "复用 LE-07 的三行 CSV，要求生成报告并等待归档确认。从工作区独立读取产物，断言均值和有效记录数，确认前的归档次数须为零。确认后核对只归档一次。再看工具调用和环境状态，比较 Agent 回复与实际结果。", "refs": ["LE-07"], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-01", "kind": "article", "code": "AE-01", "label": "AE-01 · 设计 Agent 任务集与环境夹具", "title": "设计 Agent 任务集与环境夹具", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403178111.html", "localFile": "articles/07-agent-eval/ae-01-task-fixtures.md", "summary": "每题定义用户目标、初始状态、允许工具、验收产物和业务约束。每次试验重置环境，支持固定工具返回和真实集成两种模式。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-02", "kind": "article", "code": "AE-02", "label": "AE-02 · 结果评测、轨迹评测和随机性", "title": "结果评测、轨迹评测和随机性", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403179638.html", "localFile": "articles/07-agent-eval/ae-02-outcomes-traces.md", "summary": "先断言最终状态、产物正确和写入次数，再检查选择错误、冗余步骤、超时与越权。对允许多个解法的任务评约束与结果，重复运行并报告成功率、波动、耗时和成本。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-03", "kind": "article", "code": "AE-03", "label": "AE-03 · 使用开源框架评测自己的 Agent", "title": "使用开源框架评测自己的 Agent", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html", "localFile": "articles/07-agent-eval/ae-03-inspect-ai.md", "summary": "用 Inspect AI 把 CSV 报告任务组织成样本、Agent 与评分器，接上模拟工具和可信状态断言。将线上脱敏失败轨迹用于离线回归。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-07", "kind": "article", "code": "AE-07", "label": "AE-07 · Agent 失败如何归因，模型、工具还是 Harness", "title": "Agent 失败如何归因，模型、工具还是 Harness", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html", "localFile": "articles/07-agent-eval/ae-07-failure-attribution.md", "summary": "建立按故障环节分类的失败样本。替换成可信工具结果、固定检索证据，或回放同一调用轨迹，每次只换一层。分别复现工具选错、参数错误、工具故障、状态未恢复与错误汇总，记录首个失败阶段和修复后影响。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-04", "kind": "article", "code": "AE-04", "label": "AE-04 · 用开源 Benchmark 对照 Agent 能力", "title": "用开源 Benchmark 对照 Agent 能力", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html", "localFile": "articles/07-agent-eval/ae-04-public-benchmarks.md", "summary": "建立四级 Agent 评测视角：BFCL（工具选型与传参）、τ²-Bench 与 GAIA（业务终态与多步检索）、SWE-bench Verified/Pro 与 Terminal-Bench（存量仓库与容器排障），以及社区 0-to-1 全应用交付榜 KingBench 4 和电脑/网页操控榜 OSWorld、WebArena；同时说明 Harness、预算与反虚报口径。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-08", "kind": "article", "code": "AE-08", "label": "AE-08 · 从离线 Agent 回归到线上灰度", "title": "从离线 Agent 回归到线上灰度", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html", "localFile": "articles/07-agent-eval/ae-08-regression-rollout.md", "summary": "将能完成新任务的能力评测、已支持行为的回归评测和权限限制分别设门槛。用模拟环境先做故障注入和终态校验，灰度时按任务或用户群看成功率、接管率、P95 和单次成功成本。影子请求隔离写入，用脱敏失败轨迹补回归集并验证回滚。", "refs": [], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}, {"id": "art-AE-05", "kind": "article", "code": "AE-05", "label": "AE-05 · 进阶实验，Agent 的多轮强化学习", "title": "进阶实验，Agent 的多轮强化学习", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html", "localFile": "articles/07-agent-eval/ae-05-multi-turn-rl.md", "summary": "先读 TRN-08 和 AGT-01，使用已有 Agent 评测作基线。在可重置的模拟报表环境中收集多轮工具交互轨迹，比较终态奖励与加入步骤奖励后的成功率、无效动作、步数和奖励投机。用未见任务复测，并与 EVO-01 中的运行时经验更新对照。", "refs": ["TRN-08", "AGT-01", "EVO-01"], "stageOrder": 7, "stageTitle": "Agent 效果评测", "prereq": "Agent Loop、工具执行、LE", "deliverable": "从验证一次任务终态，进阶到故障归因和发布回归"}]}, {"id": "stage-8", "kind": "stage", "stageOrder": 8, "label": "8. RAG、Embedding、Rerank 与 LLM Wiki", "title": "RAG、Embedding、Rerank 与 LLM Wiki", "seriesLabel": "RAG 与 LLM Wiki（KB）", "badge": "13/13", "publishedCount": 13, "totalCount": 13, "color": "#059669", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页", "summary": "用同一小批原始文档做三次迭代：先做可引用的基础 RAG，再加排序与评测，最后编译成可维护的 Wiki，并以原始资料补证。", "children": [{"id": "art-KB-11", "kind": "article", "code": "KB-11", "label": "KB-11 · 复杂文档解析，OCR、版面、表格与引用", "title": "复杂文档解析，OCR、版面、表格与引用", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409706230.html", "localFile": "articles/08-rag-and-wiki/kb-11-document-layout.md", "summary": "用扫描 PDF 和跨页表格比较纯文本抽取与保留版面的解析，检查 OCR、阅读顺序、表头归属、单元格和页码引用。记录失败样例，完成 KB-05 后用同一问题集测解析误差如何传到召回与答案。", "refs": ["KB-05"], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-01", "kind": "article", "code": "KB-01", "label": "KB-01 · 文档解析、切块与索引", "title": "文档解析、切块与索引", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409707913.html", "localFile": "articles/08-rag-and-wiki/kb-01-chunk-index.md", "summary": "保留标题层级、原文位置、版本和访问权限，对比固定窗口与结构切块。修改原文后验证相关索引能更新。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-02", "kind": "article", "code": "KB-02", "label": "KB-02 · Embedding 与向量相似度", "title": "Embedding 与向量相似度", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409709612.html", "localFile": "articles/08-rag-and-wiki/kb-02-embedding-similarity.md", "summary": "Query/Document 表示、余弦与内积、归一化与模型迁移。用同义句、专有名词和编号测向量召回。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-03", "kind": "article", "code": "KB-03", "label": "KB-03 · BM25、向量检索与混合召回", "title": "BM25、向量检索与混合召回", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409711351.html", "localFile": "articles/08-rag-and-wiki/kb-03-hybrid-retrieval.md", "summary": "用同一文档集比较倒排与向量结果，讨论 ANN 的速度与召回权衡，展示候选融合与权限过滤。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-04", "kind": "article", "code": "KB-04", "label": "KB-04 · Rerank 怎样改善证据排序", "title": "Rerank 怎样改善证据排序", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409713044.html", "localFile": "articles/08-rag-and-wiki/kb-04-reranking.md", "summary": "区分初召回与二阶段重排，用 Cross-Encoder 为候选重新打分。比较 Recall@K、MRR 或 nDCG、延迟和成本。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-05", "kind": "article", "code": "KB-05", "label": "KB-05 · 从候选证据到可引用的 RAG 回答", "title": "从候选证据到可引用的 RAG 回答", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409714758.html", "localFile": "articles/08-rag-and-wiki/kb-05-cited-rag.md", "summary": "检索 → 重排 → 证据选择和组装 → 生成带引用答案。测引用正确性、证据不足时的拒答、跨文档冲突和索引过期。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-12", "kind": "article", "code": "KB-12", "label": "KB-12 · RAG 评测入门，先标问题和依据", "title": "RAG 评测入门，先标问题和依据", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409716558.html", "localFile": "articles/08-rag-and-wiki/kb-12-rag-gold-evidence.md", "summary": "从 CSV 数据字典挑三类问题：有明确依据、需跨段组合、材料无法回答。为每题保留参考答案或期望拒答，以及证据位置。先测已知证据是否进入候选，再将人工选好的证据直接给生成模型做对照，暴露检索与生成的不同问题。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-08", "kind": "article", "code": "KB-08", "label": "KB-08 · RAG 的端到端质量评测", "title": "RAG 的端到端质量评测", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409718320.html", "localFile": "articles/08-rag-and-wiki/kb-08-rag-evaluation.md", "summary": "分开检查召回覆盖、证据相关性、答案忠实度和引用正确性。用人工标注校准自动指标，再按失败位置定位到文档、检索、重排或生成。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-13", "kind": "article", "code": "KB-13", "label": "KB-13 · 用 BEIR 和 HotpotQA 练习检索与证据问答评测", "title": "用 BEIR 和 HotpotQA 练习检索与证据问答评测", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409720070.html", "localFile": "articles/08-rag-and-wiki/kb-13-beir-hotpotqa.md", "summary": "选 BEIR 子集，用查询、语料和相关性标注比较召回与排序。用 HotpotQA 检查答案匹配和支持事实。分别报告检索、答案与证据指标，再迁移到自己的 CSV 文档问答。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-09", "kind": "article", "code": "KB-09", "label": "KB-09 · 多租户 RAG 的索引权限与删除传播", "title": "多租户 RAG 的索引权限与删除传播", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409721751.html", "localFile": "articles/08-rag-and-wiki/kb-09-tenant-retrieval.md", "summary": "追踪文档授权和版本如何传到切块、召回过滤、重排和引用接口。撤权或删除后检查旧索引、缓存与引用访问，并验证更新期间的拒绝与恢复行为。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-10", "kind": "article", "code": "KB-10", "label": "KB-10 · 结构化数据 Agent，Text-to-SQL 与指标口径", "title": "结构化数据 Agent，Text-to-SQL 与指标口径", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409723408.html", "localFile": "articles/08-rag-and-wiki/kb-10-text-to-sql.md", "summary": "将 CSV 导入测试数据库，比较固定参数查询与生成 SQL。用数据字典和已知结果核对连接、去重、空值、时间范围与聚合口径，同时验证只读身份、查询预算、拒绝路径和结果引用。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-06", "kind": "article", "code": "KB-06", "label": "KB-06 · Agentic RAG 与多跳检索", "title": "Agentic RAG 与多跳检索", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409725088.html", "localFile": "articles/08-rag-and-wiki/kb-06-agentic-rag.md", "summary": "把检索作为有预算的工具，演示查询重写、补充检索、条件停止。用单轮 RAG 做基线，验证重复检索和成本。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}, {"id": "art-KB-07", "kind": "article", "code": "KB-07", "label": "KB-07 · LLM Wiki 的资料编译、查询与维护", "title": "LLM Wiki 的资料编译、查询与维护", "color": "#059669", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795409726827.html", "localFile": "articles/08-rag-and-wiki/kb-07-wiki-maintenance.md", "summary": "原始资料层、Wiki 页面层、Schema 与维护规则。用同一小批资料走 ingest → query → lint，验证来源链接、重复主题、冲突、增量更新与失效。Wiki 用于累积综合知识，查询可结合检索回查原文。", "refs": [], "stageOrder": 8, "stageTitle": "RAG、Embedding、Rerank 与 LLM Wiki", "prereq": "上下文组装、LE 与 AE 的基本口径", "deliverable": "对同一批资料交付可溯源问答与知识页"}]}]}, {"id": "pillar-sec-evo", "kind": "pillar", "label": "三、安全、隔离与自进化", "title": "三、安全、隔离与自进化", "badge": "16/16", "color": "#d97706", "summary": "OWASP 护栏、沙箱执行边界与递归改进", "children": [{"id": "stage-9", "kind": "stage", "stageOrder": 9, "label": "9. LLM 与 Agent 安全护栏", "title": "LLM 与 Agent 安全护栏", "seriesLabel": "LLM 与 Agent 安全护栏（SEC）", "badge": "6/6", "publishedCount": 6, "totalCount": 6, "color": "#d97706", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射", "summary": "先画数据流和信任边界，明确模型、应用、工具代理以及隔离环境各自负责的控制。用合成数据与受控工具验证允许、拒绝、审计与恢复。", "children": [{"id": "art-SEC-01", "kind": "article", "code": "SEC-01", "label": "SEC-01 · OWASP 是什么，Top 10 怎样用", "title": "OWASP 是什么，Top 10 怎样用", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411161291.html", "localFile": "articles/09-security-guardrails/sec-01-owasp-risk-matrix.md", "summary": "介绍 OWASP Foundation、GenAI Security Project 及风险清单的用途。为自己的系统建资产、威胁、控制、负责人和验证矩阵。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}, {"id": "art-SEC-02", "kind": "article", "code": "SEC-02", "label": "SEC-02 · OWASP Top 10 for LLM Applications", "title": "OWASP Top 10 for LLM Applications", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411163039.html", "localFile": "articles/09-security-guardrails/sec-02-llm-top-ten.md", "summary": "以 2026 版官方材料为主，逐项映射到模型输入、检索、输出处理、发布与运行环境。每类明确影响、缓解措施和防御验收。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}, {"id": "art-SEC-03", "kind": "article", "code": "SEC-03", "label": "SEC-03 · OWASP Top 10 for Agentic Applications", "title": "OWASP Top 10 for Agentic Applications", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411164811.html", "localFile": "articles/09-security-guardrails/sec-03-agentic-top-ten.md", "summary": "以 2026 版为主，结合 Agent 工具调用、身份与权限、记忆、跨 Agent 信任和供应链梳理风险。在同一个案例中对照两份清单的关注点。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}, {"id": "art-SEC-04", "kind": "article", "code": "SEC-04", "label": "SEC-04 · LLM 应用的输入、输出和数据护栏", "title": "LLM 应用的输入、输出和数据护栏", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411166416.html", "localFile": "articles/09-security-guardrails/sec-04-input-output-rails.md", "summary": "设计内容规则、敏感信息处理、输出 Schema、输出展示与下游执行约束。用合成正反样本观察误拦、漏判、延迟与失败处理。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}, {"id": "art-SEC-05", "kind": "article", "code": "SEC-05", "label": "SEC-05 · Agent 工具调用、审批与运行时护栏", "title": "Agent 工具调用、审批与运行时护栏", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411168053.html", "localFile": "articles/09-security-guardrails/sec-05-tool-approval.md", "summary": "把租户授权、审批参数绑定、预算、日志和网络或文件策略落到执行边界。验证外部内容可以被读取，但其文字不能改变工具权限或审批要求。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}, {"id": "art-SEC-06", "kind": "article", "code": "SEC-06", "label": "SEC-06 · 第三方模型、MCP Server、Skill 与 A2A 的信任链", "title": "第三方模型、MCP Server、Skill 与 A2A 的信任链", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795411169711.html", "localFile": "articles/09-security-guardrails/sec-06-third-party-trust.md", "summary": "记录服务身份、授权委派、版本来源、依赖与审批边界。用合成夹具验证第三方描述更新、授权撤回、权限范围收窄与执行审计。", "refs": [], "stageOrder": 9, "stageTitle": "LLM 与 Agent 安全护栏", "prereq": "模型、工具和检索的信任边界", "deliverable": "用 OWASP 清单做威胁建模和控制映射"}]}, {"id": "stage-10", "kind": "stage", "stageOrder": 10, "label": "10. Sandbox 分类、源码与实测", "title": "Sandbox 分类、源码与实测", "seriesLabel": "Sandbox 分类、源码与实测（SBX）", "badge": "5/5", "publishedCount": 5, "totalCount": 5, "color": "#d97706", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境", "summary": "从两个维度分类。**部署位置**可分本机、远程自建和托管云。**隔离机制**可分语言运行时、宿主进程策略、共享内核容器、用户态内核以及 VM/MicroVM。浏览器、代码解释器和完整工作区属于使用场景。同一个产品在不同部署配置下可以对应不同隔离机制。", "children": [{"id": "art-SBX-01", "kind": "article", "code": "SBX-01", "label": "SBX-01 · 沙箱分类与威胁建模", "title": "沙箱分类与威胁建模", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795416672508.html", "localFile": "articles/10-sandbox-runtime/sbx-01-taxonomy-threat-model.md", "summary": "比较 WASM、进程策略、容器、gVisor、MicroVM 与通用 VM 的信任边界。按宿主访问、网络、兼容性、启动和清理确定需求。", "refs": [], "stageOrder": 10, "stageTitle": "Sandbox 分类、源码与实测", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境"}, {"id": "art-SBX-02", "kind": "article", "code": "SBX-02", "label": "SBX-02 · 本地沙箱如何限制 Coding Agent", "title": "本地沙箱如何限制 Coding Agent", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795416674280.html", "localFile": "articles/10-sandbox-runtime/sbx-02-local-isolation.md", "summary": "在本机分别看宿主进程权限策略与本地容器或 VM。用合成项目验证工作区读写、子进程、网络拒绝与资源回收，记录系统和策略版本。", "refs": [], "stageOrder": 10, "stageTitle": "Sandbox 分类、源码与实测", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境"}, {"id": "art-SBX-03", "kind": "article", "code": "SBX-03", "label": "SBX-03 · 远程沙箱的生命周期与执行接口", "title": "远程沙箱的生命周期与执行接口", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795416676067.html", "localFile": "articles/10-sandbox-runtime/sbx-03-remote-lifecycle.md", "summary": "追踪 create → exec → artifact → destroy，讲模板、文件与产物、网络、租约、多租户隔离、配额和故障恢复。", "refs": [], "stageOrder": 10, "stageTitle": "Sandbox 分类、源码与实测", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境"}, {"id": "art-SBX-04", "kind": "article", "code": "SBX-04", "label": "SBX-04 · E2B、CubeSandbox、OpenSandbox 对比与源码路径", "title": "E2B、CubeSandbox、OpenSandbox 对比与源码路径", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795416677850.html", "localFile": "articles/10-sandbox-runtime/sbx-04-projects-source-tour.md", "summary": "对照 SDK、控制面、执行面、网络和存储。E2B 先读托管 SDK 与开源仓库；OpenSandbox 先看 Docker 与 Kubernetes 运行时；CubeSandbox 跟 CubeAPI 到 Cubelet、KVM MicroVM。", "refs": [], "stageOrder": 10, "stageTitle": "Sandbox 分类、源码与实测", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境"}, {"id": "art-SBX-05", "kind": "article", "code": "SBX-05", "label": "SBX-05 · 沙箱选型、启动基准与事件响应", "title": "沙箱选型、启动基准与事件响应", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795416679623.html", "localFile": "articles/10-sandbox-runtime/sbx-05-benchmark-response.md", "summary": "用相同任务和依赖测申请到首命令、P95、清理和会话状态；用合成资源验证边界拒绝。将配置错误与疑似隔离失效分别纳入防御处置。", "refs": [], "stageOrder": 10, "stageTitle": "Sandbox 分类、源码与实测", "prereq": "SEC、进程与容器基础", "deliverable": "按相同任务与威胁模型对照执行环境"}]}, {"id": "stage-11", "kind": "stage", "stageOrder": 11, "label": "11. Agent 自进化与递归自我改进（RSI）", "title": "Agent 自进化与递归自我改进（RSI）", "seriesLabel": "Agent 自进化与 RSI（EVO）", "badge": "5/5", "publishedCount": 5, "totalCount": 5, "color": "#d97706", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进", "summary": "先分清本轮纠错、跨会话经验沉淀、框架配置迭代与模型权重更新。报告 Agent 在任务中重试属于执行反馈。把反复验证的处理方法保存成 Skill，可以改变未来行为。修改提示或路由策略属于应用配置变更，GRPO 则属于 F-11 的模型后训练。**递归自我改进（Recursive Self-Improvement, RSI）**关注改进如何反馈到下一轮，例如新模型参与生成或筛选下一轮训练样本，或新版 Agent 参与发现下一个改进点。实验应明确每一轮改变的是权重、训练流程，还是应用版本，并验证改进是否能延续到新任务。", "children": [{"id": "art-EVO-01", "kind": "article", "code": "EVO-01", "label": "EVO-01 · Agent 自进化有哪些模式", "title": "Agent 自进化有哪些模式", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795417257580.html", "localFile": "articles/11-agent-evolution/evo-01-agent-improvement-modes.md", "summary": "对照轨迹反思、事实记忆、过程知识或 Skills 沉淀，以及基于回归集调整 Prompt 与路由。用同一个用户纠正示例展示写入什么、何时召回、如何判断收益。", "refs": [], "stageOrder": 11, "stageTitle": "Agent 自进化与递归自我改进（RSI）", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进"}, {"id": "art-EVO-02", "kind": "article", "code": "EVO-02", "label": "EVO-02 · 从任务反馈到可审计的经验发布", "title": "从任务反馈到可审计的经验发布", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795417259258.html", "localFile": "articles/11-agent-evolution/evo-02-auditable-experience.md", "summary": "选择有来源的有效经验 → 草拟候选记忆或 Skill → 用隔离回放和留出样本评测 → 审阅、版本化激活与回滚。验证任务收益、误记污染、作用域和权限边界。", "refs": [], "stageOrder": 11, "stageTitle": "Agent 自进化与递归自我改进（RSI）", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进"}, {"id": "art-EVO-03", "kind": "article", "code": "EVO-03", "label": "EVO-03 · 模型如何参与训练下一版模型", "title": "模型如何参与训练下一版模型", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795417260943.html", "localFile": "articles/11-agent-evolution/evo-03-model-feedback-training.md", "summary": "以 STaR 和 Self-Rewarding Language Models 为例，跟踪候选数据生成、验证或奖励、训练、独立评测与下一轮。对照一次训练与多轮迭代，用留出集观察正确率、反馈偏差与能力回归。先学 TRN-08、TRN-12 与 LE-03。", "refs": ["TRN-08", "TRN-12", "LE-03"], "stageOrder": 11, "stageTitle": "Agent 自进化与递归自我改进（RSI）", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进"}, {"id": "art-EVO-04", "kind": "article", "code": "EVO-04", "label": "EVO-04 · Google DeepMind 实例，SIMA 2 与 AlphaEvolve", "title": "Google DeepMind 实例，SIMA 2 与 AlphaEvolve", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795417262667.html", "localFile": "articles/11-agent-evolution/evo-04-sima-alphaevolve.md", "summary": "分别追踪 SIMA 2 怎样将自生成经验用于训练下一代 Agent，以及 AlphaEvolve 怎么用自动评分筛选算法候选、优化 Gemini 训练中的计算内核。写清更新对象、评估信号和公开证据的适用范围。", "refs": [], "stageOrder": 11, "stageTitle": "Agent 自进化与递归自我改进（RSI）", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进"}, {"id": "art-EVO-05", "kind": "article", "code": "EVO-05", "label": "EVO-05 · 给 Agent 或普通程序加一个反馈改进 Agent", "title": "给 Agent 或普通程序加一个反馈改进 Agent", "color": "#d97706", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795417264333.html", "localFile": "articles/11-agent-evolution/evo-05-feedback-improvement-loop.md", "summary": "应用继续处理业务，独立观察 Agent 只读分析脱敏日志、Trace 和指标。把重复失败变成可复现样本，提出一项候选变更，隔离回放并用固定留出集对照。通过预设的质量、权限和成本检查后提交审阅，再灰度发布。线上指标退化时回滚，把本轮结论作为下一轮输入。", "refs": [], "stageOrder": 11, "stageTitle": "Agent 自进化与递归自我改进（RSI）", "prereq": "记忆与 Skills、离线评测、基础遥测与发布护栏", "deliverable": "用运行反馈验证并发布可回滚的改进"}]}]}, {"id": "pillar-prod", "kind": "pillar", "label": "四、开源案例与生产落地", "title": "四、开源案例与生产落地", "badge": "13/13", "color": "#7c3aed", "summary": "源码对照、Agentic Engineering 与生产运维", "children": [{"id": "stage-12", "kind": "stage", "stageOrder": 12, "label": "12. OpenClaw 与 Hermes Agent 源码案例", "title": "OpenClaw 与 Hermes Agent 源码案例", "seriesLabel": "OpenClaw 与 Hermes Agent 源码案例（CASE）", "badge": "3/3", "publishedCount": 3, "totalCount": 3, "color": "#7c3aed", "prereq": "Harness、会话、Skills、隔离与自进化", "deliverable": "对照同一任务在两个框架里的运行与经验沉淀", "summary": "两篇都固定源码 tag，从一条本地测试会话入手，记录入口、路由、模型调用、工具策略、会话持久化和结果返回。再挑同一处用户纠正，观察两个实现分别写入什么、在哪一轮加载以及如何撤销。", "children": [{"id": "art-CASE-01", "kind": "article", "code": "CASE-01", "label": "CASE-01 · OpenClaw 设计思想与运行链路", "title": "OpenClaw 设计思想与运行链路", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418062770.html", "localFile": "articles/12-framework-cases/case-01-openclaw-runtime.md", "summary": "从 Gateway 与 Channel 接入出发，追踪会话路由、workspace、上下文与 Skills 快照、Agent Loop、工具和事件回流。区分同一会话的执行顺序与不同会话的隔离范围。", "refs": [], "stageOrder": 12, "stageTitle": "OpenClaw 与 Hermes Agent 源码案例", "prereq": "Harness、会话、Skills、隔离与自进化", "deliverable": "对照同一任务在两个框架里的运行与经验沉淀"}, {"id": "art-CASE-02", "kind": "article", "code": "CASE-02", "label": "CASE-02 · Hermes Agent 的设计思想与自改进链路", "title": "Hermes Agent 的设计思想与自改进链路", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418064577.html", "localFile": "articles/12-framework-cases/case-02-hermes-runtime-memory.md", "summary": "追踪一次 CLI 或 Gateway 会话，从 Agent Loop 到会话记录，再跟后台回顾、持久记忆和可复用 Skill 的写入路径。对照选定版本验证审批、编辑和下一会话的加载。", "refs": [], "stageOrder": 12, "stageTitle": "OpenClaw 与 Hermes Agent 源码案例", "prereq": "Harness、会话、Skills、隔离与自进化", "deliverable": "对照同一任务在两个框架里的运行与经验沉淀"}, {"id": "art-CASE-03", "kind": "article", "code": "CASE-03", "label": "CASE-03 · 同一个任务对照 OpenClaw 与 Hermes Agent", "title": "同一个任务对照 OpenClaw 与 Hermes Agent", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418066265.html", "localFile": "articles/12-framework-cases/case-03-openclaw-hermes-comparison.md", "summary": "比较接入方式、会话与工作区边界、指令加载、记忆与 Skill 生命周期、写入审批和可观测性。用同一份 CSV、同一模型和相同权限回放，按源码和观察记录作结。", "refs": [], "stageOrder": 12, "stageTitle": "OpenClaw 与 Hermes Agent 源码案例", "prereq": "Harness、会话、Skills、隔离与自进化", "deliverable": "对照同一任务在两个框架里的运行与经验沉淀"}]}, {"id": "stage-13", "kind": "stage", "stageOrder": 13, "label": "13. Vibe Coding 与工程化交付", "title": "Vibe Coding 与工程化交付", "seriesLabel": "Vibe Coding 与工程化交付（DEV）", "badge": "3/3", "publishedCount": 3, "totalCount": 3, "color": "#7c3aed", "prereq": "Agent Harness、评测、护栏与 Sandbox", "deliverable": "对比原型与可维护版本的验收证据", "summary": "先修：Agent Harness、评测、护栏与 Sandbox；阶段产物：对比原型与可维护版本的验收证据", "children": [{"id": "art-DEV-01", "kind": "article", "code": "DEV-01", "label": "DEV-01 · Vibe Coding 的工作方式与原型实验", "title": "Vibe Coding 的工作方式与原型实验", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418815589.html", "localFile": "articles/13-vibe-coding-delivery/dev-01-vibe-coding-prototype.md", "summary": "通过自然语言和界面反馈快速迭代一个报告页，记录迭代时间、人工干预和剩余缺陷。以可丢弃分支承载实验。", "refs": [], "stageOrder": 13, "stageTitle": "Vibe Coding 与工程化交付", "prereq": "Agent Harness、评测、护栏与 Sandbox", "deliverable": "对比原型与可维护版本的验收证据"}, {"id": "art-DEV-02", "kind": "article", "code": "DEV-02", "label": "DEV-02 · 从 Vibe Coding 原型走向 Agentic Engineering", "title": "从 Vibe Coding 原型走向 Agentic Engineering", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418817314.html", "localFile": "articles/13-vibe-coding-delivery/dev-02-agentic-engineering.md", "summary": "同一任务增加可验证规格、仓库约束、测试、版本隔离、权限和代码复核。对比测试覆盖、错误恢复、修改范围和可维护性。", "refs": [], "stageOrder": 13, "stageTitle": "Vibe Coding 与工程化交付", "prereq": "Agent Harness、评测、护栏与 Sandbox", "deliverable": "对比原型与可维护版本的验收证据"}, {"id": "art-DEV-03", "kind": "article", "code": "DEV-03", "label": "DEV-03 · Computer Use 与浏览器 Agent 的工程实践", "title": "Computer Use 与浏览器 Agent 的工程实践", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795418819068.html", "localFile": "articles/13-vibe-coding-delivery/dev-03-computer-use.md", "summary": "用同一份本地示例报告比较 DOM/可访问性信息与截图操作的定位方式。验证点击后的页面状态、弹窗、误操作恢复、提交前审批和用户接管。", "refs": [], "stageOrder": 13, "stageTitle": "Vibe Coding 与工程化交付", "prereq": "Agent Harness、评测、护栏与 Sandbox", "deliverable": "对比原型与可维护版本的验收证据"}]}, {"id": "stage-14", "kind": "stage", "stageOrder": 14, "label": "14. 生产化专题", "title": "生产化专题", "seriesLabel": "生产化（OPS）", "badge": "7/7", "publishedCount": 7, "totalCount": 7, "color": "#7c3aed", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策", "summary": "先修：服务、评测、隔离与任务执行链路；阶段产物：用运行指标说明上线、限流、隔离和拆分决策", "children": [{"id": "art-OPS-01", "kind": "article", "code": "OPS-01", "label": "OPS-01 · LLM Gateway 的限流、路由、缓存与降级", "title": "LLM Gateway 的限流、路由、缓存与降级", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419423601.html", "localFile": "articles/14-production/ops-01-gateway.md", "summary": "按 RPM、TPM、并发、预算治理，测试 429、超时、部分流式输出和供应商切换。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-02", "kind": "article", "code": "OPS-02", "label": "OPS-02 · Agent 安全控制如何落到生产环境", "title": "Agent 安全控制如何落到生产环境", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419425419.html", "localFile": "articles/14-production/ops-02-agent-security.md", "summary": "将 SEC 与 SBX 中的控制接入权限配置、网络策略、审计、变更审批与事件响应。用分环境回归确认策略实际生效。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-03", "kind": "article", "code": "OPS-03", "label": "OPS-03 · Sandbox 冷启动和资源回收", "title": "Sandbox 冷启动和资源回收", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419427113.html", "localFile": "articles/14-production/ops-03-sandbox-lifecycle.md", "summary": "拆分排队、镜像、运行时、首命令，比较镜像缓存、预热和洁净快照，追踪 P95、闲置成本、隔离与回收。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-04", "kind": "article", "code": "OPS-04", "label": "OPS-04 · Agent 服务拆分与可靠迁移", "title": "Agent 服务拆分与可靠迁移", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419428781.html", "localFile": "articles/14-production/ops-04-reliable-migration.md", "summary": "从模块化单体拆异步执行池，覆盖队列、Outbox、幂等、独立扩缩容、灰度和回滚。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-05", "kind": "article", "code": "OPS-05", "label": "OPS-05 · 端到端可观测与持续发布", "title": "端到端可观测与持续发布", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419430432.html", "localFile": "articles/14-production/ops-05-progressive-delivery.md", "summary": "统一请求、模型、工具和产物的追踪，制作失败样本、上线门槛、灰度与回滚报告。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-07", "kind": "article", "code": "OPS-07", "label": "OPS-07 · Prompt、工具契约和在途任务的版本兼容", "title": "Prompt、工具契约和在途任务的版本兼容", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419432161.html", "localFile": "articles/14-production/ops-07-runtime-versioning.md", "summary": "记录每次运行所用的 Prompt、工具输入与输出 Schema 以及模型发布版本。用统计工具的参数变更与结果变更演示兼容层和轨迹回放，验证旧任务恢复、灰度和回滚期间的结果一致性与副作用处理。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}, {"id": "art-OPS-06", "kind": "article", "code": "OPS-06", "label": "OPS-06 · 用 OpenTelemetry 定位一条 Agent 慢请求", "title": "用 OpenTelemetry 定位一条 Agent 慢请求", "color": "#7c3aed", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/23/1795419433902.html", "localFile": "articles/14-production/ops-06-opentelemetry-trace.md", "summary": "固定语义约定版本，用 Trace 关联模型、检索、工具和 Sandbox，把耗时拆成排队与执行。记录 Token、错误与步骤次序，用脱敏与采样保护输入输出。", "refs": [], "stageOrder": 14, "stageTitle": "生产化专题", "prereq": "服务、评测、隔离与任务执行链路", "deliverable": "用运行指标说明上线、限流、隔离和拆分决策"}]}]}, {"id": "pillar-lateral", "kind": "pillar", "label": "横向入口：题库 · 速查 · 路线图", "title": "横向入口：题库 · 速查 · 路线图", "badge": "3 份总览", "color": "#475569", "summary": "按面试考点反查原理、按主题速查机制、看置顶总路线", "children": [{"id": "lat-bank", "kind": "lateral", "code": "BANK", "label": "面试题库 · Agent 与 Sandbox 高频题（6 专题 26 题）", "title": "Agent 与 Sandbox 面试题库：运行时、模型网关与系统设计", "color": "#475569", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/19/1795049523245.html", "localFile": "agent-sandbox-interview-bank.md", "summary": "覆盖 AG / SB / LLM / ARCH / MVP / CTX 六大面试专题与追问参考答案，用 CSV 上传→隔离分析→归档场景贯穿。", "refs": []}, {"id": "lat-notes", "kind": "lateral", "code": "NOTES", "label": "工程笔记 · 5 层核心机制速查手册", "title": "Agent 工程笔记", "color": "#475569", "published": true, "url": null, "localFile": "agent-engineering-notes.md", "summary": "把多智能体编排、Agent 记忆、上下文工程、本地执行安全、模型推理与缓存浓缩成 5 层速查。", "refs": []}, {"id": "lat-roadmap", "kind": "lateral", "code": "MAP", "label": "置顶路线图 · 14 阶段线上总导航页", "title": "LLM 与 Agent 学习路线图：从模型原理到工程落地", "color": "#475569", "published": true, "url": "https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html", "localFile": "llm-agent-learning-roadmap.md", "summary": "串联 14 阶段 138 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。", "refs": []}]}]}};
+
+const svg = document.getElementById("mindmap");
+const stageArea = document.getElementById("stage-area");
+const drawer = document.getElementById("drawer");
+const searchInput = document.getElementById("search-input");
+const searchCount = document.getElementById("search-count");
+const searchClear = document.getElementById("search-clear");
+
+const measureCanvas = document.createElement("canvas");
+const mctx = measureCanvas.getContext("2d");
+
+let expandedSet = new Set();
+let selectedId = null;
+let activeTrack = "all";
+let searchQuery = "";
+let matchedIds = new Set();
+let nodeIndex = new Map();
+let codeToId = new Map();
+
+let viewport = { x: 24, y: 24, scale: 1 };
+let dragState = null;
+
+function indexAll(node, parent = null) {
+  node._parent = parent;
+  nodeIndex.set(node.id, node);
+  if (node.code) codeToId.set(node.code, node.id);
+  if (node.children) {
+    for (const ch of node.children) indexAll(ch, node);
+  }
+}
+
+function setExpandDepth(maxDepth) {
+  expandedSet.clear();
+  function walk(node, depth) {
+    if (node.children && node.children.length > 0 && depth < maxDepth) {
+      expandedSet.add(node.id);
+      for (const ch of node.children) walk(ch, depth + 1);
+    }
+  }
+  walk(TREE_DATA.root, 0);
+}
+
+function measureTextWidth(text, font) {
+  mctx.font = font;
+  return Math.ceil(mctx.measureText(text).width);
+}
+
+function computeNodeBox(node) {
+  let font = '500 12.5px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+  let height = 30;
+  let padX = 12;
+  let badgeText = "";
+
+  if (node.kind === "root") {
+    font = '700 15px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+    height = 44;
+    padX = 16;
+    badgeText = node.badge || "";
+  } else if (node.kind === "pillar") {
+    font = '700 13.5px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+    height = 36;
+    padX = 14;
+    badgeText = node.badge || "";
+  } else if (node.kind === "stage") {
+    font = '600 13px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+    height = 32;
+    padX = 12;
+    badgeText = node.badge || "";
+  }
+
+  const labelW = measureTextWidth(node.label, font);
+  const badgeW = badgeText ? measureTextWidth(badgeText, '600 11px sans-serif') + 18 : 0;
+  const hasKids = node.children && node.children.length > 0;
+  const toggleW = hasKids ? 20 : 0;
+  const dotW = node.kind === "article" || node.kind === "lateral" ? 12 : 0;
+  const linkIconW = node.url ? 14 : 0;
+
+  node._w = padX * 2 + dotW + labelW + badgeW + linkIconW + toggleW;
+  node._h = height;
+  node._font = font;
+  node._badgeText = badgeText;
+  node._badgeW = badgeW;
+}
+
+function layoutVisibleTree() {
+  const root = TREE_DATA.root;
+  const X_GAP = 54;
+  const Y_GAP = 8;
+  const GROUP_GAP = 14;
+
+  function calcSubtree(node) {
+    computeNodeBox(node);
+    const isExp = expandedSet.has(node.id);
+    const visChildren = isExp && node.children ? node.children : [];
+    node._visChildren = visChildren;
+    if (visChildren.length === 0) {
+      node._subH = node._h;
+      return node._subH;
+    }
+    let total = 0;
+    visChildren.forEach((ch, idx) => {
+      total += calcSubtree(ch);
+      if (idx < visChildren.length - 1) {
+        total += ch.kind === "pillar" ? GROUP_GAP : Y_GAP;
+      }
+    });
+    node._subH = Math.max(node._h, total);
+    return node._subH;
+  }
+
+  function assignPos(node, x, topY) {
+    node._x = x;
+    const vis = node._visChildren;
+    if (vis.length === 0) {
+      node._y = topY + (node._subH - node._h) / 2;
+      return;
+    }
+    let childrenSum = 0;
+    vis.forEach((ch, idx) => {
+      childrenSum += ch._subH;
+      if (idx < vis.length - 1) {
+        childrenSum += ch.kind === "pillar" ? GROUP_GAP : Y_GAP;
+      }
+    });
+    let curY = topY + Math.max(0, (node._subH - childrenSum) / 2);
+    const childX = x + node._w + X_GAP;
+    for (const ch of vis) {
+      assignPos(ch, childX, curY);
+      curY += ch._subH + (ch.kind === "pillar" ? GROUP_GAP : Y_GAP);
+    }
+    const first = vis[0];
+    const last = vis[vis.length - 1];
+    const center = ((first._y + first._h / 2) + (last._y + last._h / 2)) / 2;
+    node._y = center - node._h / 2;
+  }
+
+  calcSubtree(root);
+  assignPos(root, 0, 0);
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  function bounds(n) {
+    minX = Math.min(minX, n._x);
+    minY = Math.min(minY, n._y);
+    maxX = Math.max(maxX, n._x + n._w);
+    maxY = Math.max(maxY, n._y + n._h);
+    for (const ch of n._visChildren) bounds(ch);
+  }
+  bounds(root);
+  return { minX, minY, maxX, maxY };
+}
+
+function isNodeHighlighted(node) {
+  if (searchQuery) {
+    if (matchedIds.has(node.id)) return true;
+    // Keep ancestors visible
+    function hasDescendantMatch(n) {
+      if (matchedIds.has(n.id)) return true;
+      return (n.children || []).some(hasDescendantMatch);
+    }
+    return hasDescendantMatch(node);
+  }
+  if (activeTrack === "all") return true;
+  const trackStages = new Set(TREE_DATA.tracks[activeTrack] || []);
+  if (node.kind === "root") return true;
+  if (node.kind === "stage" || node.kind === "article") {
+    return trackStages.has(node.stageOrder);
+  }
+  if (node.kind === "pillar") {
+    return (node.children || []).some(ch => ch.kind === "stage" && trackStages.has(ch.stageOrder));
+  }
+  return false;
+}
+
+function svgEl(tag, attrs = {}, text = null) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v !== null && v !== undefined) el.setAttribute(k, String(v));
+  }
+  if (text !== null) el.textContent = text;
+  return el;
+}
+
+function getThemeColors() {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  return {
+    cardBg: dark ? "#111827" : "#ffffff",
+    cardBorder: dark ? "#334155" : "#cbd5e1",
+    text: dark ? "#f1f5f9" : "#0f172a",
+    muted: dark ? "#94a3b8" : "#64748b",
+    badgeBg: dark ? "#1e293b" : "#f1f5f9",
+    matchStroke: "#f59e0b",
+    matchFill: dark ? "#2a2009" : "#fffbeb",
+  };
+}
+
+function applyTransform() {
+  const g = svg.querySelector("#viewport-g");
+  if (g) {
+    g.setAttribute("transform", `translate(${viewport.x.toFixed(1)}, ${viewport.y.toFixed(1)}) scale(${viewport.scale.toFixed(4)})`);
+  }
+}
+
+function fitView(bounds) {
+  const rect = stageArea.getBoundingClientRect();
+  const availW = Math.max(300, rect.width - 48);
+  const availH = Math.max(240, rect.height - 64);
+  const treeW = Math.max(1, bounds.maxX - bounds.minX);
+  const treeH = Math.max(1, bounds.maxY - bounds.minY);
+  const scale = Math.min(1.08, Math.max(0.28, Math.min(availW / treeW, availH / treeH)));
+  viewport.scale = scale;
+  viewport.x = (rect.width - treeW * scale) / 2 - bounds.minX * scale;
+  viewport.y = (rect.height - treeH * scale) / 2 - bounds.minY * scale - 8;
+  applyTransform();
+}
+
+function render(shouldFit = false) {
+  const bounds = layoutVisibleTree();
+  const theme = getThemeColors();
+  svg.innerHTML = "";
+  const vpG = svgEl("g", { id: "viewport-g" });
+  const linksG = svgEl("g", { id: "links-g" });
+  const nodesG = svgEl("g", { id: "nodes-g" });
+  vpG.appendChild(linksG);
+  vpG.appendChild(nodesG);
+  svg.appendChild(vpG);
+
+  function drawLinks(node) {
+    for (const ch of node._visChildren) {
+      const x1 = node._x + node._w;
+      const y1 = node._y + node._h / 2;
+      const x2 = ch._x;
+      const y2 = ch._y + ch._h / 2;
+      const mx = (x1 + x2) / 2;
+      const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+      const bright = isNodeHighlighted(node) && isNodeHighlighted(ch);
+      const sw = node.kind === "root" ? 2.4 : node.kind === "pillar" ? 1.7 : 1.3;
+      linksG.appendChild(
+        svgEl("path", {
+          d,
+          class: `link-path${bright ? "" : " dimmed"}`,
+          stroke: ch.color || node.color,
+          "stroke-width": sw,
+          opacity: bright ? 0.78 : 0.16,
+        })
+      );
+      drawLinks(ch);
+    }
+  }
+
+  function drawNodes(node) {
+    const bright = isNodeHighlighted(node);
+    const isMatch = searchQuery && matchedIds.has(node.id);
+    const isSelected = selectedId === node.id;
+
+    const g = svgEl("g", {
+      class: `node-g${bright ? "" : " dimmed"}`,
+      transform: `translate(${node._x}, ${node._y})`,
+      "data-id": node.id,
+    });
+
+    let fill = isMatch ? theme.matchFill : theme.cardBg;
+    let stroke = isMatch ? theme.matchStroke : (node.kind === "root" || node.kind === "pillar" ? node.color : theme.cardBorder);
+    let strokeW = isSelected || isMatch ? 2.2 : (node.kind === "root" ? 2.2 : node.kind === "pillar" ? 1.7 : 1.1);
+    let rx = node.kind === "root" ? 12 : node.kind === "pillar" ? 10 : 8;
+
+    if (isSelected) stroke = node.color || "#2563eb";
+
+    g.appendChild(
+      svgEl("rect", {
+        class: "node-rect",
+        x: 0,
+        y: 0,
+        width: node._w,
+        height: node._h,
+        rx,
+        fill,
+        stroke,
+        "stroke-width": strokeW,
+      })
+    );
+
+    // Accent bar on left for stage / pillar
+    if (node.kind === "pillar" || node.kind === "stage") {
+      g.appendChild(
+        svgEl("rect", {
+          x: 0,
+          y: 0,
+          width: 5,
+          height: node._h,
+          rx: 2,
+          fill: node.color,
+        })
+      );
+    }
+
+    let cursorX = node.kind === "root" ? 16 : node.kind === "pillar" ? 14 : 12;
+    const centerY = node._h / 2;
+
+    if (node.kind === "article" || node.kind === "lateral") {
+      const dotColor = node.published ? "#16a34a" : "#d97706";
+      g.appendChild(
+        svgEl("circle", {
+          cx: cursorX + 3,
+          cy: centerY,
+          r: 3.5,
+          fill: node.published ? dotColor : "none",
+          stroke: dotColor,
+          "stroke-width": 1.6,
+        })
+      );
+      cursorX += 12;
+    }
+
+    const txt = svgEl(
+      "text",
+      {
+        x: cursorX,
+        y: centerY,
+        "dominant-baseline": "central",
+        fill: theme.text,
+        style: `font:${node._font}`,
+      },
+      node.label
+    );
+    g.appendChild(txt);
+
+    const hasKids = node.children && node.children.length > 0;
+    let rightOffset = 10 + (hasKids ? 20 : 0);
+
+    if (node.url) {
+      g.appendChild(
+        svgEl(
+          "text",
+          {
+            x: node._w - rightOffset - 6,
+            y: centerY,
+            "dominant-baseline": "central",
+            "text-anchor": "middle",
+            fill: node.color || theme.muted,
+            style: "font:600 11px sans-serif",
+          },
+          "↗"
+        )
+      );
+    }
+
+    if (node._badgeText) {
+      const bw = node._badgeW - 4;
+      const bx = node._w - rightOffset - bw;
+      g.appendChild(
+        svgEl("rect", {
+          x: bx,
+          y: centerY - 9,
+          width: bw,
+          height: 18,
+          rx: 9,
+          fill: node.kind === "root" ? node.color : theme.badgeBg,
+        })
+      );
+      g.appendChild(
+        svgEl(
+          "text",
+          {
+            x: bx + bw / 2,
+            y: centerY,
+            "dominant-baseline": "central",
+            "text-anchor": "middle",
+            fill: node.kind === "root" ? "#ffffff" : theme.muted,
+            style: "font:600 10.5px sans-serif",
+          },
+          node._badgeText
+        )
+      );
+    }
+
+    if (hasKids) {
+      const isExp = expandedSet.has(node.id);
+      const cx = node._w - 13;
+      g.appendChild(
+        svgEl("circle", {
+          cx,
+          cy: centerY,
+          r: 7.5,
+          fill: isExp ? theme.badgeBg : (node.color || "#2563eb"),
+          stroke: node.color || theme.cardBorder,
+          "stroke-width": 1.2,
+        })
+      );
+      g.appendChild(
+        svgEl(
+          "text",
+          {
+            x: cx,
+            y: centerY - 0.3,
+            "dominant-baseline": "central",
+            "text-anchor": "middle",
+            fill: isExp ? theme.text : "#ffffff",
+            style: "font:700 11px sans-serif",
+          },
+          isExp ? "−" : "+"
+        )
+      );
+    }
+
+    g.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      handleNodeClick(node);
+    });
+    g.addEventListener("dblclick", (ev) => {
+      ev.stopPropagation();
+      if (node.url) window.open(node.url, "_blank", "noopener,noreferrer");
+    });
+
+    nodesG.appendChild(g);
+    for (const ch of node._visChildren) drawNodes(ch);
+  }
+
+  drawLinks(TREE_DATA.root);
+  drawNodes(TREE_DATA.root);
+
+  if (shouldFit) {
+    fitView(bounds);
+  } else {
+    applyTransform();
+  }
+}
+
+function handleNodeClick(node) {
+  selectedId = node.id;
+  if (node.children && node.children.length > 0 && node.kind !== "root") {
+    if (expandedSet.has(node.id)) {
+      expandedSet.delete(node.id);
+    } else {
+      expandedSet.add(node.id);
+    }
+  }
+  render(false);
+  openDrawer(node);
+}
+
+function jumpToCode(code) {
+  const id = codeToId.get(code);
+  if (!id) return;
+  const target = nodeIndex.get(id);
+  // Expand all ancestors
+  let cur = target._parent;
+  while (cur) {
+    expandedSet.add(cur.id);
+    cur = cur._parent;
+  }
+  selectedId = target.id;
+  render(false);
+  // Pan smoothly to keep target near left-center
+  const rect = stageArea.getBoundingClientRect();
+  viewport.x = rect.width * 0.32 - (target._x + target._w / 2) * viewport.scale;
+  viewport.y = rect.height * 0.5 - (target._y + target._h / 2) * viewport.scale;
+  applyTransform();
+  openDrawer(target);
+}
+
+function escapeHtml(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function openDrawer(node) {
+  const badges = [];
+  if (node.code) {
+    badges.push(`<span class="pill" style="background:${node.color};color:#fff">${escapeHtml(node.code)}</span>`);
+  }
+  if (node.kind === "article" || node.kind === "lateral") {
+    badges.push(
+      node.published
+        ? `<span class="pill pill-pub">已发布</span>`
+        : `<span class="pill pill-plan">规划待写</span>`
+    );
+  } else if (node.kind === "stage") {
+    badges.push(`<span class="pill" style="background:${node.color};color:#fff">阶段 ${node.stageOrder} · ${escapeHtml(node.badge)}</span>`);
+  } else if (node.kind === "pillar") {
+    badges.push(`<span class="pill" style="background:${node.color};color:#fff">板块 · ${escapeHtml(node.badge)}</span>`);
+  }
+
+  let html = `
+    <div class="drawer-head">
+      <div class="drawer-badges">${badges.join("")}</div>
+      <button class="drawer-close" id="drawer-close" title="关闭">×</button>
+    </div>
+    <h3 class="drawer-title">${escapeHtml(node.title || node.label)}</h3>
+  `;
+
+  if (node.summary) {
+    html += `<div class="drawer-sec"><strong>机制与说明：</strong>${escapeHtml(node.summary)}</div>`;
+  }
+  if (node.prereq || node.deliverable) {
+    html += `<div class="drawer-sec">
+      ${node.stageTitle ? `<div><strong>所属阶段：</strong>${node.stageOrder}. ${escapeHtml(node.stageTitle)}</div>` : ""}
+      ${node.prereq ? `<div><strong>先修要求：</strong>${escapeHtml(node.prereq)}</div>` : ""}
+      ${node.deliverable ? `<div><strong>阶段产物：</strong>${escapeHtml(node.deliverable)}</div>` : ""}
+    </div>`;
+  }
+  if (node.refs && node.refs.length > 0) {
+    const chips = node.refs
+      .map(r => `<button class="ref-chip" data-ref="${escapeHtml(r)}">→ ${escapeHtml(r)}</button>`)
+      .join("");
+    html += `<div class="drawer-sec"><strong>跨篇关联（点击跳转）：</strong><div class="ref-chips">${chips}</div></div>`;
+  }
+  if (node.localFile) {
+    html += `<div class="drawer-sec"><strong>本地源文件：</strong><br><span class="file-code">${escapeHtml(node.localFile)}</span></div>`;
+  }
+  if (node.url) {
+    html += `<div class="drawer-actions">
+      <a class="action-btn primary" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">打开线上博客文章 ↗</a>
+    </div>`;
+  }
+
+  drawer.innerHTML = html;
+  drawer.classList.add("open");
+  drawer.querySelector("#drawer-close").addEventListener("click", () => {
+    drawer.classList.remove("open");
+  });
+  drawer.querySelectorAll(".ref-chip").forEach(btn => {
+    btn.addEventListener("click", () => jumpToCode(btn.dataset.ref));
+  });
+}
+
+function runSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  matchedIds.clear();
+  searchClear.style.display = searchQuery ? "inline-block" : "none";
+
+  if (!searchQuery) {
+    searchCount.textContent = "";
+    render(false);
+    return;
+  }
+
+  for (const node of nodeIndex.values()) {
+    const hay = `${node.code || ""} ${node.label || ""} ${node.title || ""} ${node.summary || ""} ${node.prereq || ""}`.toLowerCase();
+    if (hay.includes(searchQuery)) {
+      matchedIds.add(node.id);
+      let cur = node._parent;
+      while (cur) {
+        expandedSet.add(cur.id);
+        cur = cur._parent;
+      }
+    }
+  }
+  searchCount.textContent = `${matchedIds.size} 命中`;
+  render(true);
+}
+
+// Toolbar events
+document.querySelectorAll("[data-level]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-level]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    setExpandDepth(Number(btn.dataset.level));
+    render(true);
+  });
+});
+
+document.querySelectorAll("[data-track]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-track]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeTrack = btn.dataset.track;
+    render(false);
+  });
+});
+
+searchInput.addEventListener("input", () => runSearch(searchInput.value));
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  runSearch("");
+});
+
+document.getElementById("zoom-in").addEventListener("click", () => {
+  const rect = stageArea.getBoundingClientRect();
+  zoomAt(rect.width / 2, rect.height / 2, 1.2);
+});
+document.getElementById("zoom-out").addEventListener("click", () => {
+  const rect = stageArea.getBoundingClientRect();
+  zoomAt(rect.width / 2, rect.height / 2, 1 / 1.2);
+});
+document.getElementById("zoom-fit").addEventListener("click", () => {
+  const bounds = layoutVisibleTree();
+  fitView(bounds);
+});
+
+const themeBtn = document.getElementById("theme-toggle");
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", cur);
+  themeBtn.textContent = cur === "dark" ? "浅色" : "深色";
+  render(false);
+});
+
+function zoomAt(cx, cy, factor) {
+  const newScale = Math.min(2.5, Math.max(0.2, viewport.scale * factor));
+  const actual = newScale / viewport.scale;
+  viewport.x = cx - (cx - viewport.x) * actual;
+  viewport.y = cy - (cy - viewport.y) * actual;
+  viewport.scale = newScale;
+  applyTransform();
+}
+
+stageArea.addEventListener("wheel", (ev) => {
+  ev.preventDefault();
+  const rect = stageArea.getBoundingClientRect();
+  const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+  zoomAt(ev.clientX - rect.left, ev.clientY - rect.top, factor);
+}, { passive: false });
+
+stageArea.addEventListener("pointerdown", (ev) => {
+  if (ev.target.closest(".node-g") || ev.target.closest(".drawer")) return;
+  dragState = { startX: ev.clientX, startY: ev.clientY, vx: viewport.x, vy: viewport.y };
+  stageArea.classList.add("dragging");
+});
+
+window.addEventListener("pointermove", (ev) => {
+  if (!dragState) return;
+  viewport.x = dragState.vx + (ev.clientX - dragState.startX);
+  viewport.y = dragState.vy + (ev.clientY - dragState.startY);
+  applyTransform();
+});
+
+window.addEventListener("pointerup", () => {
+  dragState = null;
+  stageArea.classList.remove("dragging");
+});
+
+window.addEventListener("resize", () => {
+  const bounds = layoutVisibleTree();
+  fitView(bounds);
+});
+
+// Boot
+indexAll(TREE_DATA.root, null);
+setExpandDepth(2);
+render(true);
+</script>
+</body>
+</html>
