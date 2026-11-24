@@ -44,7 +44,7 @@
 | 2026-11-23 | 发布 SERV-01～SERV-16，完成第五部分 | 归档推理引擎、流式、模型注册、部署和批作业实测，以及标明口径的调度及容量演算。核对公开正文、封面与置顶目录 |
 | 2026-11-23 | 发布 [TRN-05](https://blog.lacknb.cn/articles/2026/11/23/1795398317459.html)、[TRN-06](https://blog.lacknb.cn/articles/2026/11/23/1795398359078.html)、[TRN-07](https://blog.lacknb.cn/articles/2026/11/23/1795398360808.html)、[TRN-08](https://blog.lacknb.cn/articles/2026/11/23/1795398362308.html)、[TRN-11](https://blog.lacknb.cn/articles/2026/11/23/1795398363907.html)、[TRN-12](https://blog.lacknb.cn/articles/2026/11/23/1795398365508.html)、[TRN-09](https://blog.lacknb.cn/articles/2026/11/23/1795398367155.html)，完成第四部分 | 归档 Qwen LoRA、DPO 和 Unsloth 实测，以及强化学习、蒸馏和数据筛选的教学实验。逐篇核对公开正文、封面与置顶路线图 |
 | 2026-11-22 | 发布 [TRN-04《SFT 怎么把对话变成监督信号》](https://blog.lacknb.cn/articles/2026/11/22/1795353665754.html) | 核对公开正文、封面与实测结果，已同步置顶路线图 |
-| 2026-11-22 | 完成 [TRN-04 本地稿](trn-04-sft-supervision.md) | 实测 Qwen 多轮助手标签、填充与截断，在六组留出题上比较基座、提示词和 SFT |
+| 2026-11-22 | 完成 [TRN-04 本地稿](articles/04-model-training/trn-04-sft-supervision.md) | 实测 Qwen 多轮助手标签、填充与截断，在六组留出题上比较基座、提示词和 SFT |
 | 2026-11-22 | 发布 [TRN-02](https://blog.lacknb.cn/articles/2026/11/22/1795342908073.html) 和 [TRN-10](https://blog.lacknb.cn/articles/2026/11/22/1795342910568.html) | 核对公开正文、封面和篇间链接，已同步置顶路线图 |
 | 2026-11-22 | 发布 TRN-03《选继续预训练、SFT 还是偏好优化》 | 核对独立可执行示例、公开正文和封面，已同步置顶路线图 |
 | 2026-11-22 | 完成 TRN-03 本地稿 | 从同一微型基座实测继续预训练、SFT 与 DPO，归档公共指标和留出题输出 |
