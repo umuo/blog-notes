@@ -323,7 +323,7 @@ def build_tree_data(sections: list[StageSection]) -> dict[str, Any]:
                 "published": True,
                 "url": ROADMAP_BLOG_URL,
                 "localFile": "llm-agent-learning-roadmap.md",
-                "summary": "串联 14 阶段 138 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。",
+                "summary": f"串联 14 阶段 {total_articles} 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。",
                 "refs": [],
             },
         ],
@@ -759,7 +759,7 @@ HTML_TEMPLATE = """<!doctype html>
     <div class="btn-group" aria-label="展开层级">
       <button class="btn" data-level="1">4 板块</button>
       <button class="btn active" data-level="2">14 阶段</button>
-      <button class="btn" data-level="3">全部 138 篇</button>
+      <button class="btn" data-level="3">全部 __TOTAL_ARTICLES__ 篇</button>
     </div>
 
     <div class="btn-group" aria-label="学习主线">
@@ -1449,6 +1449,7 @@ def write_html(tree: dict[str, Any], out_path: Path) -> None:
     tree_json = json.dumps(tree, ensure_ascii=False).replace("</", "<\\/")
     html = (
         HTML_TEMPLATE.replace("__STATS_LABEL__", stats_label)
+        .replace("__TOTAL_ARTICLES__", str(stats["totalArticles"]))
         .replace("__TREE_JSON__", tree_json)
     )
     out_path.write_text(html, encoding="utf-8")

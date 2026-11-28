@@ -1,4 +1,4 @@
-# LLM 与 Agent 知识脑图（138/138 已发布）
+# LLM 与 Agent 知识脑图（139/139 已发布）
 
 > 请求主线：文本 → Token → 推理 → HTTP/SSE → Agent 工具循环 → RAG 检索 → 安全隔离 → 生产化
 
@@ -151,7 +151,7 @@
   - 按批次与条目 ID 归并乱序结果，从失败点重跑单个条目并确认无重复写入；对照 SERV-04 的引擎批处理。
 
 
-## 二、Agent 核心与知识库（46/46）
+## 二、Agent 核心与知识库（47/47）
 
 ### 6. Agent、Context Engineering、Loop Engineering 与 Harness（25/25）
 - 先修：文本和工具协议、上下文预算
@@ -207,7 +207,7 @@
 - **AGT-25** [Agent 前端事件协议与生成式 UI](https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html)
   - 用 API-05 的流式知识驱动报告卡片，断线重连后恢复状态，并检查确认绑定的是当前报告版本。
 
-### 7. Agent 效果评测（8/8）
+### 7. Agent 效果评测（9/9）
 - 先修：Agent Loop、工具执行、LE
 - 产物：从验证一次任务终态，进阶到故障归因和发布回归
 - **AE-06** [第一篇，如何验证 Agent 真的完成了任务](https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html)
@@ -222,6 +222,8 @@
   - 对两个都写成 3 条的报告逐段核对，用一次只替换一层的回放定位 `tool_output` 或 `artifact`。
 - **AE-04** [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)
   - 选一个适合自己目标的 Agent 基准，说明它验收的是工具参数、业务终态、仓库补丁还是可用成品。
+- **AE-09** [FrontierHarness 评测全解：固定模型横评 Agent Harness、Prompt Cache 与单次通过成本](https://blog.lacknb.cn/articles/2026/11/28/1795827869958.html)
+  - 固定同一底座模型与隔离沙箱，横评不同 Agent Harness 的通过率、Prompt Cache 命中率与单次通过成本；复现模型–Harness 交互反转、高缓存却更贵的陷阱及反作弊审计。
 - **AE-08** [从离线 Agent 回归到线上灰度](https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html)
   - 为新能力、旧行为和权限各设一道回归门槛，再用灰度数据判断保持、放量或回退。
 - **AE-05** [进阶实验，Agent 的多轮强化学习](https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html)
@@ -353,4 +355,4 @@
 - **NOTES** Agent 工程笔记（本地：`agent-engineering-notes.md`）
   - 把多智能体编排、Agent 记忆、上下文工程、本地执行安全、模型推理与缓存浓缩成 5 层速查。
 - **MAP** [LLM 与 Agent 学习路线图：从模型原理到工程落地](https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html)
-  - 串联 14 阶段 138 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。
+  - 串联 14 阶段 139 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。

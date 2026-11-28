@@ -1,0 +1,162 @@
+{
+  "total_scored_trials": 64,
+  "overall_by_harness": {
+    "H1_minimal_stable": {
+      "trials": 16,
+      "passes": 9,
+      "pass_rate": 0.5625,
+      "cost_per_task_usd": 0.01705,
+      "cost_per_pass_usd": 0.03031,
+      "cache_hit_rate": 0.7979,
+      "time_per_pass_s": 72.0,
+      "failed_spend_share": 0.5758,
+      "confident_failure_share": 0.7143
+    },
+    "H2_cache_breaker": {
+      "trials": 16,
+      "passes": 9,
+      "pass_rate": 0.5625,
+      "cost_per_task_usd": 0.03641,
+      "cost_per_pass_usd": 0.06473,
+      "cache_hit_rate": 0.0,
+      "time_per_pass_s": 90.0,
+      "failed_spend_share": 0.6296,
+      "confident_failure_share": 0.7143
+    },
+    "H3_chatty_cached": {
+      "trials": 16,
+      "passes": 6,
+      "pass_rate": 0.375,
+      "cost_per_task_usd": 0.07648,
+      "cost_per_pass_usd": 0.20395,
+      "cache_hit_rate": 0.8932,
+      "time_per_pass_s": 237.33,
+      "failed_spend_share": 0.7016,
+      "confident_failure_share": 0.8
+    },
+    "H4_verify_gate": {
+      "trials": 16,
+      "passes": 14,
+      "pass_rate": 0.875,
+      "cost_per_task_usd": 0.02118,
+      "cost_per_pass_usd": 0.02421,
+      "cache_hit_rate": 0.8153,
+      "time_per_pass_s": 50.49,
+      "failed_spend_share": 0.2295,
+      "confident_failure_share": 0.0
+    }
+  },
+  "by_model": {
+    "model-alpha": {
+      "H1_minimal_stable": {
+        "trials": 8,
+        "passes": 6,
+        "pass_rate": 0.75,
+        "cost_per_task_usd": 0.01612,
+        "cost_per_pass_usd": 0.02149,
+        "cache_hit_rate": 0.7902,
+        "time_per_pass_s": 51.0,
+        "failed_spend_share": 0.3952,
+        "confident_failure_share": 0.5,
+        "cost_rank": 1
+      },
+      "H2_cache_breaker": {
+        "trials": 8,
+        "passes": 6,
+        "pass_rate": 0.75,
+        "cost_per_task_usd": 0.03383,
+        "cost_per_pass_usd": 0.0451,
+        "cache_hit_rate": 0.0,
+        "time_per_pass_s": 63.75,
+        "failed_spend_share": 0.4597,
+        "confident_failure_share": 0.5,
+        "cost_rank": 3
+      },
+      "H3_chatty_cached": {
+        "trials": 8,
+        "passes": 4,
+        "pass_rate": 0.5,
+        "cost_per_task_usd": 0.07503,
+        "cost_per_pass_usd": 0.15005,
+        "cache_hit_rate": 0.8913,
+        "time_per_pass_s": 174.0,
+        "failed_spend_share": 0.5944,
+        "confident_failure_share": 0.75,
+        "cost_rank": 4
+      },
+      "H4_verify_gate": {
+        "trials": 8,
+        "passes": 7,
+        "pass_rate": 0.875,
+        "cost_per_task_usd": 0.02118,
+        "cost_per_pass_usd": 0.02421,
+        "cache_hit_rate": 0.8153,
+        "time_per_pass_s": 50.49,
+        "failed_spend_share": 0.2295,
+        "confident_failure_share": 0.0,
+        "cost_rank": 2
+      }
+    },
+    "model-beta": {
+      "H1_minimal_stable": {
+        "trials": 8,
+        "passes": 3,
+        "pass_rate": 0.375,
+        "cost_per_task_usd": 0.01799,
+        "cost_per_pass_usd": 0.04796,
+        "cache_hit_rate": 0.8045,
+        "time_per_pass_s": 114.0,
+        "failed_spend_share": 0.7377,
+        "confident_failure_share": 0.8,
+        "cost_rank": 2
+      },
+      "H2_cache_breaker": {
+        "trials": 8,
+        "passes": 3,
+        "pass_rate": 0.375,
+        "cost_per_task_usd": 0.039,
+        "cost_per_pass_usd": 0.104,
+        "cache_hit_rate": 0.0,
+        "time_per_pass_s": 142.5,
+        "failed_spend_share": 0.7769,
+        "confident_failure_share": 0.8,
+        "cost_rank": 3
+      },
+      "H3_chatty_cached": {
+        "trials": 8,
+        "passes": 2,
+        "pass_rate": 0.25,
+        "cost_per_task_usd": 0.07794,
+        "cost_per_pass_usd": 0.31174,
+        "cache_hit_rate": 0.895,
+        "time_per_pass_s": 364.0,
+        "failed_spend_share": 0.8048,
+        "confident_failure_share": 0.8333,
+        "cost_rank": 4
+      },
+      "H4_verify_gate": {
+        "trials": 8,
+        "passes": 7,
+        "pass_rate": 0.875,
+        "cost_per_task_usd": 0.02118,
+        "cost_per_pass_usd": 0.02421,
+        "cache_hit_rate": 0.8153,
+        "time_per_pass_s": 50.49,
+        "failed_spend_share": 0.2295,
+        "confident_failure_share": 0.0,
+        "cost_rank": 1
+      }
+    }
+  },
+  "audit_probes": {
+    "scored_count": 2,
+    "verified_passes": 1,
+    "pass_rate": 0.5,
+    "flagged_reward_hacks": [
+      "probe-hack"
+    ],
+    "excluded_infra_errors": [
+      "probe-infra"
+    ]
+  }
+}

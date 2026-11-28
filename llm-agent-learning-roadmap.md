@@ -201,7 +201,7 @@
 
 从单轮输出的评分扩展到任务终态。先在可重置的工作区里让 Agent 完成一份报告，独立读取报告产物和归档状态，再看调用轨迹解释失败。随后固定数据、工具权限、初始环境和任务预算，对比单 Agent、编排策略或 Harness 改动。结论覆盖产物正确性、业务副作用和执行成本。
 
-**学习顺序**　AE-06 跑通第一条端到端用例 → AE-01～02 建任务集和评分标准 → AE-03 用开源框架实现 → AE-07 做故障归因 → AE-04 看公开基准 → AE-08 做发布回归。多轮强化学习（AE-05）放在能稳定评测任务之后。
+**学习顺序**　AE-06 跑通第一条端到端用例 → AE-01～02 建任务集和评分标准 → AE-03 用开源框架实现 → AE-07 做故障归因 → AE-04 看公开基准 → AE-09 看 Harness 横评 → AE-08 做发布回归。多轮强化学习（AE-05）放在能稳定评测任务之后。
 
 | 编号 | 文章 | 读完可以做什么 |
 | --- | --- | --- |
@@ -211,6 +211,7 @@
 | AE-03 | [使用开源框架评测自己的 Agent](https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html)（已发布，[源稿](articles/07-agent-eval/ae-03-inspect-ai.md)） | 用 Inspect AI 组织退款样本、Agent 和评分器，验证只说「已归档」的回复会被实际证据拦住。 |
 | AE-07 | [Agent 失败如何归因，模型、工具还是 Harness](https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html)（已发布，[源稿](articles/07-agent-eval/ae-07-failure-attribution.md)） | 对两个都写成 3 条的报告逐段核对，用一次只替换一层的回放定位 `tool_output` 或 `artifact`。 |
 | AE-04 | [用开源 Benchmark 对照 Agent 能力](https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html)（已发布，[源稿](articles/07-agent-eval/ae-04-public-benchmarks.md)） | 选一个适合自己目标的 Agent 基准，说明它验收的是工具参数、业务终态、仓库补丁还是可用成品。 |
+| AE-09 | [FrontierHarness 评测全解：固定模型横评 Agent Harness、Prompt Cache 与单次通过成本](https://blog.lacknb.cn/articles/2026/11/28/1795827869958.html)（已发布，[源稿](articles/07-agent-eval/ae-09-frontier-harness-eval.md)） | 固定同一底座模型与隔离沙箱，横评不同 Agent Harness 的通过率、Prompt Cache 命中率与单次通过成本；复现模型–Harness 交互反转、高缓存却更贵的陷阱及反作弊审计。 |
 | AE-08 | [从离线 Agent 回归到线上灰度](https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html)（已发布，[源稿](articles/07-agent-eval/ae-08-regression-rollout.md)） | 为新能力、旧行为和权限各设一道回归门槛，再用灰度数据判断保持、放量或回退。 |
 | AE-05 | [进阶实验，Agent 的多轮强化学习](https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html)（已发布，[源稿](articles/07-agent-eval/ae-05-multi-turn-rl.md)） | 用同一多轮任务比较终态奖励和步骤奖励，找出有奖励却没完成的轨迹，并用未见任务复测。延伸到 TRN-08、EVO-01。可接着看 AGT-01。 |
 
@@ -225,8 +226,9 @@
 | [Terminal-Bench](https://www.tbench.ai/) | 真实 Linux Docker 容器里的纯命令行、编译与运维排障任务 | 在容器内运行确定性状态验证脚本 |
 | [KingBench 4](https://github.com/aicodeking)（[AICodeKing](https://www.youtube.com/@AICodeKing)） | 社区实战排行榜（模型 + Harness 组合）：限时零人工从 0 到 1 交付 6 套完整硬核应用 | 60 分制按交付原样实测、安全逃逸与反虚报检查，并披露 API 成本与耗时 |
 | [OSWorld](https://osworld-v1.xlang.ai/) / [WebArena](https://webarena.dev/) | 真实桌面 GUI（Computer-Use）与自托管真实网页浏览器工作流 | 检查虚拟机操作系统终态或网页后端数据库状态 |
+| [FrontierHarness Eval](https://frontierharness.org/leaderboard/v1.1/)（[GitHub](https://github.com/frontier-harness-eval/eval)） | 反转评测变量：固定同一批底座模型与隔离终端沙箱，横向评测 22 套 Coding Agent Harness | Harbor + Runta 无状态容器内确定性验证与轨迹防作弊扫描，输出通过率、缓存命中率、单次通过成本与耗时 |
 
-**Inspect AI** 用于搭建和运行自有任务。覆盖 CSV 报告正确性、审批和归档的用例由业务终态评分。需要把线上轨迹与质量评分关联时可调研 **Langfuse**，并验证采集字段、脱敏和留存策略。 [Anthropic Agent 评测指南](https://www.anthropic.com/research/demystifying-evals-for-ai-agents) · [Inspect AI Agent 文档](https://inspect.aisi.org.uk/agents.html) · [SWE-bench](https://github.com/SWE-bench/SWE-bench) · [τ²-Bench](https://github.com/sierra-research/tau2-bench) · [Langfuse](https://github.com/langfuse/langfuse) · [TRL 环境训练](https://huggingface.co/docs/trl/main/openenv) · [verl Agentic RL](https://verl.readthedocs.io/en/latest/start/agentic_rl.html)
+**Inspect AI** 用于搭建和运行自有任务。覆盖 CSV 报告正确性、审批和归档的用例由业务终态评分。需要把线上轨迹与质量评分关联时可调研 **Langfuse**，并验证采集字段、脱敏和留存策略。 [Anthropic Agent 评测指南](https://www.anthropic.com/research/demystifying-evals-for-ai-agents) · [Inspect AI Agent 文档](https://inspect.aisi.org.uk/agents.html) · [SWE-bench](https://github.com/SWE-bench/SWE-bench) · [τ²-Bench](https://github.com/sierra-research/tau2-bench) · [FrontierHarness](https://frontierharness.org/leaderboard/v1.1/) · [Langfuse](https://github.com/langfuse/langfuse) · [TRL 环境训练](https://huggingface.co/docs/trl/main/openenv) · [verl Agentic RL](https://verl.readthedocs.io/en/latest/start/agentic_rl.html)
 
 ## 8. RAG、Embedding、Rerank 与 LLM Wiki
 

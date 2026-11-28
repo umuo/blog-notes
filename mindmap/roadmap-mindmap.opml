@@ -4,7 +4,7 @@
     <title>LLM 与 Agent 知识脑图</title>
   </head>
   <body>
-    <outline text="LLM 与 Agent 知识脑图（138/138 已发布）" _note="请求主线：文本 → Token → 推理 → HTTP/SSE → Agent 工具循环 → RAG 检索 → 安全隔离 → 生产化">
+    <outline text="LLM 与 Agent 知识脑图（139/139 已发布）" _note="请求主线：文本 → Token → 推理 → HTTP/SSE → Agent 工具循环 → RAG 检索 → 安全隔离 → 生产化">
       <outline text="一、大模型本体与服务（63/63）" _note="从原理、协议、评测到训练与推理部署">
         <outline text="1. LLM 基础与推理（15/15）" _note="先修：Python、矩阵和概率直觉&#10;阶段产物：解释一条提示从 Token 到首个输出">
           <outline text="[F-01] Tokenizer 与 Chat Template（已发布）" _note="对同一句话打印普通分词、应用聊天模板、加生成起始标记这三份 Token ID，找到序列第一次不同的位置。" url="https://blog.lacknb.cn/articles/2026/11/19/1795068393122.html" />
@@ -80,7 +80,7 @@
           <outline text="[SERV-16] 离线批量推理与异步作业（已发布）" _note="按批次与条目 ID 归并乱序结果，从失败点重跑单个条目并确认无重复写入；对照 SERV-04 的引擎批处理。" url="https://blog.lacknb.cn/articles/2026/11/23/1795400466528.html" />
         </outline>
       </outline>
-      <outline text="二、Agent 核心与知识库（46/46）" _note="Loop / 上下文工程、Agent 评测、RAG 与 Wiki">
+      <outline text="二、Agent 核心与知识库（47/47）" _note="Loop / 上下文工程、Agent 评测、RAG 与 Wiki">
         <outline text="6. Agent、Context Engineering、Loop Engineering 与 Harness（25/25）" _note="先修：文本和工具协议、上下文预算&#10;阶段产物：写一个可终止、可恢复的 Agent">
           <outline text="[AGT-01] 从工具调用到 Agent Loop（已发布）" _note="把一个工具调用跑过动作校验、结果回填和终止条件，验证用户取消或预算耗尽后循环能停。" url="https://blog.lacknb.cn/articles/2026/11/23/1795402332959.html" />
           <outline text="[AGT-17] Context Engineering 总览（已发布）" _note="画出模型输入的数据流，保存阶段快照，比较上下文压缩前后是否保留了任务事实和关键限制。" url="https://blog.lacknb.cn/articles/2026/11/23/1795402335217.html" />
@@ -108,13 +108,14 @@
           <outline text="[AGT-16] Agent 运行轨迹与调试（已发布）" _note="用任务、Span、调用和动作标识串起脱敏轨迹，说明哪一步失败以及该查的下一条记录。" url="https://blog.lacknb.cn/articles/2026/11/23/1795402373955.html" />
           <outline text="[AGT-25] Agent 前端事件协议与生成式 UI（已发布）" _note="用 API-05 的流式知识驱动报告卡片，断线重连后恢复状态，并检查确认绑定的是当前报告版本。" url="https://blog.lacknb.cn/articles/2026/11/23/1795402375556.html" />
         </outline>
-        <outline text="7. Agent 效果评测（8/8）" _note="先修：Agent Loop、工具执行、LE&#10;阶段产物：从验证一次任务终态，进阶到故障归因和发布回归">
+        <outline text="7. Agent 效果评测（9/9）" _note="先修：Agent Loop、工具执行、LE&#10;阶段产物：从验证一次任务终态，进阶到故障归因和发布回归">
           <outline text="[AE-06] 第一篇，如何验证 Agent 真的完成了任务（已发布）" _note="沿 LE-07 的退款样本读回报告文件和归档表，独立核对两条、均值 5、批准前零条和批准后唯一写入。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403176399.html" />
           <outline text="[AE-01] 设计 Agent 任务集与环境夹具（已发布）" _note="写一条含初始状态、允许工具和预期产物的用例，每次重置环境，分别用固定回包和真实工具执行。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403178111.html" />
           <outline text="[AE-02] 结果评测、轨迹评测和随机性（已发布）" _note="同看两段执行轨迹，区分真正的终态失败、冗余工具调用和越权，并给出独立的指标。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403179638.html" />
           <outline text="[AE-03] 使用开源框架评测自己的 Agent（已发布）" _note="用 Inspect AI 组织退款样本、Agent 和评分器，验证只说「已归档」的回复会被实际证据拦住。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403181369.html" />
           <outline text="[AE-07] Agent 失败如何归因，模型、工具还是 Harness（已发布）" _note="对两个都写成 3 条的报告逐段核对，用一次只替换一层的回放定位 `tool_output` 或 `artifact`。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403183016.html" />
           <outline text="[AE-04] 用开源 Benchmark 对照 Agent 能力（已发布）" _note="选一个适合自己目标的 Agent 基准，说明它验收的是工具参数、业务终态、仓库补丁还是可用成品。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403184588.html" />
+          <outline text="[AE-09] FrontierHarness 评测全解：固定模型横评 Agent Harness、Prompt Cache 与单次通过成本（已发布）" _note="固定同一底座模型与隔离沙箱，横评不同 Agent Harness 的通过率、Prompt Cache 命中率与单次通过成本；复现模型–Harness 交互反转、高缓存却更贵的陷阱及反作弊审计。" url="https://blog.lacknb.cn/articles/2026/11/28/1795827869958.html" />
           <outline text="[AE-08] 从离线 Agent 回归到线上灰度（已发布）" _note="为新能力、旧行为和权限各设一道回归门槛，再用灰度数据判断保持、放量或回退。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403186137.html" />
           <outline text="[AE-05] 进阶实验，Agent 的多轮强化学习（已发布）" _note="用同一多轮任务比较终态奖励和步骤奖励，找出有奖励却没完成的轨迹，并用未见任务复测。延伸到 TRN-08、EVO-01。可接着看 AGT-01。" url="https://blog.lacknb.cn/articles/2026/11/23/1795403187704.html" />
         </outline>
@@ -182,7 +183,7 @@
       <outline text="横向入口：题库 · 速查 · 路线图（3 份总览）" _note="按面试考点反查原理、按主题速查机制、看置顶总路线">
         <outline text="[BANK] Agent 与 Sandbox 面试题库：运行时、模型网关与系统设计" _note="覆盖 AG / SB / LLM / ARCH / MVP / CTX 六大面试专题与追问参考答案，用 CSV 上传→隔离分析→归档场景贯穿。" url="https://blog.lacknb.cn/articles/2026/11/19/1795049523245.html" />
         <outline text="[NOTES] Agent 工程笔记" _note="把多智能体编排、Agent 记忆、上下文工程、本地执行安全、模型推理与缓存浓缩成 5 层速查。" />
-        <outline text="[MAP] LLM 与 Agent 学习路线图：从模型原理到工程落地" _note="串联 14 阶段 138 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。" url="https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html" />
+        <outline text="[MAP] LLM 与 Agent 学习路线图：从模型原理到工程落地" _note="串联 14 阶段 139 篇专题的置顶总览文章，含常用模型数据集与 Agent 公开基准速查表。" url="https://blog.lacknb.cn/articles/2026/11/19/1795058329577.html" />
       </outline>
     </outline>
   </body>

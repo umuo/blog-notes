@@ -4,11 +4,11 @@
 
 ## 阅读入口
 
-- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。14 个专题共 138 篇，均已发布。第十四部分「生产化专题」共 7 篇，从模型网关讲到在途任务兼容与慢请求排查。
+- [LLM 与 Agent 专题写作路线图](llm-agent-learning-roadmap.md)记录阅读顺序、各篇范围和发布状态。14 个专题共 139 篇，均已发布。第十四部分「生产化专题」共 7 篇，从模型网关讲到在途任务兼容与慢请求排查。
 - [写作进度](PROGRESS.md)记录各专题的发布入口与里程碑。
 - [专题写作与协作规范](AGENTS.md)说明文章深度、术语解释与发布校验要求。
 - [Agent 与 Sandbox 面试题库](agent-sandbox-interview-bank.md)和[Agent 工程笔记](agent-engineering-notes.md)用于查阅相关机制和面试题。
-- [交互式知识图谱脑图](mindmap/roadmap-mindmap.html)（含 [XMind OPML 导入稿](mindmap/roadmap-mindmap.opml)与 [Markdown 大纲](mindmap/roadmap-mindmap-outline.md)）将 14 个阶段 138 篇专题按板块、先修与跨篇关系可视化，可运行 [scripts/build_roadmap_mindmap.py](scripts/build_roadmap_mindmap.py) 一键刷新。
+- [交互式知识图谱脑图](mindmap/roadmap-mindmap.html)（含 [XMind OPML 导入稿](mindmap/roadmap-mindmap.opml)与 [Markdown 大纲](mindmap/roadmap-mindmap-outline.md)）将 14 个阶段 139 篇专题按板块、先修与跨篇关系可视化，可运行 [scripts/build_roadmap_mindmap.py](scripts/build_roadmap_mindmap.py) 一键刷新。
 
 ## 目录结构
 
